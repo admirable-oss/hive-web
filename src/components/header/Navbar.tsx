@@ -2,6 +2,7 @@ import type { Ref } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { LinkButton } from "@/components/ui/button";
 import { GridMenuButton } from "@/components/ui/grid-menu-button";
+import { logInstallationAction } from "@/lib/posthog-logger";
 import { LINKS, VERSION_LABEL } from "@/lib/site";
 import { NavLinks } from "./NavLinks";
 import { SoundToggle } from "./SoundToggle";
@@ -36,7 +37,16 @@ export function Navbar({ onOpenMenu, menuOpen, ref }: NavbarProps) {
           <LinkButton variant="secondary" size="sm" href={LINKS.github} className="hidden px-3.5 min-[560px]:inline-flex">
             GitHub <span aria-hidden>↗</span>
           </LinkButton>
-          <LinkButton variant="primary" size="sm" href={LINKS.install} data-mascot-target="install">
+          <LinkButton
+            variant="primary"
+            size="sm"
+            href={LINKS.install}
+            data-mascot-target="install"
+            onPress={() => {
+              window.posthog?.capture("installation_opened");
+              logInstallationAction("installation_opened");
+            }}
+          >
             Install
           </LinkButton>
           <GridMenuButton

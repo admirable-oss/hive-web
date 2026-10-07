@@ -1,0 +1,32 @@
+---
+import { cn } from "cn";
+import { Logo } from "@/components/brand/Logo";
+import { buttonVariants } from "@/components/ui/button";
+import { LINKS, VERSION_LABEL } from "@/lib/site";
+
+/** Static (zero-JS) header for secondary pages. */
+---
+
+<header class="relative z-10">
+  <div class="mx-auto flex h-15 max-w-[1680px] items-center justify-between gap-4 px-[clamp(16px,4vw,64px)] sm:h-18">
+    <div class="flex items-center gap-4">
+      <a href="/" class="flex" aria-label="Hive — home">
+        <Logo title="" className="h-6 sm:h-7" />
+      </a>
+      <a
+        href={LINKS.changelog}
+        class="hidden h-6 items-center border border-bone/14 px-2 font-mono text-[11px] tracking-[.06em] whitespace-nowrap text-stone hover:border-honey hover:text-honey sm:flex"
+      >
+        {VERSION_LABEL}
+      </a>
+    </div>
+    <nav aria-label="Primary" class="flex items-center gap-2.5">
+      <a href={LINKS.github} class={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hidden px-3.5 hover:border-bone/40 hover:text-bone min-[560px]:inline-flex")}>
+        GitHub <span aria-hidden="true">↗</span>
+      </a>
+      <a href={LINKS.install} class={cn(buttonVariants({ variant: "primary", size: "sm" }), "hover:bg-bone hover:text-ink")}>
+        Install
+      </a>
+    </nav>
+  </div>
+</header>

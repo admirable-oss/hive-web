@@ -1,4 +1,5 @@
 ---
+import PostHog from '../components/posthog.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -6,6 +7,10 @@ interface Props {
 	description?: string;
 	canonical?: string;
 	image?: string;
+	/** Keep the page out of search results (e.g. 404). */
+	noindex?: boolean;
+	/** Full-viewport pages (the hero) disable document scrolling. */
+	lockScroll?: boolean;
 }
 
 const {
@@ -13,9 +18,11 @@ const {
 	description = 'Hive is agentic infrastructure for running coding agents continuously, anywhere. Keep agents working across local machines, servers, and SSH sessions.',
 	canonical,
 	image = '/og-image.png',
+	noindex = false,
+	lockScroll = false,
 } = Astro.props;
 
-const siteUrl = 'https://hive.admir-saheta.com';
+const siteUrl = (Astro.site ?? new URL('https://hive.admir-saheta.com')).origin;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
 const imageUrl = new URL(image, siteUrl).href;
 ---
@@ -31,6 +38,7 @@ const imageUrl = new URL(image, siteUrl).href;
 		/>
 
 		<meta name="generator" content={Astro.generator} />
+		<PostHog />
 
 		<title>{title}</title>
 		<meta name="description" content={description} />
@@ -40,9 +48,13 @@ const imageUrl = new URL(image, siteUrl).href;
 
 		<link rel="canonical" href={canonicalUrl} />
 
+		<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+		<meta name="application-name" content="Hive" />
+		<meta name="apple-mobile-web-app-title" content="Hive" />
 
 		<!-- Fonts are self-hosted via @fontsource (see global.css). -->
 
@@ -62,19 +74,24 @@ const imageUrl = new URL(image, siteUrl).href;
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:locale" content="en_US" />
 		<meta property="og:image" content={imageUrl} />
-		<meta property="og:image:alt" content="Hive — Agentic Infrastructure" />
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="Hive — Close the laptop. The hive keeps going." />
 
 		<!-- Twitter -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={imageUrl} />
+		<meta name="twitter:image:alt" content="Hive — Close the laptop. The hive keeps going." />
 
 		<!-- Crawlers -->
 		<meta
 			name="robots"
-			content="index, follow, max-image-preview:large"
+			content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'}
 		/>
 
 		<!-- Structured data -->
@@ -86,6 +103,10 @@ const imageUrl = new URL(image, siteUrl).href;
 			operatingSystem: 'macOS, Linux',
 			description,
 			url: siteUrl,
+			image: imageUrl,
+			license: 'https://www.apache.org/licenses/LICENSE-2.0',
+			isAccessibleForFree: true,
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 			author: {
 				'@type': 'Organization',
 				name: 'Admirable',
@@ -94,7 +115,7 @@ const imageUrl = new URL(image, siteUrl).href;
 		})} />
 	</head>
 
-	<body>
+	<body class:list={[lockScroll && 'overflow-hidden overscroll-none']}>
 		<slot />
 	</body>
 </html>

@@ -1,5 +1,6 @@
 import { CopyCommand } from "@/components/shared/CopyCommand";
 import { LinkButton } from "@/components/ui/button";
+import { logInstallationAction } from "@/lib/posthog-logger";
 import { LINKS, SUPPORTED_AGENTS } from "@/lib/site";
 
 export function HeroActions() {
@@ -14,6 +15,10 @@ export function HeroActions() {
         size="lg"
         href={LINKS.docs}
         data-mascot-target="docs"
+        onPress={() => {
+          window.posthog?.capture("documentation_opened");
+          logInstallationAction("documentation_opened");
+        }}
         // The mascot lands on this button and pushes it down via transform.
         className="w-full transition-[background-color,color,transform] duration-120 sm:w-auto"
       >

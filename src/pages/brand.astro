@@ -1,0 +1,188 @@
+---
+import { cn } from "cn";
+import Layout from "../layouts/Layout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import { buttonVariants } from "../components/ui/button";
+import { LINKS } from "../lib/site";
+
+const LOGOS = [
+  { name: "Lockup", file: "hive-lockup", h: "h-10" },
+  { name: "Mark", file: "hive-mark", h: "h-16" },
+  { name: "Wordmark", file: "hive-wordmark", h: "h-10" },
+  { name: "Stacked", file: "hive-stacked", h: "h-24" },
+];
+
+const SINGLES = [
+  { name: "Avatar", file: "logo/hive-avatar.svg" },
+  { name: "Micro", file: "logo/hive-micro.svg" },
+];
+
+const PALETTE = [
+  { name: "Honey", hex: "#F5B942", note: "Primary · CTAs · signal", ink: true },
+  { name: "Honey deep", hex: "#DE9C30", note: "Fills · pressed", ink: true },
+  { name: "Bone", hex: "#EDEAE3", note: "Text · inverse surfaces", ink: true },
+  { name: "Stone", hex: "#8F8B82", note: "Secondary text" },
+  { name: "Ash", hex: "#77736A", note: "Tertiary · labels" },
+  { name: "Graphite", hex: "#1C1C1A", note: "Chips · hover" },
+  { name: "Panel", hex: "#0F0F0E", note: "Overlays" },
+  { name: "Ink", hex: "#0C0C0B", note: "Background" },
+  { name: "Violet", hex: "#8B7CFF", note: "Awaiting you" },
+];
+
+const TYPE = [
+  { name: "Martian Mono", role: "Display", cls: "font-display text-4xl tracking-[-.06em]", sample: "The hive keeps going." },
+  { name: "Geist", role: "Interface & body", cls: "font-sans text-3xl font-medium tracking-[-.03em]", sample: "Persistent cells for agents." },
+  { name: "Geist Mono", role: "Code & labels", cls: "font-mono text-xl", sample: "$ git clone admirable-oss/hive" },
+];
+
+const MASCOT = ["idle", "flying", "working", "thinking", "awaiting", "complete", "connected", "swarm", "loader"];
+const ICONS = ["run", "pause", "done", "alert", "cell", "terminal", "branch", "persist", "port", "lock"];
+
+const sectionLabel = "font-mono text-[11px] tracking-[.24em] text-ash";
+const dl = "font-mono text-[11px] tracking-[.12em] text-stone hover:text-honey";
+---
+
+<Layout
+  title="Brand — Hive"
+  description="Hive brand assets: logos, mascot, icons, colours and typography. Free to use when referring to Hive."
+>
+  <div class="min-h-dvh bg-background font-sans text-bone">
+    <PageHeader />
+
+    <main class="mx-auto flex max-w-[1200px] flex-col gap-24 px-[clamp(16px,4vw,64px)] pt-12 pb-24 sm:pt-20">
+      <section class="flex flex-col gap-6">
+        <p class={cn(sectionLabel, "m-0 flex items-center gap-3")}><span aria-hidden="true" class="size-2 bg-honey"></span>BRAND</p>
+        <h1 class="m-0 font-display text-[length:min(10vw,72px)] leading-[1.05] font-normal tracking-[-.06em]">
+          Pixels, honey<br /><span class="text-stone">and persistence<span class="text-honey">.</span></span>
+        </h1>
+        <p class="m-0 max-w-[60ch] text-lg leading-normal text-pretty text-stone">
+          Everything you need to write about or build on Hive. Every asset is a crisp-edged SVG drawn on a pixel grid —
+          scale it in whole multiples and keep it on dark ink whenever you can.
+        </p>
+        <div class="flex flex-wrap gap-2.5">
+          <a href="/brand/logo/hive-lockup-dark.svg" download class={cn(buttonVariants({ variant: "primary", size: "md" }), "hover:bg-bone hover:text-ink")}>Download lockup</a>
+          <a href={LINKS.github} class={cn(buttonVariants({ variant: "secondary", size: "md" }), "font-normal hover:border-bone/40 hover:text-bone")}>
+            Source on GitHub <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <section aria-labelledby="logos" class="flex flex-col gap-6">
+        <h2 id="logos" class={cn(sectionLabel, "m-0")}>01 · LOGO</h2>
+        <div class="grid gap-px border border-bone/8 bg-bone/8 sm:grid-cols-2">
+          {
+            LOGOS.flatMap((l) =>
+              (["dark", "light"] as const).map((tone) => (
+                <figure class={cn("m-0 flex flex-col", tone === "dark" ? "bg-shell" : "bg-bone")}>
+                  <div class="flex h-48 items-center justify-center p-8">
+                    <img src={`/brand/logo/${l.file}-${tone}.svg`} alt={`Hive ${l.name.toLowerCase()} for ${tone} backgrounds`} class={cn(l.h, "pixelated w-auto")} loading="lazy" />
+                  </div>
+                  <figcaption class={cn("flex items-center justify-between border-t px-4 py-3", tone === "dark" ? "border-bone/8" : "border-ink/10")}>
+                    <span class={cn("text-sm", tone === "dark" ? "text-fog" : "text-ink")}>{l.name} · on {tone}</span>
+                    <a href={`/brand/logo/${l.file}-${tone}.svg`} download class={cn(dl, tone === "light" && "text-ash hover:text-ink")}>SVG ↓</a>
+                  </figcaption>
+                </figure>
+              )),
+            )
+          }
+          {
+            SINGLES.map((l) => (
+              <figure class="m-0 flex flex-col bg-shell">
+                <div class="flex h-48 items-center justify-center p-8">
+                  <img src={`/brand/${l.file}`} alt={`Hive ${l.name.toLowerCase()}`} class="pixelated h-16 w-auto" loading="lazy" />
+                </div>
+                <figcaption class="flex items-center justify-between border-t border-bone/8 px-4 py-3">
+                  <span class="text-sm text-fog">{l.name}</span>
+                  <a href={`/brand/${l.file}`} download class={dl}>SVG ↓</a>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+        <p class="m-0 text-sm text-ash">Please don’t recolour, stretch, rotate or smooth the pixels.</p>
+      </section>
+
+      <section aria-labelledby="colour" class="flex flex-col gap-6">
+        <h2 id="colour" class={cn(sectionLabel, "m-0")}>02 · COLOUR</h2>
+        <ul class="m-0 grid list-none grid-cols-2 gap-px border border-bone/8 bg-bone/8 p-0 sm:grid-cols-3">
+          {
+            PALETTE.map((c) => (
+              <li class="flex flex-col bg-shell">
+                <div class="flex h-28 items-end p-4" style={`background:${c.hex}`}>
+                  <span class={cn("font-mono text-xs", c.ink ? "text-ink" : "text-bone")}>{c.hex}</span>
+                </div>
+                <div class="flex flex-col gap-1 px-4 py-3">
+                  <span class="text-sm text-bone">{c.name}</span>
+                  <span class="font-mono text-[11px] text-ash">{c.note}</span>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section aria-labelledby="type" class="flex flex-col gap-6">
+        <h2 id="type" class={cn(sectionLabel, "m-0")}>03 · TYPE</h2>
+        <div class="flex flex-col border-t border-bone/8">
+          {
+            TYPE.map((t) => (
+              <div class="grid gap-3 border-b border-bone/8 py-6 sm:grid-cols-[220px_minmax(0,1fr)] sm:items-center">
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm text-bone">{t.name}</span>
+                  <span class="font-mono text-[11px] text-ash">{t.role}</span>
+                </div>
+                <p class={cn("m-0 truncate", t.cls)}>{t.sample}</p>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <section aria-labelledby="mascot" class="flex flex-col gap-6">
+        <h2 id="mascot" class={cn(sectionLabel, "m-0")}>04 · THE WORKER</h2>
+        <p class="m-0 max-w-[60ch] text-stone">One bee per agent cell. Each state maps to what the agent is doing right now.</p>
+        <ul class="m-0 grid list-none grid-cols-3 gap-px border border-bone/8 bg-bone/8 p-0">
+          {
+            MASCOT.map((m) => (
+              <li class="flex flex-col bg-shell">
+                <div class="flex h-36 items-center justify-center p-6">
+                  <img src={`/brand/mascot/hive-agent-${m}.svg`} alt={`Hive worker — ${m}`} class="pixelated max-h-20 w-auto max-w-full" loading="lazy" />
+                </div>
+                <div class="flex items-center justify-between border-t border-bone/8 px-4 py-3">
+                  <span class="font-mono text-xs text-fog">{m}</span>
+                  <a href={`/brand/mascot/hive-agent-${m}.svg`} download class={dl}>↓</a>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section aria-labelledby="icons" class="flex flex-col gap-6">
+        <h2 id="icons" class={cn(sectionLabel, "m-0")}>05 · ICONS</h2>
+        <ul class="m-0 grid list-none grid-cols-5 gap-px border border-bone/8 bg-bone/8 p-0 sm:grid-cols-10">
+          {
+            ICONS.map((i) => (
+              <li class="bg-shell">
+                <a href={`/brand/icons/${i}.svg`} download class="group flex flex-col items-center gap-3 px-2 py-5" aria-label={`Download ${i} icon`}>
+                  <img src={`/brand/icons/${i}.svg`} alt="" class="pixelated size-9" loading="lazy" />
+                  <span class="font-mono text-[10px] text-ash group-hover:text-honey">{i}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="m-0 text-sm text-ash">
+          Ink versions for light backgrounds live in <code class="font-mono text-fog">/brand/icons/ink/</code>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="border-t border-bone/8">
+      <div class="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-[clamp(16px,4vw,64px)] py-6 font-mono text-xs text-ash">
+        <span>apache-2.0 · built in the open by Admir Saheta</span>
+        <a href="/" class="text-fog hover:text-honey">← back to the hive</a>
+      </div>
+    </footer>
+  </div>
+</Layout>

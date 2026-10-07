@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { logInstallationAction } from "@/lib/posthog-logger";
 
 function legacyCopy(text: string) {
   const ta = document.createElement("textarea");
@@ -8,11 +9,12 @@ function legacyCopy(text: string) {
   document.body.appendChild(ta);
   ta.select();
   try {
-    document.execCommand("copy");
+    return document.execCommand("copy");
   } catch {
-    /* noop */
+    return false;
+  } finally {
+    ta.remove();
   }
-  ta.remove();
 }
 
 /** Copy text with a transient `copied` flag (falls back to execCommand). */
@@ -24,11 +26,17 @@ export function useClipboard(resetMs = 1600) {
 
   const copy = useCallback(
     async (text: string) => {
+      let copiedSuccessfully = false;
       try {
         await navigator.clipboard.writeText(text);
+        copiedSuccessfully = true;
       } catch {
-        legacyCopy(text);
+        copiedSuccessfully = legacyCopy(text);
       }
+      if (!copiedSuccessfully) return;
+
+      window.posthog?.capture("installation_command_copied");
+      logInstallationAction("command_copied");
       setCopied(true);
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), resetMs);

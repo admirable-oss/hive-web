@@ -1,43 +1,21 @@
-# Astro Starter Kit: Minimal
+<p align="center">
+  <img src="https://9lv0ptfqwc.ufs.sh/f/Ct83ioyjHOfENMZX8ewdYpswjne6l2VQiGOf7z53XWRtkTUu" alt="Hive" width="200px" />
+</p>
+<p align="center">
+  <img src="https://9lv0ptfqwc.ufs.sh/f/Ct83ioyjHOfEnlhYREXGahkPT9wIcdlGmYZKCQMWiD6ESrU0" alt="Wordmark" width="100px" />
+</p>
+<h3 align="center">The agent infrastructure for agents that don’t clock out</h3>
+<p align="center">Run them <strong style="color: #F5B942">anywhere</strong>. Leave them running.</p>
 
-```sh
-bun create astro@latest -- --template minimal
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-%23F5B942" />
+  <img src="https://img.shields.io/github/last-commit/admirable-oss/hive" />
+  <img src="https://img.shields.io/badge/Release-v0-%23F5B942" />
+</p>
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+https://github.com/user-attachments/assets/bd7b9d6e-d0f5-43d7-9889-34c1a3fb0c9e
 
-## 🚀 Project Structure
+## Intro
+If you're looking for the Hive Infrastructure Platform repository its located at https://github.com/admirable-oss/hive
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+This is the Hive Website & Documentation repository.

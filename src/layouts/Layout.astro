@@ -1,3 +1,100 @@
 ---
-import '../styles/global.css'  
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+	canonical?: string;
+	image?: string;
+}
+
+const {
+	title = 'Hive — Agentic Infrastructure to Keep Agents Working',
+	description = 'Hive is agentic infrastructure for running coding agents continuously, anywhere. Keep agents working across local machines, servers, and SSH sessions.',
+	canonical,
+	image = '/og-image.png',
+} = Astro.props;
+
+const siteUrl = 'https://hive.admir-saheta.com';
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
+const imageUrl = new URL(image, siteUrl).href;
 ---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover"
+		/>
+
+		<meta name="generator" content={Astro.generator} />
+
+		<title>{title}</title>
+		<meta name="description" content={description} />
+
+		<meta name="theme-color" content="#0C0C0B" />
+		<meta name="color-scheme" content="dark" />
+
+		<link rel="canonical" href={canonicalUrl} />
+
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+		<!-- Fonts are self-hosted via @fontsource (see global.css). -->
+
+		<!-- Repeat visit: let CSS hide a mode="once" preloader before first paint. -->
+		<script is:inline>
+			try {
+				if (sessionStorage.getItem('hive-preloaded') === '1') document.documentElement.dataset.preloaded = '';
+			} catch (e) {}
+		</script>
+		<noscript>
+			<style>[data-reveal]{opacity:1!important}[data-preloader]{display:none!important}</style>
+		</noscript>
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Hive" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={imageUrl} />
+		<meta property="og:image:alt" content="Hive — Agentic Infrastructure" />
+
+		<!-- Twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={imageUrl} />
+
+		<!-- Crawlers -->
+		<meta
+			name="robots"
+			content="index, follow, max-image-preview:large"
+		/>
+
+		<!-- Structured data -->
+		<script type="application/ld+json" set:html={JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'SoftwareApplication',
+			name: 'Hive',
+			applicationCategory: 'DeveloperApplication',
+			operatingSystem: 'macOS, Linux',
+			description,
+			url: siteUrl,
+			author: {
+				'@type': 'Organization',
+				name: 'Admirable',
+				url: 'https://admir-saheta.com',
+			},
+		})} />
+	</head>
+
+	<body>
+		<slot />
+	</body>
+</html>

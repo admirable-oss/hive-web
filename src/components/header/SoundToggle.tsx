@@ -11,7 +11,13 @@ const BARS: [string, string][] = [
   ["4px", "8px"],
 ];
 
-export function SoundToggle({ className }: { className?: string }) {
+interface SoundToggleProps {
+  className?: string;
+  /** Bars only — the label moves into the accessible name. */
+  compact?: boolean;
+}
+
+export function SoundToggle({ className, compact = false }: SoundToggleProps) {
   const sound = useHive((s) => s.sound);
 
   return (
@@ -24,7 +30,8 @@ export function SoundToggle({ className }: { className?: string }) {
       }}
       aria-label="Sound effects"
       className={cn(
-        "flex h-9 items-center gap-2 px-2.5 font-mono text-xs whitespace-nowrap text-stone outline-none transition-colors duration-150 ease-[steps(2)] data-hovered:text-bone data-focus-visible:outline-2 data-focus-visible:outline-honey",
+        "flex items-center gap-2 font-mono text-xs whitespace-nowrap text-stone outline-none transition-colors duration-150 ease-[steps(2)] data-hovered:text-bone data-focus-visible:outline-2 data-focus-visible:outline-honey",
+        compact ? "size-9 justify-center" : "h-9 px-2.5",
         className
       )}
     >
@@ -37,7 +44,7 @@ export function SoundToggle({ className }: { className?: string }) {
           />
         ))}
       </span>
-      <span aria-hidden>sound {sound ? "on" : "off"}</span>
+      {!compact && <span aria-hidden>sound {sound ? "on" : "off"}</span>}
     </ToggleButton>
   );
 }

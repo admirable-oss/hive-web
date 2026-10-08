@@ -14,8 +14,8 @@ interface Props {
 }
 
 const {
-	title = 'Hive — Agentic Infrastructure to Keep Agents Working',
-	description = 'Hive is agentic infrastructure for running coding agents continuously, anywhere. Keep agents working across local machines, servers, and SSH sessions.',
+	title = 'Hive — Coding agents that don’t clock out',
+	description = 'Hive is open-source infrastructure that gives every coding agent a persistent runtime — terminal, workspace and context that survive disconnects, reboots and closed laptops.',
 	canonical,
 	image = '/og-image.png',
 	noindex = false,
@@ -79,14 +79,14 @@ const imageUrl = new URL(image, siteUrl).href;
 		<meta property="og:image:type" content="image/png" />
 		<meta property="og:image:width" content="1200" />
 		<meta property="og:image:height" content="630" />
-		<meta property="og:image:alt" content="Hive — Close the laptop. The hive keeps going." />
+		<meta property="og:image:alt" content="Hive — Coding agents that don’t clock out." />
 
 		<!-- Twitter -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={imageUrl} />
-		<meta name="twitter:image:alt" content="Hive — Close the laptop. The hive keeps going." />
+		<meta name="twitter:image:alt" content="Hive — Coding agents that don’t clock out." />
 
 		<!-- Crawlers -->
 		<meta

@@ -2,7 +2,7 @@ import type { Ref } from "react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { CLONE_COMMAND, CLONE_DISPLAY } from "@/lib/site";
+import { INSTALL_COMMAND } from "@/lib/site";
 
 interface CopyCommandProps {
   display?: string;
@@ -14,8 +14,8 @@ interface CopyCommandProps {
 
 /** Terminal command box with a one-tap copy chip. */
 export function CopyCommand({
-  display = CLONE_DISPLAY,
-  command = CLONE_COMMAND,
+  command = INSTALL_COMMAND,
+  display = command,
   size = "lg",
   className,
   ref,

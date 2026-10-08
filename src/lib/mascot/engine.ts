@@ -5,15 +5,7 @@ import { BEE_COLORS, drawBee, drawThought, type BeePose } from "../sprite/bee";
 
 /* ------------------------------------------------------------------ types */
 
-export type MascotTarget = "install" | "clone" | "docs" | "word:hive";
-
-interface Word {
-  key: string;
-  el: HTMLElement;
-  base: string;
-  weight: number;
-  fontSize: number;
-}
+export type MascotTarget = "install-cmd" | "demo" | "cell:web" | "cell:api";
 
 interface Particle {
   x: number;
@@ -25,20 +17,9 @@ interface Particle {
   floor: number;
   rest: boolean;
   life: number;
-  paint?: Word;
 }
 
-interface Ring {
-  x: number;
-  y: number;
-  r: number;
-  life: number;
-  s: number;
-}
-
-type TaskName =
-  | "emerge" | "arrive" | "patrol" | "inspect" | "land" | "sprinkle"
-  | "dash" | "recover" | "knock" | "rest" | "evade";
+type TaskName = "emerge" | "arrive" | "patrol" | "inspect" | "land" | "dash" | "recover" | "rest" | "evade";
 
 interface Task {
   name: TaskName;
@@ -49,29 +30,24 @@ interface Task {
   pts?: { x: number; y: number; z: number }[];
   i?: number;
   target?: MascotTarget;
-  word?: Word;
   side?: number;
-  kx?: number;
-  ky?: number;
   hold?: number;
   hops?: number;
-  knocks?: number;
-  t2?: number;
   far?: number;
 }
 
 export interface MascotOptions {
   section: HTMLElement;
-  /** Behind the copy (small/far bee). */
+  /** Behind the copy/demo (small/far bee). */
   back: HTMLCanvasElement;
-  /** In front of the copy (close bee, particles). */
+  /** In front of the copy/demo (close bee, particles). */
   front: HTMLCanvasElement;
   signals: HeroSignals;
   sfx: (kind: SfxKind, v?: number) => void;
   /** Resolve an element the bee can inspect/land on. */
   findTarget: (key: MascotTarget) => HTMLElement | null;
-  /** Elements with `data-mascot-word` that can be painted with honey. */
-  findWords: () => HTMLElement[];
+  /** The bee never flies above this element's bottom edge (keeps it off the headline). */
+  ceiling: () => HTMLElement | null;
   /** Seconds since the page intro started (-1 before). */
   introElapsed: () => number;
   preloaded: () => boolean;
@@ -85,28 +61,24 @@ const DEBRIS = [AM, AM, AM, AM, AM, INK, INK, "#E8E6E0", "#9B9BA1"];
 
 const TASKS: Partial<Record<TaskName, { w: number; cd?: number }>> = {
   patrol: { w: 3 },
-  inspect: { w: 2.2, cd: 6 },
-  land: { w: 1.5, cd: 14 },
-  sprinkle: { w: 2, cd: 9 },
+  inspect: { w: 2.4, cd: 6 },
+  land: { w: 1.6, cd: 14 },
   dash: { w: 1.1, cd: 14 },
-  knock: { w: 0.9, cd: 26 },
   rest: { w: 0.7, cd: 32 },
 };
-const INSPECT_TARGETS: MascotTarget[] = ["install", "clone", "docs", "word:hive"];
-
-const svgWave = (fill: string, d: string) =>
-  `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='16' viewBox='0 0 120 16'><path d='${d}' fill='${fill}'/></svg>`)}")`;
-const WAVE_A = svgWave("#F5B942", "M0 9 Q15 3 30 9 T60 9 T90 9 T120 9 V16 H0Z");
-const WAVE_B = svgWave("#FFD58A", "M0 7 Q15 13 30 7 T60 7 T90 7 T120 7 V16 H0Z");
+const INSPECT_TARGETS: MascotTarget[] = ["install-cmd", "demo", "cell:web", "cell:api"];
+/** Gap between the ceiling element and the top of the flight band. */
+const CEILING_GAP = 16;
 
 /* ----------------------------------------------------------------- engine */
 
 /**
- * The hero's resident worker bee: a small steering-behaviour "brain" that
- * picks weighted tasks (patrol, inspect a CTA, land and bounce on the docs
- * button, paint a headline word with honey, dash into a wall, knock on the
- * screen…), flees the cursor, and renders pixel art to two 2D canvases
- * sandwiching the copy. Framework-free; driven by `frame(now)`.
+ * The hero's resident worker bee — a persistent agent that lives in the hex
+ * band under the copy. A small steering-behaviour "brain" picks weighted
+ * tasks (patrol, inspect the install command or a demo cell, land and bounce
+ * on the runtime window, dash into a wall, go home to the hive…), flees the
+ * cursor, and renders pixel art to two 2D canvases sandwiching the demo.
+ * Framework-free; driven by `frame(now)`.
  */
 export class MascotEngine {
   private o: MascotOptions;
@@ -119,23 +91,18 @@ export class MascotEngine {
   private k = 1;
   private S0 = 12;
   private t = 0;
+  private ceil = 0;
   private last = performance.now();
   private started = false;
   private parts: Particle[] = [];
-  private rings: Ring[] = [];
   private mouse: { x: number; y: number } | null = null;
   private mx = 0;
   private my = 0;
   private task: Task = { name: "patrol", t: 0, phase: 0 };
   private lastName: TaskName | "" = "";
   private cool: Partial<Record<TaskName, number>> = {};
-  private paint: Record<string, number> = {};
-  private hold: Record<string, number> = {};
-  private level: Record<string, number> = {};
-  private emit = 0;
   private still = 0;
   private corner = 0;
-  private words: Word[] = [];
   private rectCache = new Map<Element, { l: number; t: number; w: number; h: number }>();
   private sectionRect: DOMRect | null = null;
   private sitTarget: HTMLElement | null = null;
@@ -177,7 +144,6 @@ export class MascotEngine {
     s.removeEventListener("pointercancel", this.onUp);
     this.ro.disconnect();
     this.releaseSeat();
-    for (const wd of this.words) this.clearPaint(wd.el);
   }
 
   /* ---------------------------------------------------------- layout */
@@ -192,14 +158,8 @@ export class MascotEngine {
     back.width = front.width = w;
     back.height = front.height = h;
     this.k = clamp(w / 1440, 0.5, 1.15);
-    this.S0 = w < 640 ? clamp(w / 34, 8.5, 13) : clamp(Math.min(w, h * 1.5) / 92, 5, 17);
-    this.words = this.o.findWords().map((el) => ({
-      key: el.dataset.mascotWord ?? "",
-      el,
-      base: el.dataset.mascotBase ?? "#8F8B82",
-      weight: Number(el.dataset.mascotWeight ?? 1),
-      fontSize: 0,
-    }));
+    // Sized to sit alongside the runtime demo, not over it.
+    this.S0 = w < 640 ? clamp(w / 96, 3.5, 4.5) : clamp(Math.min(w, h * 1.5) / 180, 4, 9);
     if (!this.mx) {
       this.mx = w / 2;
       this.my = h / 2;
@@ -208,15 +168,22 @@ export class MascotEngine {
     if (!this.o.motion) this.frame(performance.now());
   };
 
-  private core = () => ({ x: this.w * 0.5, y: this.h * 0.23 });
+  /** Top of the flight band (px from the section top). */
+  private get bandTop() {
+    return Math.min(this.ceil + CEILING_GAP, this.h * 0.8);
+  }
 
-  /** Sprite pixel size for depth `z` (0 = deep in the hive, >1 = against the glass). */
+  /** Point inside the band at fraction `f` of its height. */
+  private bandY(f: number) {
+    return this.bandTop + (this.h - this.bandTop) * f;
+  }
+
+  /** The hive entrance sits in the middle of the floor band. */
+  private core = () => ({ x: this.w * 0.5, y: this.bandY(0.45) });
+
+  /** Sprite pixel size for depth `z` (0 = deep in the hive, 1 = close). */
   private sizeAt(z: number) {
-    const base = this.S0;
-    if (z <= 1) return base * (0.35 + 0.85 * z);
-    const s1 = base * 1.2;
-    const smax = this.w < 640 ? Math.max(s1 * 2, (this.w * 1.05) / 16) : Math.max(s1, (this.w * 0.44) / 16);
-    return s1 + (smax - s1) * clamp((z - 1) / 1.5, 0, 1);
+    return this.S0 * (0.35 + 0.85 * clamp(z, 0, 1));
   }
 
   private bounds(S: number) {
@@ -225,10 +192,10 @@ export class MascotEngine {
     const pad = this.w < 640 ? 6 : 20;
     let x0 = hw + pad;
     let x1 = this.w - hw - pad;
-    let y0 = (this.w < 640 ? 70 : 84) + hh;
+    let y0 = Math.max((this.w < 640 ? 70 : 84) + hh, this.bandTop + hh);
     let y1 = this.h - 24 - hh;
     if (x0 > x1) x0 = x1 = this.w / 2;
-    if (y0 > y1) y0 = y1 = this.h / 2;
+    if (y0 > y1) y0 = y1 = (y0 + y1) / 2;
     return { x0, x1, y0, y1, hw, hh };
   }
 
@@ -242,7 +209,8 @@ export class MascotEngine {
       r = { l: b.left - s.left, t: b.top - s.top, w: b.width, h: b.height };
       this.rectCache.set(el, r);
     }
-    return r;
+    // display:none (e.g. demo hidden on short screens) means "not there".
+    return r.w > 0 && r.h > 0 ? r : null;
   }
 
   private floorY = () => this.h - 14 - Math.random() * 46;
@@ -300,28 +268,37 @@ export class MascotEngine {
     }
     const tk: Task = { name, t: 0, phase: 0 };
     const c = this.core();
-    const { w, h } = this;
+    const { w } = this;
 
     switch (name) {
       case "emerge":
         Object.assign(b, { hidden: false, x: c.x, y: c.y, z: 0.04, zT: 0.62, vx: rnd(-60, 60), vy: -60 });
-        tk.tx = w * (Math.random() < 0.5 ? 0.27 : 0.73);
-        tk.ty = h * 0.3;
+        tk.tx = w * (Math.random() < 0.5 ? 0.22 : 0.78);
+        tk.ty = this.bandY(0.3);
         this.o.signals.pulse = 1;
         this.o.sfx("hum");
         break;
-      case "arrive":
-        Object.assign(b, { hidden: false, z: 0.75, zT: 0.62, x: w * 0.5, y: -8 * this.sizeAt(0.75), vx: 0, vy: 380 * this.k });
-        tk.tx = w * 0.5;
-        tk.ty = h * (w < 640 ? 0.3 : 0.34);
+      case "arrive": {
+        // Fly in from the side at band height — never through the headline.
+        const fromLeft = Math.random() < 0.5;
+        const S = this.sizeAt(0.75);
+        Object.assign(b, {
+          hidden: false, z: 0.75, zT: 0.62,
+          x: fromLeft ? -9 * S : w + 9 * S, y: this.bandY(0.35),
+          vx: (fromLeft ? 1 : -1) * 380 * this.k, vy: 0,
+        });
+        tk.tx = w * (fromLeft ? 0.2 : 0.8);
+        tk.ty = this.bandY(0.35);
         break;
+      }
       case "patrol": {
-        const cy = h * 0.46;
+        const cy = this.bandY(0.45);
+        const ry = (this.h - this.bandTop) * 0.35;
         const a0 = Math.atan2(b.y - cy, (b.x - w * 0.5) / 1.6);
         const dir = Math.random() < 0.5 ? 1 : -1;
         tk.pts = [1, 2, 3].map((i) => {
           const a = a0 + dir * i * rnd(0.9, 1.4);
-          return { x: w * 0.5 + Math.cos(a) * w * 0.34, y: cy + Math.sin(a) * h * 0.25, z: rnd(0.3, 0.85) };
+          return { x: w * 0.5 + Math.cos(a) * w * 0.4, y: cy + Math.sin(a) * ry, z: rnd(0.3, 0.85) };
         });
         tk.i = 0;
         break;
@@ -329,25 +306,14 @@ export class MascotEngine {
       case "inspect":
         tk.target = INSPECT_TARGETS[(Math.random() * INSPECT_TARGETS.length) | 0];
         break;
-      case "sprinkle": {
-        if (!this.words.length) return this.start("patrol");
-        const total = this.words.reduce((a, wd) => a + wd.weight, 0);
-        let r = Math.random() * total;
-        tk.word = this.words.find((wd) => (r -= wd.weight) < 0) ?? this.words[0];
-        break;
-      }
       case "dash":
         tk.side = b.x < w / 2 ? 1 : -1;
         if (Math.random() < 0.3) tk.side *= -1;
-        tk.ty = clamp(b.y, h * 0.32, h * 0.6);
+        tk.ty = clamp(b.y, this.bandY(0.2), this.bandY(0.7));
         break;
       case "recover":
-        tk.tx = w * rnd(0.4, 0.6);
-        tk.ty = h * rnd(0.34, 0.46);
-        break;
-      case "knock":
-        tk.kx = w * rnd(0.38, 0.62);
-        tk.ky = h * rnd(0.4, 0.5);
+        tk.tx = w * rnd(0.3, 0.7);
+        tk.ty = this.bandY(rnd(0.25, 0.6));
         break;
     }
     this.task = tk;
@@ -398,7 +364,7 @@ export class MascotEngine {
     if (b.look) {
       ex = Math.abs(b.look.x - cx) > 24 ? Math.sign(b.look.x - cx) : 0;
       ey = b.look.y < cy - 60 ? -1 : 0;
-    } else if (this.task.name !== "knock" && !b.sit) {
+    } else if (!b.sit) {
       ex = Math.abs(b.vx) > 60 ? Math.sign(b.vx) : 0;
       ey = b.vy < -140 ? -1 : 0;
     }
@@ -419,47 +385,6 @@ export class MascotEngine {
     ctx.globalAlpha = 1;
   }
 
-  private clearPaint(el: HTMLElement) {
-    if (!el.style.backgroundImage) return;
-    el.style.backgroundImage = "";
-    el.style.color = "";
-    el.style.backgroundClip = "";
-    el.style.webkitBackgroundClip = "";
-  }
-
-  /** Honey "fill level" rendered as a wavy background-clip:text gradient. */
-  private applyPaint(dt: number) {
-    for (const wd of this.words) {
-      let p = this.paint[wd.key] ?? 0;
-      if ((this.hold[wd.key] ?? 0) > 0) this.hold[wd.key] -= dt;
-      else p = Math.max(0, p - dt * 0.07);
-      this.paint[wd.key] = p;
-      const v0 = this.level[wd.key] ?? 0;
-      const v = v0 + (p - v0) * Math.min(1, dt * 2.6);
-      this.level[wd.key] = v;
-      const el = wd.el;
-      if (v < 0.004) {
-        this.clearPaint(el);
-        continue;
-      }
-      if (!wd.fontSize) wd.fontSize = parseFloat(getComputedStyle(el).fontSize) || 100;
-      const H = el.offsetHeight || wd.fontSize;
-      const lvl = Math.min(1.1, v * 1.1);
-      const surf = H * (1 - lvl);
-      const wh = Math.max(8, wd.fontSize * 0.12);
-      const ww = wh * 7.5;
-      const ph = this.t * 46;
-      const pc = (lvl * 100).toFixed(2);
-      el.style.backgroundImage = `${WAVE_A}, ${WAVE_B}, linear-gradient(0deg, #DE9C30 0%, #F5B942 ${pc}%, ${wd.base} ${pc}%)`;
-      el.style.backgroundSize = `${ww}px ${wh}px, ${ww * 1.3}px ${wh}px, 100% 100%`;
-      el.style.backgroundPosition = `${ph}px ${surf - wh + 1}px, ${-ph * 0.7}px ${surf - wh + 2}px, 0 0`;
-      el.style.backgroundRepeat = "repeat-x, repeat-x, no-repeat";
-      el.style.webkitBackgroundClip = "text";
-      el.style.backgroundClip = "text";
-      el.style.color = "transparent";
-    }
-  }
-
   /* ------------------------------------------------------------ loop */
 
   frame(now: number) {
@@ -471,6 +396,8 @@ export class MascotEngine {
 
     this.rectCache.clear();
     this.sectionRect = null;
+    const ceil = this.rel(o.ceiling());
+    this.ceil = ceil ? ceil.t + ceil.h : 0;
     bc.clearRect(0, 0, w, h);
     fc.clearRect(0, 0, w, h);
 
@@ -482,12 +409,17 @@ export class MascotEngine {
     sig.my = 1 - this.my / h;
 
     if (!o.motion) {
-      // Reduced motion: a single still bee and a static terrain.
+      // Reduced motion: a still bee perched on the runtime window (or resting
+      // in the band when the demo is hidden), over a static floor.
       sig.t = 4;
       sig.intro = 1;
       b.hidden = false;
       b.z = 0.6;
-      this.drawBee(bc, w * 0.2, h * 0.3, this.sizeAt(0.6), 1);
+      b.sit = true;
+      const S = this.sizeAt(0.6);
+      const seat = this.rel(o.findTarget("demo"));
+      if (seat) this.drawBee(fc, seat.l + seat.w * 0.8, seat.t + seat.h * 0.55 - 6.5 * S, S, 1);
+      else this.drawBee(bc, w * 0.8, this.bandY(0.4), S, 1);
       return;
     }
 
@@ -499,7 +431,7 @@ export class MascotEngine {
 
     if (!this.started) {
       const pre = o.preloaded();
-      if (ia > (pre ? 1.05 : 1.3)) {
+      if (ia > (pre ? 1.6 : 1.9)) {
         this.started = true;
         this.start(pre ? "arrive" : "emerge");
       } else return;
@@ -561,9 +493,12 @@ export class MascotEngine {
           this.start("patrol");
           break;
         }
-        const side = r.l + r.w / 2 > w * 0.55 ? -1 : 1;
-        tx = r.l + r.w / 2 + side * (r.w / 2 + B.hw * 0.55 + 28);
-        ty = r.t + r.h / 2 - S * 1.5;
+        // Hover beside the target (clamped into the band, so for the install
+        // command the bee looks up at it from just below).
+        const wide = r.w > w * 0.5;
+        const side = wide ? (b.x < r.l + r.w / 2 ? -1 : 1) : r.l + r.w / 2 > w * 0.55 ? -1 : 1;
+        tx = wide ? r.l + r.w / 2 + side * r.w * 0.3 : r.l + r.w / 2 + side * (r.w / 2 + B.hw * 0.55 + 28);
+        ty = wide ? r.t - B.hh - 12 : r.t + r.h / 2 - S * 1.5;
         b.zT = 0.62;
         b.look = { x: r.l + r.w / 2, y: r.t + r.h / 2 };
         maxV = 280 * k;
@@ -578,15 +513,21 @@ export class MascotEngine {
       }
 
       case "land": {
-        const seat = o.findTarget("docs");
+        // Land on the runtime terminal and bounce on it.
+        const seat = o.findTarget("demo");
         const r = this.rel(seat);
         if (!r) {
           this.start("patrol");
           break;
         }
         b.zT = 0.6;
-        tx = r.l + r.w * 0.5;
-        ty = r.t - 6.5 * S + S * 0.6;
+        // The terminal lies on the floor: stand on its surface, near half.
+        if (tk.tx === undefined) {
+          tk.tx = r.l + r.w * rnd(0.25, 0.75);
+          tk.ty = r.t + r.h * rnd(0.5, 0.75);
+        }
+        tx = tk.tx;
+        ty = tk.ty! - 6.5 * S + S * 0.6;
         maxV = 300 * k;
         slow = 220 * k;
         avoid = false;
@@ -598,7 +539,7 @@ export class MascotEngine {
             b.think = false;
             b.hop = true;
             this.sitTarget = seat;
-            this.setSeat(seat, 3);
+            this.setSeat(seat, 2);
             o.sfx("tik", 1.4);
           }
           if (tk.t > 7) this.start(this.pick());
@@ -617,8 +558,8 @@ export class MascotEngine {
             if ((tk.hops ?? 0) <= i && f > 0.88) {
               tk.hops = i + 1;
               o.sfx("tik", 1.2);
-              this.setSeat(seat, 6);
-              setTimeout(() => b.sit && this.setSeat(seat, 2), 90);
+              this.setSeat(seat, 4);
+              setTimeout(() => b.sit && this.setSeat(seat, 1), 90);
               for (let j = 0; j < 6; j++) {
                 this.parts.push({
                   x: b.x + rnd(-6, 6) * S, y: ty + 6 * S,
@@ -636,53 +577,17 @@ export class MascotEngine {
           } else if (tk.t < HOP * NH + 2.9) {
             b.think = false;
             b.y = ty + S * 0.8;
-            this.setSeat(seat, 7);
+            this.setSeat(seat, 5);
           } else {
             this.start("patrol");
             b.y = ty - S;
-            b.vy = -760 * k;
-            b.vx = rnd(-220, 220);
+            b.vy = -520 * k;
+            b.vx = rnd(-260, 260);
             b.scare = 0.6;
             o.sfx("tik", 1.6);
             this.burst(b.x, ty + 6 * S, 0, 1, 260, S, 14);
           }
         }
-        break;
-      }
-
-      case "sprinkle": {
-        const word = tk.word!;
-        const r = this.rel(word.el);
-        if (!r) {
-          this.start("patrol");
-          break;
-        }
-        b.zT = 0.64;
-        avoid = false;
-        maxV = 320 * k;
-        slow = 140 * k;
-        tx = r.l + r.w * (0.5 + 0.4 * Math.sin(tk.t * 1.8));
-        ty = r.t - 6.5 * S - 26 + Math.sin(tk.t * 4) * 5;
-        if (tk.phase === 0 && Math.hypot(tx - b.x, ty - b.y) < 60) {
-          tk.phase = 1;
-          tk.t2 = 0;
-        }
-        if (tk.phase === 1) {
-          tk.t2! += dt;
-          this.emit -= dt;
-          while (this.emit < 0) {
-            this.emit += 0.022;
-            this.parts.push({
-              x: b.x + rnd(-3, 3) * S, y: b.y + 5 * S,
-              vx: rnd(-40, 40) + b.vx * 0.3, vy: rnd(40, 140),
-              c: Math.random() < 0.85 ? AM : "#FFD27A",
-              s: Math.max(3, Math.round(S * rnd(0.35, 0.7))),
-              paint: word, floor: this.floorY(), rest: false, life: 0,
-            });
-          }
-          if (tk.t2! > 2.8) this.start("patrol");
-        }
-        if (tk.t > 8) this.start("patrol");
         break;
       }
 
@@ -714,48 +619,6 @@ export class MascotEngine {
         maxV = 170 * k;
         b.zT = 0.55;
         if ((tk.t > 1.2 && Math.hypot(tx - b.x, ty - b.y) < 60) || tk.t > 6) this.start(this.pick());
-        break;
-
-      case "knock":
-        avoid = false;
-        if (tk.phase === 0) {
-          tx = tk.kx!;
-          ty = tk.ky!;
-          maxV = 380 * k;
-          b.zT = 2.5;
-          if (b.z > 2.36) {
-            tk.phase = 1;
-            tk.t = 0;
-          }
-          if (tk.t > 6) {
-            tk.phase = 2;
-            tk.t = 0;
-          }
-        } else if (tk.phase === 1) {
-          seekOn = false;
-          b.vx *= 1 - dt * 6;
-          b.vy *= 1 - dt * 6;
-          const cyc = 0.34;
-          const i = Math.floor(tk.t / cyc);
-          const f = (tk.t % cyc) / cyc;
-          if (i < 3) {
-            b.zT = b.z = 2.42 + 0.18 * Math.sin(f * Math.PI);
-            if ((tk.knocks ?? 0) <= i && f > 0.45) {
-              tk.knocks = i + 1;
-              o.sfx("knock");
-              this.rings.push({ x: b.x + rnd(-1, 1) * S, y: b.y - S, r: 0, life: 0.7, s: Math.max(3, Math.round(S * 0.18)) });
-            }
-          } else if (tk.t > 3 * cyc + 0.6) {
-            tk.phase = 2;
-            tk.t = 0;
-          }
-        } else {
-          tx = tk.kx!;
-          ty = h * 0.4;
-          b.zT = 0.45;
-          maxV = 220 * k;
-          if (b.z < 0.8) this.start("patrol");
-        }
         break;
 
       case "rest": {
@@ -795,7 +658,7 @@ export class MascotEngine {
     const cur = this.task;
     S = this.sizeAt(b.z);
     B = this.bounds(S);
-    if (avoid && b.z <= 1.05) {
+    if (avoid) {
       tx = clamp(tx, B.x0 + 30, B.x1 - 30);
       ty = clamp(ty, B.y0 + 30, B.y1 - 30);
     }
@@ -831,7 +694,7 @@ export class MascotEngine {
       ax += ((dx / d) * v - b.vx) * gain;
       ay += ((dy / d) * v - b.vy) * gain;
     }
-    if (b.z <= 1.05 && !b.sit && this.task.name !== "dash") {
+    if (!b.sit && this.task.name !== "dash") {
       // Soft walls.
       const m = Math.max(110 * k, B.hw * 0.8);
       const W = 3200 * k;
@@ -872,14 +735,13 @@ export class MascotEngine {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
     }
-    if (this.task.name !== "knock" || this.task.phase !== 1) {
-      b.z += (b.zT - b.z) * Math.min(1, dt * (this.task.name === "knock" ? 1.8 : 1.4));
-    }
+    b.z += (Math.min(1, b.zT) - b.z) * Math.min(1, dt * 1.4);
     b.scare = Math.max(0, b.scare - dt * 0.6);
     S = this.sizeAt(b.z);
     B = this.bounds(S);
-    if (b.z <= 1.05 && !b.sit && !b.hidden) {
-      if (this.task.name !== "dash") {
+    if (!b.sit && !b.hidden) {
+      const offstage = this.task.name === "dash" || this.task.name === "arrive";
+      if (!offstage) {
         if (b.x < B.x0) {
           b.x = B.x0;
           if (b.vx < 0) b.vx *= -0.2;
@@ -889,7 +751,8 @@ export class MascotEngine {
           if (b.vx > 0) b.vx *= -0.2;
         }
       }
-      if (b.y < B.y0 && this.task.name !== "arrive") {
+      // Hard ceiling: never above the copy, whatever the task.
+      if (b.y < B.y0) {
         b.y = B.y0;
         if (b.vy < 0) b.vy *= -0.2;
       }
@@ -899,14 +762,14 @@ export class MascotEngine {
       }
     }
     if (![b.x, b.y, b.z, b.vx, b.vy].every(Number.isFinite)) {
-      Object.assign(b, { x: w * 0.5, y: h * 0.4, z: 0.5, vx: 120, vy: 0, daze: 0 });
+      Object.assign(b, { x: w * 0.5, y: this.bandY(0.4), z: 0.5, vx: 120, vy: 0, daze: 0 });
       this.start("patrol");
       S = this.sizeAt(b.z);
       B = this.bounds(S);
     }
 
     /* ---- anti-stuck */
-    const moving = !b.sit && !b.hidden && !["knock", "evade", "inspect"].includes(this.task.name) && b.daze <= 0;
+    const moving = !b.sit && !b.hidden && !["evade", "inspect"].includes(this.task.name) && b.daze <= 0;
     if (moving && Math.hypot(b.vx, b.vy) < 30 && Math.hypot(tx - b.x, ty - b.y) > 50) {
       this.still += dt;
       if (this.still > 1.2) this.start("recover");
@@ -938,17 +801,6 @@ export class MascotEngine {
           p.x = w - p.s;
           p.vx = -Math.abs(p.vx) * 0.4;
         }
-        if (p.paint) {
-          const r = this.rel(p.paint.el);
-          if (r && p.x > r.l - 2 && p.x < r.l + r.w + 2 && p.y > r.t + r.h * 0.22 && p.y < r.t + r.h) {
-            const key = p.paint.key;
-            this.paint[key] = Math.min(1, (this.paint[key] ?? 0) + 0.03);
-            this.hold[key] = 4.5;
-            o.sfx("blip");
-            this.parts.splice(i, 1);
-            continue;
-          }
-        }
         if (p.y >= p.floor) {
           p.y = p.floor;
           if (Math.abs(p.vy) > 260) {
@@ -978,46 +830,21 @@ export class MascotEngine {
       fc.fillRect(Math.round(p.x), Math.round(p.y), sz, sz);
     }
     fc.globalAlpha = 1;
-    if (this.parts.length > 900) this.parts.splice(0, this.parts.length - 900);
-
-    /* ---- knock rings */
-    for (let i = this.rings.length - 1; i >= 0; i--) {
-      const g = this.rings[i];
-      g.life -= dt;
-      g.r += dt * 420 * k;
-      if (g.life <= 0) {
-        this.rings.splice(i, 1);
-        continue;
-      }
-      const a = g.life / 0.7;
-      fc.fillStyle = `rgba(237,234,227,${(0.5 * a).toFixed(3)})`;
-      for (let j = 0; j < 28; j++) {
-        const ang = (j / 28) * Math.PI * 2;
-        fc.fillRect(Math.round(g.x + Math.cos(ang) * g.r), Math.round(g.y + Math.sin(ang) * g.r * 0.9), g.s, g.s);
-      }
-      const R = 90 * k;
-      const sm = fc.createRadialGradient(g.x, g.y, 0, g.x, g.y, R);
-      sm.addColorStop(0, `rgba(237,234,227,${(0.12 * a).toFixed(3)})`);
-      sm.addColorStop(1, "rgba(237,234,227,0)");
-      fc.fillStyle = sm;
-      fc.fillRect(g.x - R, g.y - R, R * 2, R * 2);
-    }
-
-    this.applyPaint(dt);
+    if (this.parts.length > 600) this.parts.splice(0, this.parts.length - 600);
 
     /* ---- bee + glow */
     if (!b.hidden) {
       const gz = clamp(b.z, 0, 1);
-      const gr = 12 * S;
+      const gr = 10 * S;
       const glow = bc.createRadialGradient(b.x, b.y, 0, b.x, b.y, gr);
-      glow.addColorStop(0, `rgba(245,185,66,${(0.04 + 0.05 * gz).toFixed(3)})`);
+      glow.addColorStop(0, `rgba(245,185,66,${(0.03 + 0.03 * gz).toFixed(3)})`);
       glow.addColorStop(1, "rgba(245,185,66,0)");
       bc.fillStyle = glow;
       bc.fillRect(b.x - gr, b.y - gr, gr * 2, gr * 2);
       const jx = b.daze > 0.3 ? (Math.random() < 0.5 ? -1 : 1) * Math.max(2, S * 0.3) : 0;
       const alpha = b.z < 0.45 ? 0.35 + b.z * 1.45 : 1;
-      const tn = this.task.name;
-      const front = b.z >= 0.58 || b.sit || tn === "land" || tn === "sprinkle";
+      // Behind the floor-level terminal only while deep in the hive.
+      const front = b.z >= 0.35 || b.sit || this.task.name === "land";
       this.drawBee(front ? fc : bc, b.x + jx, b.y, S, alpha);
     }
   }

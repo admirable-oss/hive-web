@@ -1,7 +1,7 @@
 export const REPO = "https://github.com/admirable-oss/hive";
 
-export const CLONE_DISPLAY = "git clone github.com/admirable-oss/hive";
-export const CLONE_COMMAND = `git clone ${REPO}`;
+export const INSTALL_URL = "https://hive.admir-saheta.com/install.sh";
+export const INSTALL_COMMAND = `curl -fsSL ${INSTALL_URL} | sh`;
 
 export const LINKS = {
   docs: `${REPO}#readme`,
@@ -17,7 +17,6 @@ export const NAV_LINKS = [
   { label: "Docs", href: LINKS.docs },
   { label: "Changelog", href: LINKS.changelog },
   { label: "Roadmap", href: LINKS.roadmap },
-  { label: "Brand", href: LINKS.brand },
 ] as const;
 
 export const MENU_LINKS = [
@@ -29,5 +28,10 @@ export const MENU_LINKS = [
 ] as const;
 
 export const VERSION_LABEL = "v0.1 alpha";
+export const LICENSE_LABEL = "Apache-2.0";
+export const LANGUAGE_LABEL = "Go";
+
+/** Below this the GitHub button shows no star count (no manufactured social proof). */
+export const STAR_THRESHOLD = 100;
 
 export const SUPPORTED_AGENTS = ["claude", "codex", "aider"] as const;

@@ -3,7 +3,7 @@ import { gsap } from "@/lib/gsap";
 
 /**
  * Runs `callback(nowMs)` on GSAP's shared ticker while `active`. Every canvas
- * loop on the page (preloader, mascot, honeycomb, menu wipe) rides this single
+ * loop on the page (preloader, mascot, 3D floor, menu wipe) rides this single
  * rAF instead of spinning its own.
  */
 export function useGsapTicker(callback: (now: number) => void, active = true) {

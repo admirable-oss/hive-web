@@ -1,6 +1,6 @@
 /**
  * Mutable per-frame values shared between the mascot engine (writer) and the
- * honeycomb shader (reader). Plain object on purpose: no React re-renders.
+ * 3D hive floor (reader). Plain object on purpose: no React re-renders.
  */
 export interface HeroSignals {
   /** Hero clock in seconds (drives shader time + ripple ages). */

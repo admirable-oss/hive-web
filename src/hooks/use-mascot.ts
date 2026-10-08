@@ -15,7 +15,7 @@ interface UseMascotOptions {
 
 /**
  * Owns the mascot engine's lifecycle. Targets are found by data attributes
- * (`data-mascot-target`, `data-mascot-word`) so the bee can visit elements
+ * (`data-mascot-target`, `data-mascot-ceiling`) so the bee can visit elements
  * in other islands (e.g. the navbar's Install button) without shared refs.
  */
 export function useMascot({ section, back, front, signals, reducedMotion }: UseMascotOptions) {
@@ -37,7 +37,7 @@ export function useMascot({ section, back, front, signals, reducedMotion }: UseM
         signals,
         sfx,
         findTarget: (key: MascotTarget) => document.querySelector<HTMLElement>(`[data-mascot-target="${key}"]`),
-        findWords: () => [...s.querySelectorAll<HTMLElement>("[data-mascot-word]")],
+        ceiling: () => s.querySelector<HTMLElement>("[data-mascot-ceiling]"),
         introElapsed,
         preloaded: () => hiveStore.get().preloaded,
         motion: !reducedMotion,

@@ -4,11 +4,12 @@ import { usePixelSwap } from "@/hooks/use-pixel-swap";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useHiveAudio } from "@/hooks/use-hive-audio";
 import { gsap, useGSAP } from "@/lib/gsap";
+import type { RepoStats } from "@/lib/github";
 import { hiveActions, introElapsed, useHive } from "@/lib/hive-store";
 import { Navbar } from "./Navbar";
 
 /** Header island: navbar + full-screen menu + the pixel wipe between them. */
-export default function SiteHeader() {
+export default function SiteHeader({ stats = null }: { stats?: RepoStats | null }) {
   const headerRef = useRef<HTMLElement>(null);
   const menuOpen = useHive((s) => s.menuOpen);
   const introAt = useHive((s) => s.introAt);
@@ -33,7 +34,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <Navbar ref={headerRef} onOpenMenu={openMenu} menuOpen={menuOpen} />
+      <Navbar ref={headerRef} onOpenMenu={openMenu} menuOpen={menuOpen} stats={stats} />
       <FullscreenMenu isOpen={menuOpen} onRequestClose={closeMenu} reducedMotion={reducedMotion} />
       <canvas ref={canvasRef} aria-hidden className="pixelated pointer-events-none fixed inset-0 z-120 hidden h-screen w-screen" />
     </>

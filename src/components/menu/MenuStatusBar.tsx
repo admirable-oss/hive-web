@@ -1,5 +1,6 @@
 import { useClock } from "@/hooks/use-clock";
-import { VERSION_LABEL } from "@/lib/site";
+import { SoundToggle } from "@/components/header/SoundToggle";
+import { LICENSE_LABEL, VERSION_LABEL } from "@/lib/site";
 
 /** tmux-style status line pinned to the bottom of the menu. */
 export function MenuStatusBar() {
@@ -12,7 +13,10 @@ export function MenuStatusBar() {
         <span className="text-bone">1:menu*</span>
       </span>
       <span className="flex-1" />
-      <span className="hidden items-center border-l border-bone/8 px-3.5 min-[1000px]:flex">apache-2.0 · {VERSION_LABEL}</span>
+      <SoundToggle className="h-full border-l border-bone/8 px-3.5" />
+      <span className="hidden items-center border-l border-bone/8 px-3.5 min-[1000px]:flex">
+        {LICENSE_LABEL.toLowerCase()} · {VERSION_LABEL}
+      </span>
       <time className="flex items-center border-l border-bone/8 px-3.5 text-bone" suppressHydrationWarning>
         {clock}
       </time>

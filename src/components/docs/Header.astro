@@ -1,0 +1,146 @@
+---
+import Search from "@astrojs/starlight/components/Search.astro";
+import bee from "@/content/assets/hive-bee-dark.svg";
+import { DOCS_NAV, DOCS_VERSION } from "@/lib/docs";
+import { LINKS } from "@/lib/site";
+import AskBee from "./AskBee.astro";
+import SiteTitle from "./SiteTitle.astro";
+
+const onDocs = Astro.url.pathname.startsWith("/docs");
+---
+
+<div class="bar">
+  <SiteTitle />
+
+  <nav aria-label="Primary" class="nav">
+    {
+      DOCS_NAV.map((l) => {
+        const current = l.href === "/docs/" && onDocs;
+        const external = "external" in l && l.external;
+        return (
+          <a
+            href={l.href}
+            aria-current={current ? "page" : undefined}
+            {...(external ? { target: "_blank", rel: "noopener" } : {})}
+          >
+            {l.label.toUpperCase()}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <span class="grow"></span>
+
+  <div class="actions print:hidden">
+    <Search />
+    <button type="button" class="btn" data-ask-bee aria-haspopup="dialog">
+      <img src={bee.src} alt="" width="20" height="14" class="pixelated" />
+      <span class="wide">Ask Bee</span>
+    </button>
+    <a href={LINKS.github} target="_blank" rel="noopener" class="btn mono wide">GITHUB ↗</a>
+    <span class="version" title="Only one version is published"><span class="dot"></span>{DOCS_VERSION}</span>
+  </div>
+</div>
+
+<AskBee />
+
+<style>
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 1440px;
+    height: 100%;
+    margin: 0 auto;
+  }
+  .nav {
+    display: none;
+    align-self: stretch;
+    margin-inline-start: 16px;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+  }
+  .nav a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    color: #8f8b82;
+    text-decoration: none;
+  }
+  .nav a:hover,
+  .nav a[aria-current="page"] {
+    color: #edeae3;
+  }
+  .nav a[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset: auto 14px -1px;
+    height: 2px;
+    background: #f5b942;
+  }
+  .grow {
+    flex: 1;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #2a2926;
+    border-radius: 6px;
+    background: transparent;
+    font-size: 14px;
+    color: #edeae3;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn:hover {
+    background: #121211;
+    color: #edeae3;
+  }
+  .mono {
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+  }
+  .wide {
+    display: none;
+  }
+  .version {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 10px;
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    white-space: nowrap;
+    color: #8f8b82;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    background: #f5b942;
+  }
+
+  @media (min-width: 720px) {
+    .wide {
+      display: flex;
+    }
+  }
+  @media (min-width: 1024px) {
+    .nav,
+    .version {
+      display: flex;
+    }
+  }
+</style>

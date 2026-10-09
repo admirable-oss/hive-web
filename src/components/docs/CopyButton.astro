@@ -1,0 +1,84 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"button"> {
+  /** Text placed on the clipboard. */
+  text: string;
+}
+
+const { text, class: className, ...attrs } = Astro.props;
+---
+
+<hive-copy data-text={text}>
+  <button type="button" class:list={["hv-copy", className]} {...attrs}>Copy</button>
+</hive-copy>
+
+<style>
+  .hv-copy {
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 4px;
+    background: #1c1c1a;
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #b5b1a8;
+    cursor: pointer;
+  }
+  .hv-copy:hover {
+    background: #262523;
+  }
+  .hv-copy[data-state="ok"] {
+    color: #f5b942;
+  }
+  .hv-copy[data-state="fail"] {
+    color: #ff6b6b;
+  }
+</style>
+
+<script>
+  const LABEL = { ok: "Copied ✓", fail: "Select & copy" } as const;
+
+  function legacyCopy(text: string) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    Object.assign(ta.style, { position: "fixed", opacity: "0" });
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      return document.execCommand("copy");
+    } finally {
+      ta.remove();
+    }
+  }
+
+  class HiveCopy extends HTMLElement {
+    #timer = 0;
+    connectedCallback() {
+      const button = this.querySelector("button");
+      if (!button) return;
+      const idle = button.textContent;
+      button.addEventListener("click", async () => {
+        const text = this.dataset.text ?? "";
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        } catch {
+          ok = legacyCopy(text);
+        }
+        const state = ok ? "ok" : "fail";
+        button.dataset.state = state;
+        button.textContent = LABEL[state];
+        clearTimeout(this.#timer);
+        this.#timer = window.setTimeout(() => {
+          delete button.dataset.state;
+          button.textContent = idle;
+        }, 1800);
+      });
+    }
+  }
+  customElements.define("hive-copy", HiveCopy);
+</script>

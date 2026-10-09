@@ -1,0 +1,98 @@
+---
+import { AGENT_PROMPT } from "@/lib/docs";
+import bee from "@/content/assets/hive-bee-dark.svg";
+import CopyButton from "../CopyButton.astro";
+import SectionHead from "./SectionHead.astro";
+
+const link = "text-[15px] font-medium text-bone no-underline transition-colors hover:text-honey";
+const body = "m-0 max-w-[520px] text-[15px] leading-[1.65] text-pretty text-[#c9c5bb]";
+const key = "flex h-6 min-w-6 items-center justify-center rounded-[3px] border border-b-2 border-[#514f48] bg-[#242421] px-[7px]";
+---
+
+<section id="paths" class="not-content home-section">
+  <div class="mx-auto max-w-[1200px] px-[clamp(20px,4vw,48px)]">
+    <SectionHead eyebrow="GETTING STARTED" title="Pick your path.">
+      New to the hive or migrating from another multiplexer? There’s a way in for both.
+    </SectionHead>
+
+    <div class="path-bento grid grid-cols-[repeat(auto-fit,minmax(min(100%,360px),1fr))] gap-0 border border-[#393832] bg-[#1a1a18]">
+      <article data-hive-reveal class="path-card flex flex-col gap-4 border-b border-[#393832] bg-[#191918]/55 p-6 transition-colors duration-300 hover:bg-[#20201e]">
+        <div class="flex items-start justify-between gap-4">
+          <span class="font-mono text-xs tracking-[.08em] text-stone">01 · NEW HERE</span>
+          <div data-path-icon class="path-icon flex size-[68px] items-center justify-center border border-[#45433d] bg-[#20201e] text-honey" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="size-[52px] fill-none stroke-current" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="10" width="48" height="44" rx="3" />
+              <path d="M8 20h48M19 20v34" class="text-[#77736a]" />
+              <path d="M26 29h21M26 35h16M26 41h19M26 47h11" class="text-[#b5b1a8]" />
+              <path data-icon-cursor d="M26 47h3" stroke="#F5B942" stroke-width="3" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="m-0 text-[22px] font-medium tracking-[-.02em] text-bone">New to terminal multiplexers?</h3>
+        <p class={body}>Never multiplexed a terminal in your life? Excellent. Less baggage to carry. Click around, split panes, drag borders, and right-click your way through Hive. No keyboard gymnastics required.</p>
+        <a href="/docs/quick-start/" class:list={[link, "mt-auto pt-2"]}>Quick start <span class="text-honey">→</span></a>
+      </article>
+
+      <article data-hive-reveal class="path-card flex flex-col gap-4 border-b border-[#393832] bg-[#191918]/55 p-6 transition-colors duration-300 hover:bg-[#20201e]">
+        <div class="flex items-start justify-between gap-4">
+          <span class="font-mono text-xs tracking-[.08em] text-stone">02 · SWITCHING OVER</span>
+          <div data-path-icon class="path-icon flex size-[68px] items-center justify-center border border-[#45433d] bg-[#20201e] text-honey" aria-hidden="true">
+            <svg viewBox="0 0 64 64" class="size-[52px] fill-none stroke-current" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="10" width="48" height="44" rx="3" />
+              <path d="M8 32h48M32 32v22" class="text-[#77736a]" />
+              <rect x="15" y="17" width="12" height="9" rx="1.5" fill="rgb(245 185 66 / 12%)" />
+              <rect x="36" y="17" width="12" height="9" rx="1.5" fill="rgb(245 185 66 / 12%)" />
+              <path d="M15 40h12M36 40h12M15 46h12M36 46h12" class="text-[#b5b1a8]" />
+            </svg>
+          </div>
+        </div>
+        <h3 class="m-0 text-[21px] font-medium tracking-[-.02em] text-bone">Coming from tmux or Zellij?</h3>
+        <p class={body}>Welcome back to the hive. You know the drill: persistent panes, detachable sessions, and a workspace that survives your SSH connection dropping out. Your muscle memory is safe here. Mostly.</p>
+        <div class="flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-stone"><span class="mr-1">prefix ·</span><span class={key}>ctrl</span><span class={key}>b</span><span class="mx-1">then</span><span class:list={[key, "border-honey text-honey"]}>%</span></div>
+        <div class="mt-auto flex gap-6 pt-2"><a href="/docs/concepts/" class={link}>Concepts <span class="text-honey">→</span></a><a href="/docs/keybindings/" class={link}>Keybindings <span class="text-honey">→</span></a></div>
+      </article>
+    <article data-hive-reveal class="agent-path col-span-full grid grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-x-12 gap-y-7 border-t border-[#514633] bg-[radial-gradient(ellipse_at_0%_0%,rgb(245_185_66_/_0.08),transparent_48%),#191918] p-[clamp(20px,3vw,32px)]">
+      <div class="flex flex-col gap-4">
+        <span class="speech-bubble w-fit border border-[#4b4437] bg-[#20201e] px-3 py-2 font-mono text-[11px] text-[#d5c9ad]">I’ll prep the briefing.</span>
+        <span class="font-mono text-xs tracking-[.08em] text-stone">03 · HAND IT TO YOUR AGENT</span>
+        <h3 class="m-0 text-[clamp(22px,2.4vw,28px)] font-medium leading-[1.12] tracking-[-.025em] text-bone">Let the bee write the setup prompt.</h3>
+        <p class="m-0 max-w-[480px] text-[15px] leading-[1.65] text-pretty text-[#c9c5bb]">Already have an AI coding agent? Let Bee hand it the right context. Your agent can walk you through setup and explain the moving parts.</p>
+        <div class="mt-auto flex items-center gap-2 pt-2 font-mono text-[11.5px] text-stone"><span class="size-1.5 bg-honey"></span>READY FOR YOUR AGENT</div>
+      </div>
+
+      <div class="prompt-scene relative min-w-0 pt-7" data-prompt-scene>
+        <div class="prompt-bee-wrap pointer-events-none absolute left-0 top-0 z-20" data-prompt-bee-wrap><img src={bee.src} alt="" width="44" height="32" class="prompt-bee pixelated" data-prompt-bee /></div>
+        <div class="mb-2 flex items-center justify-between gap-3 font-mono text-[11px] tracking-[.06em] text-stone">
+          <span class="flex items-center gap-2"><span class="size-1.5 bg-honey"></span><span data-prompt-status>HIVE BEE · READY TO WRITE</span></span><span>AGENT SETUP</span>
+        </div>
+        <div class="min-w-0 border border-[#514a3b] bg-[#151514] shadow-[0_12px_40px_rgb(0_0_0_/_18%)]" data-prompt-box>
+          <div class="flex h-10 items-center justify-between gap-3 border-b border-[#393832] pr-1.5 pl-4 font-mono text-xs text-stone">
+            <span class="flex items-center gap-2"><span class="text-honey">✳</span> prompt · paste into your agent</span><CopyButton text={AGENT_PROMPT} aria-label="Copy prompt" />
+          </div>
+          <div class="flex min-h-[116px] gap-3 py-4 pr-14 pl-[3.5rem] font-mono text-[13px] leading-[1.75] text-bone">
+            <span aria-hidden="true" class="select-none text-honey">›</span>
+            <p class="m-0 max-w-[62ch] [overflow-wrap:anywhere]" aria-label={AGENT_PROMPT} data-typewriter>{AGENT_PROMPT}<span class="type-caret ml-px inline-block h-[1em] w-[6px] translate-y-[2px] bg-honey" data-type-caret aria-hidden="true"></span></p>
+          </div>
+        </div>
+        <p class="mt-2 mb-0 text-xs leading-[1.6] text-pretty text-stone">The bee reads the guide, then drops a ready-to-paste prompt in the box.</p>
+      </div>
+    </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  .path-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .path-card:first-child { border-right: 1px solid #393832; }
+  @media (max-width: 719px) {
+    .path-bento { grid-template-columns: minmax(0, 1fr); }
+    .path-card:first-child { border-right: 0; }
+  }
+  .path-icon svg { overflow: visible; }
+  .speech-bubble { position: relative; }
+  .speech-bubble::before { content: ""; position: absolute; left: -4px; top: 50%; width: 6px; height: 6px; border-left: 1px solid #4b4437; border-bottom: 1px solid #4b4437; background: #20201e; transform: translateY(-50%) rotate(45deg); }
+  .prompt-bee { width: 44px; height: auto; filter: drop-shadow(0 0 8px rgb(245 185 66 / 30%)); }
+  .type-caret { animation: prompt-caret 850ms steps(1, end) infinite; }
+  @keyframes prompt-caret { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .type-caret { animation: none; opacity: 0; } }
+</style>

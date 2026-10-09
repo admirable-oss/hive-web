@@ -1,0 +1,86 @@
+---
+title: Quick start
+description: Build Hive, start a few demo agents and learn to move around the multiplexer. Then close the terminal, come back, and find them still working.
+source: https://github.com/admirable-oss/hive/blob/main/README.md#quick-start
+---
+
+import LinkList from '@/components/docs/LinkList.astro';
+
+:::tip[◇ v0]
+Hive is pre-release and built in public. The wire protocol and on-disk layout may still change between versions.
+:::
+
+## Requirements
+
+- Go 1.26 or later.
+- macOS or Linux. Windows is on the roadmap.
+- Any terminal. Truecolor looks best; 256 colours and `NO_COLOR` are respected.
+
+## Build Hive
+
+Hive is a single Go binary. Clone the repository and build it with `make`, or with `go build` if you prefer.
+
+```sh
+$ git clone https://github.com/admirable-oss/hive
+$ cd hive
+$ make build   # or: go build -o hive ./cmd/hive
+```
+
+## Start the demo agents
+
+`hive demo` starts the daemon on demand and launches four demo agents. Then open the multiplexer to watch them.
+
+```sh
+$ ./hive demo   # daemon + four demo agents
+$ ./hive        # open the multiplexer
+```
+
+Every command that talks to the daemon starts it if it isn't running. Add `--json` to any command for machine-readable output.
+
+## Move around
+
+The multiplexer works like tmux: press the prefix, <kbd>ctrl+b</kbd>, then a key. The mouse works too: click to focus, drag borders, select to copy, scroll into history.
+
+| after ctrl+b | does |
+| --- | --- |
+| <kbd>%</kbd> <kbd>"</kbd> | Split the pane right · down |
+| <kbd>← ↓ ↑ →</kbd> <kbd>h j k l</kbd> | Move between panes (space: sticky navigate mode, r: resize mode) |
+| <kbd>z</kbd> <kbd>x</kbd> | Zoom the pane · close it |
+| <kbd>c</kbd> <kbd>1–9</kbd> <kbd>n</kbd> <kbd>p</kbd> | New tab · go to a tab · next, previous |
+| <kbd>w</kbd> | Go to any agent or pane (fuzzy) |
+| <kbd>O</kbd> | The Overview: every agent, with a live preview |
+| <kbd>[</kbd> | Copy mode: vim keys, / search, v select, y copy |
+| <kbd>?</kbd> | Every binding, with a filter |
+| <kbd>d</kbd> | Detach. Agents keep running. |
+
+## Detach, and come back
+
+Leaving the multiplexer never touches an agent. Each one runs under its own shim, which outlives the UI, the daemon and its restarts. Attach to a single agent's terminal from anywhere on the machine:
+
+```sh
+$ ./hive ps list
+$ ./hive terminal attach <id>   # ctrl+] detaches
+```
+
+:::note
+<kbd>ctrl+b d</kbd> detaches and agents keep running. `hive stop` is different: it stops the runtime and every agent it runs.
+:::
+
+## Keep the daemon running
+
+Optional, and recommended once you trust it: install the daemon as a login service so it starts with your session and restarts if it crashes. It uses launchd on macOS and a systemd user service on Linux.
+
+```sh
+$ ./hive daemon install
+◆ daemon installed · starts at login
+```
+
+## Next steps
+
+<LinkList
+  items={[
+    { href: '/docs/concepts/', title: 'Core concepts', detail: 'shims, the daemon and clients' },
+    { href: '/docs/keybindings/', title: 'Keybindings', detail: 'every mode, and how to rebind' },
+    { href: '/docs/configuration/', title: 'Configuration', detail: 'config.toml, every key optional' },
+  ]}
+/>

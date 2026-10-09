@@ -1,0 +1,69 @@
+---
+type Entry = (typeof Astro.locals.starlightRoute.sidebar)[number];
+
+const { entry, sidebar } = Astro.locals.starlightRoute;
+const { title, description } = entry.data;
+
+/** Label of the sidebar group holding the current page, for the breadcrumb. */
+const groupOf = (entries: Entry[]): string | undefined => {
+  for (const e of entries) {
+    if (e.type !== "group") continue;
+    if (e.entries.some((c) => c.type === "link" && c.isCurrent)) return e.label;
+    const nested = groupOf(e.entries);
+    if (nested) return nested;
+  }
+};
+const group = groupOf(sidebar);
+---
+
+<div class="page-title">
+  <nav aria-label="Breadcrumb" class="crumbs">
+    <a href="/docs/">Docs</a>
+    {group && <><span class="sep">/</span><span>{group}</span></>}
+    <span class="sep">/</span>
+    <span aria-current="page" class="here">{title}</span>
+  </nav>
+  {/* Starlight's TOC tracks the title by this id. */}
+  <h1 id="_top">{title}</h1>
+  {description && <p class="lead">{description}</p>}
+</div>
+
+<style>
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    color: #8f8b82;
+  }
+  .crumbs a {
+    color: #8f8b82;
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: #edeae3;
+  }
+  .sep {
+    color: #55534e;
+  }
+  .here {
+    color: #b5b1a8;
+  }
+  h1 {
+    margin: 0 0 14px;
+    font-size: var(--sl-text-h1);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    color: #edeae3;
+  }
+  .lead {
+    margin: 0 0 28px;
+    font-size: 18.5px;
+    line-height: 1.6;
+    color: #b5b1a8;
+    text-wrap: pretty;
+  }
+</style>

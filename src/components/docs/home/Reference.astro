@@ -1,0 +1,214 @@
+---
+import { REPO } from "@/lib/site";
+import SectionHead from "./SectionHead.astro";
+
+const CELLS = [
+  { x: "0%", y: "0%", href: "/docs/agents/", eyebrow: "01 · CONCEPTS", title: "Agents", body: "How Hive finds agents, labels sessions, and attaches to existing work.", cta: "Meet the agents" },
+  { x: "18.75%", y: "0%", href: "/docs/machines/", eyebrow: "02 · CONCEPTS", title: "Machines", body: "Connect locally or over SSH and manage remote sessions in one view.", cta: "Connect machines", tag: "SSH · ROADMAP" },
+  { x: "37.5%", y: "0%", href: "/docs/session-state/", eyebrow: "03 · CONCEPTS", title: "Session state", body: "Persistence, restart recovery, pane history, and safe disconnects.", cta: "Understand sessions" },
+  { x: "56.25%", y: "0%", href: "/docs/configuration/", eyebrow: "04 · GUIDES", title: "Configuration", body: "Tune keybindings, themes, mouse, clipboard, and your workspace.", cta: "Make it yours" },
+  { x: "75%", y: "0%", href: "/docs/api/", eyebrow: "05 · DEVELOPMENT", title: "API", body: "Automate Hive through the CLI and local socket API.", cta: "Explore the API", tag: "AGENT-FACING · PLANNED" },
+  { x: "9.375%", y: "50%", href: "/docs/plugins/", eyebrow: "06 · DEVELOPMENT", title: "Plugins", body: "Extend Hive with local plugins, custom actions, and event hooks.", cta: "Build a plugin", tag: "ROADMAP" },
+  { x: "28.125%", y: "50%", href: "/docs/keybindings/", eyebrow: "07 · REFERENCE", title: "Keybindings", body: "Learn the defaults and shape shortcuts around your workflow.", cta: "Browse keybindings" },
+  { x: "46.875%", y: "50%", href: "/docs/cli/", eyebrow: "08 · REFERENCE", title: "CLI & protocol", body: "Script Hive from the command line or talk to its local socket.", cta: "Read the references" },
+  { x: "65.625%", y: "50%", href: "/docs/marketplace/", eyebrow: "09 · COMMUNITY", title: "Marketplace", body: "Find and share plugins; browse design notes and project decisions.", cta: "Explore the marketplace", external: false },
+];
+---
+
+<section id="reference" class="not-content home-section">
+  <div class="mx-auto max-w-[1200px] px-[clamp(20px,4vw,48px)]">
+    <SectionHead eyebrow="THE REFERENCE" title="The hive mind.">
+      Everything you need to keep your agents busy and yourself out of the weeds.
+    </SectionHead>
+
+    <div data-hive-reveal class="hive-cells" aria-label="Hive documentation guide cells">
+      {CELLS.map((cell, index) => (
+        <article class="comb-cell" style={`--cell-x:${cell.x};--cell-y:${cell.y};--cell-order:${index}`}>
+          <a href={cell.href} class="comb-cell-face group">
+            <div class="comb-cell-copy">
+              <span class="comb-label">{cell.eyebrow}</span>
+              {cell.tag && <span class="comb-tag">{cell.tag}</span>}
+              <h3>{cell.title}</h3>
+              <p>{cell.body}</p>
+              <span class="comb-cta">{cell.cta}<span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+          <svg class="comb-border-trace" viewBox="0 0 100 86.6" preserveAspectRatio="none" aria-hidden="true">
+            <path class="comb-trace-desktop" d="M25 1H75L99 43.3L75 85.6H25L1 43.3Z" />
+            <path class="comb-trace-mobile" d="M10 1H90L99 50L90 99H10L1 50Z" />
+          </svg>
+        </article>
+      ))}
+    </div>
+
+    <div class="reference-note">
+      <span>MORE FROM THE PROJECT</span>
+      <a href={`${REPO}/tree/main/docs/adr`} target="_blank" rel="noopener">Design decisions <span aria-hidden="true">↗</span></a>
+      <a href={`${REPO}/tree/main/ROADMAP.md`} target="_blank" rel="noopener">Roadmap <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Two staggered rows of flat-top hexes, with a full cell-height between rows. */
+  .hive-cells {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2.3;
+  }
+  .comb-cell {
+    position: absolute;
+    top: var(--cell-y);
+    left: var(--cell-x);
+    /* Keep the honeycomb's 3:4 pitch, with a hairline reveal between
+       neighboring strokes so antialiasing can't make the borders pile up. */
+    width: 24.8%;
+    aspect-ratio: 1.154;
+    background: #4d4c46;
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    transition: background-color 180ms ease;
+  }
+  .comb-border-trace {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .comb-border-trace path {
+    fill: none;
+    stroke: #d5a044;
+    stroke: #F5B942;
+    stroke-width: .82;
+    stroke-linecap: round;
+    stroke-dasharray: 18 182;
+    stroke-dashoffset: 0;
+    opacity: 0;
+    animation: comb-border-transfer 27s linear infinite;
+    animation-delay: calc(var(--cell-order) * -3s);
+  }
+  .comb-trace-mobile { display: none; }
+  @keyframes comb-border-transfer {
+    0% { opacity: 0; stroke-dashoffset: 0; }
+    1% { opacity: .96; }
+    11.1% { opacity: .96; stroke-dashoffset: -200; }
+    12.2% { opacity: 0; stroke-dashoffset: -200; }
+    100% { opacity: 0; stroke-dashoffset: -200; }
+  }
+  .comb-cell:hover,
+  .comb-cell:focus-within {
+    background: #79776f;
+  }
+  .comb-cell-face {
+    position: absolute;
+    inset: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    background: #191918;
+    color: #EDEAE3;
+    text-decoration: none;
+    transition: background-color 180ms ease;
+  }
+  .comb-cell-face:hover,
+  .comb-cell-face:focus-visible {
+    background: #222220;
+    color: #EDEAE3;
+  }
+  .comb-cell-copy {
+    display: flex;
+    width: 82%;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .comb-label,
+  .comb-tag {
+    color: #96938a;
+    font: 9px/1.3 "Geist Mono Variable", ui-monospace, monospace;
+    letter-spacing: .06em;
+  }
+  .comb-cell h3 {
+    margin: 1px 0 0;
+    color: #EDEAE3;
+    font-size: clamp(14px, 1.45vw, 18px);
+    font-weight: 500;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+  }
+  .comb-cell p {
+    margin: 0;
+    color: #c0bcb3;
+    font-size: clamp(10px, 1.02vw, 12.5px);
+    line-height: 1.4;
+    text-wrap: pretty;
+  }
+  .comb-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #d7d3ca;
+    font-size: clamp(10px, 1vw, 12px);
+    font-weight: 500;
+  }
+  .comb-cta span { color: #F5B942; }
+  .reference-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 24px;
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px solid rgb(237 234 227 / 10%);
+    color: #96938a;
+    font: 10px/1.5 "Geist Mono Variable", ui-monospace, monospace;
+    letter-spacing: .05em;
+  }
+  .reference-note a {
+    color: #c0bcb3;
+    text-decoration: none;
+    transition: color 180ms ease;
+  }
+  .reference-note a:hover { color: #EDEAE3; }
+  .reference-note a span { color: #F5B942; }
+  @media (min-width: 700px) and (max-width: 1099px) {
+    .comb-cell-copy { width: 88%; gap: 4px; }
+    .comb-cell h3 { font-size: 14px; }
+    .comb-cell p { font-size: 9px; }
+    .comb-tag { display: none; }
+  }
+  @media (min-width: 700px) and (max-width: 899px) {
+    .comb-label, .comb-cta { display: none; }
+    .comb-cell-copy { width: 90%; }
+  }
+  @media (max-width: 699px) {
+    .hive-cells {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      aspect-ratio: auto;
+    }
+    .comb-cell {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: 100%;
+      aspect-ratio: 1.08;
+    }
+    .comb-cell, .comb-cell-face { clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%); }
+    .comb-trace-desktop { display: none; }
+    .comb-trace-mobile { display: block; }
+    .comb-cell-copy { width: 80%; gap: 5px; }
+    .comb-label, .comb-tag { font-size: 8px; }
+    .comb-cell h3 { font-size: 13px; }
+    .comb-cell p { font-size: 10px; }
+    .comb-cta { font-size: 10px; }
+    .reference-note { margin-top: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .comb-border-trace path { animation: none; }
+  }
+</style>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Hive Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#0A0A09;color:#EDEAE3;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}a{color:#F5B942;text-decoration:none}a:hover{color:#EDEAE3}button{font:inherit;color:inherit}::selection{background:rgba(245,185,66,.3)}:focus-visible{outline:2px solid #F5B942;outline-offset:2px}input::placeholder{color:#77736A}</style>
+</helmet>
+<div ref="{{ rootRef }}" style="min-height:100vh;background:#0A0A09;color:#EDEAE3;font-family:Geist,system-ui,sans-serif;font-size:16px;line-height:1.5">
+
+<header style="position:sticky;top:0;z-index:40;height:64px;background:rgba(10,10,9,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid #1C1C1A">
+  <div style="height:100%;max-width:1440px;margin:0 auto;padding:0 clamp(16px,3vw,32px);display:flex;align-items:center;gap:20px">
+    <sc-if value="{{ notDesk }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ openMenu }}" aria-label="Open navigation" style="width:40px;height:40px;margin-left:-8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;border:0;cursor:pointer">
+        <span style="width:16px;height:2px;background:#EDEAE3"></span><span style="width:16px;height:2px;background:#EDEAE3"></span><span style="width:16px;height:2px;background:#EDEAE3"></span>
+      </button>
+    </sc-if>
+    <a href="#" onClick="{{ goHome }}" aria-label="Hive docs home" style="display:flex;align-items:center;gap:10px;flex:none">
+      <img src="assets/hive-bee-dark.svg" alt="" style="width:32px;height:23px;image-rendering:pixelated">
+      <img src="assets/hive-wordmark-dark.svg" alt="hive" style="width:52px;height:18px;image-rendering:pixelated">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.08em;color:#8F8B82;padding:3px 6px;border:1px solid #2A2926">DOCS</span>
+    </a>
+    <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="Primary" style="display:flex;align-items:stretch;height:64px;margin-left:16px;font-family:'Geist Mono',monospace;font-size:12.5px;letter-spacing:.1em">
+        <a href="https://hive.admir-saheta.com" style="display:flex;align-items:center;padding:0 14px;color:#8F8B82" style-hover="color:#EDEAE3">OVERVIEW</a>
+        <a href="#" onClick="{{ goHome }}" aria-current="page" style="position:relative;display:flex;align-items:center;padding:0 14px;color:#EDEAE3">DOCS<span style="position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:#F5B942"></span></a>
+        <a href="https://github.com/admirable-oss/hive/releases" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:0 14px;color:#8F8B82" style-hover="color:#EDEAE3">CHANGELOG</a>
+        <a href="https://github.com/admirable-oss/hive/blob/main/ROADMAP.md" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:0 14px;color:#8F8B82" style-hover="color:#EDEAE3">ROADMAP</a>
+      </nav>
+    </sc-if>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onClick="{{ openSearch }}" aria-label="Search docs" aria-keyshortcuts="Meta+K Control+K" style="height:36px;display:flex;align-items:center;gap:10px;padding:0 8px 0 12px;background:#121211;border:1px solid #2A2926;border-radius:6px;color:#8F8B82;font-size:14px;cursor:pointer" style-hover="border-color:#3A3934;color:#B5B1A8">
+        <span style="position:relative;width:12px;height:12px;border:1.5px solid currentColor;border-radius:50%;flex:none"></span>
+        <sc-if value="{{ notMobile }}" hint-placeholder-val="{{ true }}"><span style="width:118px;text-align:left">Search docs</span></sc-if>
+        <span style="font-family:'Geist Mono',monospace;font-size:11.5px;padding:2px 6px;border:1px solid #2A2926;border-radius:3px;background:#0A0A09;color:#8F8B82">{{ kbd }}</span>
+      </button>
+      <button onClick="{{ openBee }}" aria-haspopup="dialog" style="height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;background:transparent;border:1px solid #2A2926;border-radius:6px;font-size:14px;color:#EDEAE3;cursor:pointer" style-hover="background:#121211">
+        <img src="assets/hive-bee-dark.svg" alt="" style="width:20px;height:14px;image-rendering:pixelated">
+        <sc-if value="{{ notMobile }}" hint-placeholder-val="{{ true }}"><span>Ask Bee</span></sc-if>
+      </button>
+      <sc-if value="{{ notMobile }}" hint-placeholder-val="{{ true }}">
+        <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener" style="height:36px;display:flex;align-items:center;padding:0 12px;border:1px solid #2A2926;border-radius:6px;font-family:'Geist Mono',monospace;font-size:12.5px;letter-spacing:.08em;color:#EDEAE3" style-hover="background:#121211;color:#EDEAE3">GITHUB ↗</a>
+      </sc-if>
+      <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+        <span title="Only one version is published" style="height:36px;display:flex;align-items:center;gap:8px;padding:0 10px;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82"><span style="width:6px;height:6px;background:#F5B942"></span>v0 · pre-release</span>
+      </sc-if>
+    </div>
+  </div>
+</header>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<main id="top">
+
+  <section data-screen-label="Docs home — hero" style="position:relative;border-bottom:1px solid #1C1C1A;overflow:hidden">
+    <div style="max-width:1280px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(20px,4vw,48px) clamp(40px,5vw,64px);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:clamp(24px,4vw,56px);align-items:center">
+      <div style="display:flex;flex-direction:column;gap:24px;position:relative;z-index:1">
+        <div style="display:flex;align-items:center;gap:12px;font-family:'Geist Mono',monospace;font-size:12.5px;letter-spacing:.24em;color:#8F8B82"><span style="width:8px;height:8px;background:#F5B942"></span>HIVE / DOCUMENTATION</div>
+        <h1 style="margin:0;font-weight:500;font-size:clamp(46px,6.4vw,84px);line-height:.98;letter-spacing:-.045em;text-wrap:balance">{{ headline }}<span style="color:#F5B942">.</span></h1>
+        <p style="margin:0;max-width:520px;font-size:clamp(17px,1.5vw,19px);line-height:1.55;color:#B5B1A8;text-wrap:pretty">Install Hive, put your agents to work, and learn as you go. Pick your path. No terminal wizardry required. The bees handle enough magic already.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;padding-top:4px">
+          <a href="#" onClick="{{ goInstall }}" style="height:48px;display:flex;align-items:center;gap:10px;padding:0 22px;background:#F5B942;color:#0A0A09;font-size:16px;font-weight:500;clip-path:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px))" style-hover="background:#FFC85A;color:#0A0A09">Install Hive <span aria-hidden="true">→</span></a>
+          <a href="#" onClick="{{ goQuick }}" style="height:48px;display:flex;align-items:center;gap:10px;padding:0 20px;background:#1C1C1A;border-top:1px solid rgba(237,234,227,.12);border-radius:6px;color:#EDEAE3;font-size:16px" style-hover="background:#262523;color:#EDEAE3">Quick start <span aria-hidden="true" style="color:#8F8B82">↗</span></a>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F8B82">
+          <span>macOS · Linux</span><span>Go 1.26+</span><span>Apache-2.0</span><span>claude · codex · opencode · any CLI agent</span>
+        </div>
+      </div>
+      <div style="position:relative;width:100%;max-width:600px;justify-self:center">{{ beeStage }}</div>
+    </div>
+  </section>
+
+  <section id="paths" data-screen-label="Docs home — paths" style="max-width:1280px;margin:0 auto;padding:clamp(56px,7vw,96px) clamp(20px,4vw,48px) 0">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:36px">
+      <div style="font-family:'Geist Mono',monospace;font-size:12.5px;letter-spacing:.24em;color:#8F8B82">GETTING STARTED</div>
+      <h2 style="margin:0;font-weight:500;font-size:clamp(30px,3.4vw,44px);letter-spacing:-.035em;line-height:1.05">Pick your path.</h2>
+      <p style="margin:0;max-width:560px;font-size:17px;line-height:1.55;color:#B5B1A8;text-wrap:pretty">New to the hive or migrating from another multiplexer? There's a way in for both.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:0 48px">
+      <div style="display:flex;flex-direction:column;gap:16px;padding:28px 0 36px;border-top:1px solid #2A2926">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">01 · new here</span>
+          <div aria-hidden="true" style="width:64px;height:40px;display:grid;grid-template-columns:3fr 2fr;grid-template-rows:1fr 1fr;gap:2px;padding:2px;border:1px solid #2A2926;background:#2A2926">
+            <div style="grid-row:span 2;background:#121211;display:flex;align-items:flex-end;padding:4px"><span style="width:5px;height:2px;background:#F5B942"></span></div>
+            <div style="background:#121211"></div><div style="background:#1C1C1A"></div>
+          </div>
+        </div>
+        <h3 style="margin:0;font-size:22px;font-weight:500;letter-spacing:-.02em">New to terminal multiplexers?</h3>
+        <p style="margin:0;font-size:15.5px;line-height:1.6;color:#B5B1A8;text-wrap:pretty;max-width:520px">Never multiplexed a terminal in your life? Excellent. Less baggage to carry. Click around, split panes, drag borders, and right-click your way through Hive. No keyboard gymnastics required.</p>
+        <div style="display:flex;gap:20px;padding-top:4px"><a href="#" onClick="{{ goQuick }}" style="font-size:15px;font-weight:500;color:#EDEAE3" style-hover="color:#F5B942">Quick start →</a></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;padding:28px 0 36px;border-top:1px solid #2A2926">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">02 · coming from tmux or zellij</span>
+          <div aria-hidden="true" style="display:flex;align-items:center;gap:4px;font-family:'Geist Mono',monospace;font-size:11.5px;color:#EDEAE3">
+            <span style="height:24px;min-width:24px;padding:0 7px;display:flex;align-items:center;justify-content:center;background:#121211;border:1px solid #2A2926;border-bottom-width:2px;border-radius:3px">ctrl</span>
+            <span style="height:24px;min-width:24px;padding:0 7px;display:flex;align-items:center;justify-content:center;background:#121211;border:1px solid #2A2926;border-bottom-width:2px;border-radius:3px">b</span>
+            <span style="color:#77736A;padding:0 2px">then</span>
+            <span style="height:24px;min-width:24px;padding:0 7px;display:flex;align-items:center;justify-content:center;background:#121211;border:1px solid #F5B942;border-bottom-width:2px;border-radius:3px;color:#F5B942">%</span>
+          </div>
+        </div>
+        <h3 style="margin:0;font-size:22px;font-weight:500;letter-spacing:-.02em">Coming from tmux or Zellij?</h3>
+        <p style="margin:0;font-size:15.5px;line-height:1.6;color:#B5B1A8;text-wrap:pretty;max-width:520px">Welcome back to the hive. You know the drill: persistent panes, detachable sessions, and a workspace that survives your SSH connection dropping out. Your muscle memory is safe here. Mostly.</p>
+        <p style="margin:0;font-family:'Geist Mono',monospace;font-size:12.5px;line-height:1.6;color:#8F8B82">The prefix is ctrl+b, like tmux. Every binding can be changed in config.toml.</p>
+        <div style="display:flex;gap:24px;padding-top:4px">
+          <a href="#" onClick="{{ goConcepts }}" style="font-size:15px;font-weight:500;color:#EDEAE3" style-hover="color:#F5B942">Concepts →</a>
+          <a href="#" onClick="{{ goKeys }}" style="font-size:15px;font-weight:500;color:#EDEAE3" style-hover="color:#F5B942">Keybindings →</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:28px 48px;padding:32px clamp(20px,3vw,36px);background:#121211;border-top:1px solid rgba(237,234,227,.1)">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">03 · hand it to your agent</span>
+        <h3 style="margin:0;font-size:22px;font-weight:500;letter-spacing:-.02em">Or let your agent do the talking.</h3>
+        <p style="margin:0;font-size:15.5px;line-height:1.6;color:#B5B1A8;text-wrap:pretty;max-width:480px">Already have an AI coding agent? Put it to work. Let it read the docs, guide the setup, and explain the moving parts. You hired the intelligence. Might as well use it.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+        <div style="background:#0A0A09;border:1px solid #2A2926;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;height:40px;padding:0 6px 0 16px;border-bottom:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">
+            <span>prompt · paste into your agent</span>
+            <button onClick="{{ cp.prompt }}" aria-label="Copy prompt" style="height:28px;padding:0 10px;background:#1C1C1A;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.06em;color:{{ lblColor.prompt }};cursor:pointer" style-hover="background:#262523">{{ lbl.prompt }}</button>
+          </div>
+          <div style="display:flex;gap:12px;padding:16px;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.7;color:#EDEAE3">
+            <span aria-hidden="true" style="color:#F5B942">›</span>
+            <p style="margin:0;max-width:62ch;overflow-wrap:anywhere">Help me understand and set up Hive. Read https://hive.admir-saheta.com/agent-guide.md first, then walk me through it step by step.</p>
+          </div>
+        </div>
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#8F8B82;text-wrap:pretty">The guide covers Hive's architecture, installation, configuration, and troubleshooting, so your agent can work from the actual docs instead of confidently making things up. Even bees need a map.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="reference" data-screen-label="Docs home — reference" style="max-width:1280px;margin:0 auto;padding:clamp(64px,8vw,112px) clamp(20px,4vw,48px) 0">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:36px">
+      <div style="font-family:'Geist Mono',monospace;font-size:12.5px;letter-spacing:.24em;color:#8F8B82">THE REFERENCE</div>
+      <h2 style="margin:0;font-weight:500;font-size:clamp(30px,3.4vw,44px);letter-spacing:-.035em;line-height:1.05">The hive mind.</h2>
+      <p style="margin:0;max-width:560px;font-size:17px;line-height:1.55;color:#B5B1A8;text-wrap:pretty">Everything you need to keep your agents busy and yourself out of the weeds.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:{{ refCols }};gap:1px;background:#1C1C1A;border:1px solid #1C1C1A">
+      <sc-for list="{{ guides }}" as="g" hint-placeholder-count="7">
+        <a href="#" onClick="{{ g.go }}" style="display:flex;flex-direction:column;gap:12px;padding:24px 24px 26px;background:#0A0A09;color:#EDEAE3;min-height:220px;transition:background 160ms cubic-bezier(.2,.7,.2,1)" style-hover="background:#121211;color:#EDEAE3">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:'Geist Mono',monospace;font-size:12px">
+            <span style="display:flex;align-items:center;gap:8px;color:#8F8B82"><span style="width:6px;height:6px;background:#F5B942"></span>{{ g.id }}</span>
+            <sc-if value="{{ g.hasTag }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:6px;color:#8F8B82;white-space:nowrap"><span style="color:{{ g.tagColor }}">◇</span>{{ g.tag }}</span></sc-if>
+          </div>
+          <h3 style="margin:0;font-size:19px;font-weight:500;letter-spacing:-.015em">{{ g.t }}</h3>
+          <p style="margin:0;flex:1;font-size:14.5px;line-height:1.6;color:#B5B1A8;text-wrap:pretty">{{ g.d }}</p>
+          <span style="font-size:14.5px;font-weight:500;color:#EDEAE3">{{ g.cta }} <span aria-hidden="true" style="color:#F5B942">→</span></span>
+        </a>
+      </sc-for>
+      <div style="grid-column:{{ alsoSpan }};display:flex;flex-direction:column;gap:16px;padding:24px;background:#0A0A09">
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">also in the reference</span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 24px">
+          <a href="#" onClick="{{ goKeys }}" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1C1C1A;font-size:15px;color:#EDEAE3" style-hover="color:#F5B942">Keybindings <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#77736A">ctrl+b ?</span></a>
+          <a href="#" onClick="{{ goCli }}" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1C1C1A;font-size:15px;color:#EDEAE3" style-hover="color:#F5B942">CLI reference <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#77736A">--json</span></a>
+          <a href="#" onClick="{{ goApi }}" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1C1C1A;font-size:15px;color:#EDEAE3" style-hover="color:#F5B942">Wire protocol <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#77736A">hive.sock</span></a>
+          <a href="https://github.com/admirable-oss/hive/tree/main/docs/adr" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1C1C1A;font-size:15px;color:#EDEAE3" style-hover="color:#F5B942">Design decisions (ADRs) <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#77736A">↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen-label="Docs home — community" style="max-width:1280px;margin:0 auto;padding:clamp(64px,8vw,112px) clamp(20px,4vw,48px) clamp(64px,8vw,96px)">
+    <div style="position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:32px 64px;padding:clamp(28px,4vw,48px);border:1px solid #1C1C1A;border-top-color:#2A2926">
+      <div aria-hidden="true" style="position:absolute;inset:0;background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2297%22%3E%3Cpath d=%22M28 0L56 16.17V48.5L28 64.67L0 48.5V16.17Z M28 64.67V97%22 fill=%22none%22 stroke=%22%23EDEAE3%22 stroke-opacity=%22.06%22/%3E%3C/svg%3E');-webkit-mask-image:radial-gradient(ellipse 60% 90% at 100% 50%,#000,transparent 70%);mask-image:radial-gradient(ellipse 60% 90% at 100% 50%,#000,transparent 70%);opacity:{{ combOpacity }};pointer-events:none"></div>
+      <div style="position:relative;display:flex;flex-direction:column;gap:18px">
+        <h2 style="margin:0;font-weight:500;font-size:clamp(26px,2.8vw,34px);letter-spacing:-.03em;line-height:1.1">Good tools are built in the open.</h2>
+        <p style="margin:0;max-width:500px;font-size:16px;line-height:1.6;color:#B5B1A8;text-wrap:pretty">Hive is built for developers who want their agents to keep working, even when they close the laptop. Follow the project, explore the source, and help make the hive better.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;padding-top:4px">
+          <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener" style="height:44px;display:flex;align-items:center;gap:8px;padding:0 18px;background:#1C1C1A;border-top:1px solid rgba(237,234,227,.12);border-radius:6px;color:#EDEAE3;font-size:15px" style-hover="background:#262523;color:#EDEAE3"><span style="color:#F5B942">☆</span> Star Hive on GitHub ↗</a>
+          <a href="https://github.com/admirable-oss/hive/tree/main/internal" target="_blank" rel="noopener" style="height:44px;display:flex;align-items:center;padding:0 12px;color:#8F8B82;font-size:15px" style-hover="color:#EDEAE3">Explore the source →</a>
+        </div>
+      </div>
+      <div style="position:relative;display:flex;align-items:flex-end;gap:32px;flex-wrap:wrap">
+        <dl style="flex:1;min-width:240px;margin:0;display:grid;grid-template-columns:auto 1fr;font-family:'Geist Mono',monospace;font-size:13px">
+          <dt style="padding:9px 24px 9px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">repo</dt><dd style="margin:0;padding:9px 0;border-bottom:1px solid #1C1C1A">admirable-oss/hive</dd>
+          <dt style="padding:9px 24px 9px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">language</dt><dd style="margin:0;padding:9px 0;border-bottom:1px solid #1C1C1A">Go</dd>
+          <dt style="padding:9px 24px 9px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">licence</dt><dd style="margin:0;padding:9px 0;border-bottom:1px solid #1C1C1A">Apache-2.0</dd>
+          <dt style="padding:9px 24px 9px 0;color:#8F8B82">status</dt><dd style="margin:0;padding:9px 0;color:#F5B942">v0 · built in public</dd>
+        </dl>
+        <img src="assets/hive-bee-dark.svg" alt="Hive agent, idle" style="width:72px;height:52px;image-rendering:pixelated;flex:none">
+      </div>
+    </div>
+  </section>
+</main>
+</sc-if>
+
+<sc-if value="{{ isArticle }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Article — Quick start" style="max-width:1440px;margin:0 auto;display:flex;align-items:flex-start">
+  <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+    <aside aria-label="Documentation" style="width:268px;flex:none;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;border-right:1px solid #1C1C1A;padding:20px 16px 48px 24px;display:flex;flex-direction:column;gap:20px">
+      <button onClick="{{ openSearch }}" style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;background:#121211;border:1px solid #2A2926;border-radius:6px;color:#8F8B82;font-size:13.5px;cursor:pointer">Search <span style="font-family:'Geist Mono',monospace;font-size:11px">{{ kbd }}</span></button>
+      <a href="#" onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;font-size:14px;color:#B5B1A8" style-hover="color:#EDEAE3"><span style="font-family:'Geist Mono',monospace;color:#77736A">←</span> Docs home</a>
+      <nav style="display:flex;flex-direction:column;gap:18px">
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <button onClick="{{ g.toggle }}" aria-expanded="{{ g.open }}" style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 6px;background:transparent;border:0;cursor:pointer;font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.16em;color:#8F8B82;text-align:left">{{ g.t }}<span aria-hidden="true" style="font-size:10px;color:#77736A">{{ g.chev }}</span></button>
+            <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+                <a href="#" onClick="{{ it.go }}" aria-current="{{ it.current }}" style="display:flex;align-items:center;gap:10px;padding:6px 10px;margin-left:-10px;border-radius:4px;font-size:14px;color:{{ it.color }};background:{{ it.bg }}" style-hover="color:#EDEAE3">
+                  <span style="width:4px;height:4px;flex:none;background:{{ it.mark }}"></span>
+                  <span style="flex:1">{{ it.t }}</span>
+                  <sc-if value="{{ it.hasTag }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:10.5px;color:#77736A">{{ it.tag }}</span></sc-if>
+                </a>
+              </sc-for>
+            </sc-if>
+          </div>
+        </sc-for>
+      </nav>
+    </aside>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;justify-content:center;gap:56px;padding:36px clamp(20px,4vw,56px) 96px">
+    <article style="flex:1;min-width:0;max-width:740px">
+      <nav aria-label="Breadcrumb" style="display:flex;flex-wrap:wrap;gap:8px;font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F8B82;margin-bottom:18px">
+        <a href="#" onClick="{{ goHome }}" style="color:#8F8B82" style-hover="color:#EDEAE3">Docs</a><span style="color:#55534E">/</span><span>Getting started</span><span style="color:#55534E">/</span><span aria-current="page" style="color:#B5B1A8">Quick start</span>
+      </nav>
+      <h1 style="margin:0 0 14px;font-size:clamp(34px,4vw,44px);font-weight:500;letter-spacing:-.035em;line-height:1.08">Quick start</h1>
+      <p style="margin:0 0 28px;font-size:18.5px;line-height:1.6;color:#B5B1A8;text-wrap:pretty">Build Hive, start a few demo agents and learn to move around the multiplexer. Then close the terminal, come back, and find them still working.</p>
+
+      <sc-if value="{{ notToc }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:0 0 28px;border:1px solid #1C1C1A;background:#0E0E0D">
+          <button onClick="{{ toggleToc }}" aria-expanded="{{ tocOpen }}" style="width:100%;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:transparent;border:0;cursor:pointer;font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:.12em;color:#8F8B82">ON THIS PAGE <span>{{ tocChev }}</span></button>
+          <sc-if value="{{ tocOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;padding:0 16px 12px">
+              <sc-for list="{{ tocItems }}" as="i" hint-placeholder-count="7"><a href="#" onClick="{{ i.go }}" style="padding:7px 0;font-size:14.5px;color:{{ i.color }};border-top:1px solid #1C1C1A">{{ i.t }}</a></sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <div role="note" style="display:flex;gap:14px;padding:14px 16px;margin-bottom:8px;background:rgba(139,124,255,.06);border:1px solid rgba(139,124,255,.22);font-size:15px;line-height:1.6;color:#B5B1A8">
+        <span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#A99EFF;padding-top:2px;flex:none">◇ v0</span>
+        <span>Hive is pre-release and built in public. The wire protocol and on-disk layout may still change between versions.</span>
+      </div>
+
+      <h2 id="requirements" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Requirements</h2>
+      <ul style="margin:0;padding:0 0 0 0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:16.5px;line-height:1.65;color:#B5B1A8">
+        <li style="display:flex;gap:12px"><span style="color:#F5B942;font-family:'Geist Mono',monospace">·</span><span>Go 1.26 or later.</span></li>
+        <li style="display:flex;gap:12px"><span style="color:#F5B942;font-family:'Geist Mono',monospace">·</span><span>macOS or Linux. Windows is on the roadmap.</span></li>
+        <li style="display:flex;gap:12px"><span style="color:#F5B942;font-family:'Geist Mono',monospace">·</span><span>Any terminal. Truecolor looks best; 256 colours and <code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">NO_COLOR</code> are respected.</span></li>
+      </ul>
+
+      <h2 id="build" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Build Hive</h2>
+      <p style="margin:0 0 16px;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty">Hive is a single Go binary. Clone the repository and build it with <code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">make</code>, or with <code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">go build</code> if you prefer.</p>
+      <div style="background:#121211;border-top:1px solid rgba(237,234,227,.1);min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:38px;padding:0 6px 0 16px;border-bottom:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82"><span>sh</span><button onClick="{{ cp.build }}" aria-label="Copy code" style="height:26px;padding:0 10px;background:transparent;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ lblColor.build }};cursor:pointer" style-hover="background:#1C1C1A">{{ lbl.build }}</button></div>
+        <pre style="margin:0;padding:16px;overflow-x:auto;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.75;color:#EDEAE3"><span style="color:#F5B942">$ </span>git clone https://github.com/admirable-oss/hive
+<span style="color:#F5B942">$ </span>cd hive
+<span style="color:#F5B942">$ </span>make build   <span style="color:#77736A"># or: go build -o hive ./cmd/hive</span></pre>
+      </div>
+
+      <h2 id="demo" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Start the demo agents</h2>
+      <p style="margin:0 0 16px;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty"><code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">hive demo</code> starts the daemon on demand and launches four demo agents. Then open the multiplexer to watch them.</p>
+      <div style="background:#121211;border-top:1px solid rgba(237,234,227,.1);min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:38px;padding:0 6px 0 16px;border-bottom:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82"><span>sh</span><button onClick="{{ cp.demo }}" aria-label="Copy code" style="height:26px;padding:0 10px;background:transparent;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ lblColor.demo }};cursor:pointer" style-hover="background:#1C1C1A">{{ lbl.demo }}</button></div>
+        <pre style="margin:0;padding:16px;overflow-x:auto;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.75;color:#EDEAE3"><span style="color:#F5B942">$ </span>./hive demo   <span style="color:#77736A"># daemon + four demo agents</span>
+<span style="color:#F5B942">$ </span>./hive        <span style="color:#77736A"># open the multiplexer</span></pre>
+      </div>
+      <p style="margin:16px 0 0;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty">Every command that talks to the daemon starts it if it isn't running. Add <code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">--json</code> to any command for machine-readable output.</p>
+
+      <h2 id="move-around" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Move around</h2>
+      <p style="margin:0 0 16px;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty">The multiplexer works like tmux: press the prefix, <kbd style="font-family:'Geist Mono',monospace;font-size:12.5px;padding:2px 7px;background:#121211;border:1px solid #2A2926;border-bottom-width:2px;border-radius:3px;color:#EDEAE3">ctrl+b</kbd>, then a key. The mouse works too: click to focus, drag borders, select to copy, scroll into history.</p>
+      <div style="overflow-x:auto;border-top:1px solid #2A2926">
+        <table style="width:100%;min-width:480px;border-collapse:collapse;font-size:15px">
+          <thead><tr><th scope="col" style="text-align:left;padding:10px 16px 10px 0;font-family:'Geist Mono',monospace;font-size:12px;font-weight:400;color:#8F8B82;border-bottom:1px solid #1C1C1A;width:200px">after ctrl+b</th><th scope="col" style="text-align:left;padding:10px 0;font-family:'Geist Mono',monospace;font-size:12px;font-weight:400;color:#8F8B82;border-bottom:1px solid #1C1C1A">does</th></tr></thead>
+          <tbody>
+            <sc-for list="{{ keyRows }}" as="r" hint-placeholder-count="9">
+              <tr>
+                <td style="padding:10px 16px 10px 0;border-bottom:1px solid #1C1C1A;vertical-align:top"><span style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="2"><kbd style="font-family:'Geist Mono',monospace;font-size:12.5px;padding:2px 7px;background:#121211;border:1px solid #2A2926;border-bottom-width:2px;border-radius:3px;color:#EDEAE3">{{ k }}</kbd></sc-for></span></td>
+                <td style="padding:10px 0;border-bottom:1px solid #1C1C1A;color:#B5B1A8;line-height:1.55">{{ r.act }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="detach" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Detach, and come back</h2>
+      <p style="margin:0 0 16px;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty">Leaving the multiplexer never touches an agent. Each one runs under its own shim, which outlives the UI, the daemon and its restarts. Attach to a single agent's terminal from anywhere on the machine:</p>
+      <div style="background:#121211;border-top:1px solid rgba(237,234,227,.1);min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:38px;padding:0 6px 0 16px;border-bottom:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82"><span>sh</span><button onClick="{{ cp.attach }}" aria-label="Copy code" style="height:26px;padding:0 10px;background:transparent;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ lblColor.attach }};cursor:pointer" style-hover="background:#1C1C1A">{{ lbl.attach }}</button></div>
+        <pre style="margin:0;padding:16px;overflow-x:auto;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.75;color:#EDEAE3"><span style="color:#F5B942">$ </span>./hive ps list
+<span style="color:#F5B942">$ </span>./hive terminal attach &lt;id&gt;   <span style="color:#77736A"># ctrl+] detaches</span></pre>
+      </div>
+      <div role="note" style="display:flex;gap:14px;padding:14px 16px;margin-top:16px;background:rgba(245,185,66,.05);border:1px solid rgba(245,185,66,.2);font-size:15px;line-height:1.6;color:#B5B1A8">
+        <span style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#F5B942;padding-top:2px;flex:none">note</span>
+        <span><kbd style="font-family:'Geist Mono',monospace;font-size:12px;padding:1px 6px;background:#121211;border:1px solid #2A2926;border-radius:3px;color:#EDEAE3">ctrl+b d</kbd> detaches and agents keep running. <code style="font-family:'Geist Mono',monospace;font-size:.88em;padding:2px 6px;background:#1C1C1A;border-radius:3px;color:#EDEAE3">hive stop</code> is different: it stops the runtime and every agent it runs.</span>
+      </div>
+
+      <h2 id="daemon" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Keep the daemon running</h2>
+      <p style="margin:0 0 16px;font-size:16.5px;line-height:1.7;color:#B5B1A8;text-wrap:pretty">Optional, and recommended once you trust it: install the daemon as a login service so it starts with your session and restarts if it crashes. It uses launchd on macOS and a systemd user service on Linux.</p>
+      <div style="background:#121211;border-top:1px solid rgba(237,234,227,.1);min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:38px;padding:0 6px 0 16px;border-bottom:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82"><span>sh</span><button onClick="{{ cp.daemon }}" aria-label="Copy code" style="height:26px;padding:0 10px;background:transparent;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ lblColor.daemon }};cursor:pointer" style-hover="background:#1C1C1A">{{ lbl.daemon }}</button></div>
+        <pre style="margin:0;padding:16px;overflow-x:auto;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.75;color:#EDEAE3"><span style="color:#F5B942">$ </span>./hive daemon install
+<span style="color:#F5B942">◆</span> <span style="color:#8F8B82">daemon installed · starts at login</span></pre>
+      </div>
+
+      <h2 id="next" style="margin:44px 0 14px;scroll-margin-top:88px;font-size:26px;font-weight:500;letter-spacing:-.025em">Next steps</h2>
+      <div style="display:flex;flex-direction:column;border-top:1px solid #1C1C1A">
+        <a href="#" onClick="{{ goConcepts }}" style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #1C1C1A;color:#EDEAE3" style-hover="color:#F5B942"><span>Core concepts <span style="color:#8F8B82">: shims, the daemon and clients</span></span><span>→</span></a>
+        <a href="#" onClick="{{ goKeys }}" style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #1C1C1A;color:#EDEAE3" style-hover="color:#F5B942"><span>Keybindings <span style="color:#8F8B82">: every mode, and how to rebind</span></span><span>→</span></a>
+        <a href="#" onClick="{{ goConfig }}" style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #1C1C1A;color:#EDEAE3" style-hover="color:#F5B942"><span>Configuration <span style="color:#8F8B82">: config.toml, every key optional</span></span><span>→</span></a>
+      </div>
+
+      <nav aria-label="Pagination" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:56px">
+        <a href="#" onClick="{{ goInstallPage }}" style="display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid #1C1C1A;color:#EDEAE3" style-hover="border-color:#2A2926;background:#0E0E0D;color:#EDEAE3"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">← previous</span><span style="font-size:16px;font-weight:500">Installation</span></a>
+        <a href="#" onClick="{{ goConcepts }}" style="display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid #1C1C1A;text-align:right;color:#EDEAE3" style-hover="border-color:#2A2926;background:#0E0E0D;color:#EDEAE3"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">next →</span><span style="font-size:16px;font-weight:500">Core concepts</span></a>
+      </nav>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;margin-top:28px;padding-top:20px;border-top:1px solid #1C1C1A;font-size:14px;color:#8F8B82">
+        <span>Something wrong or missing on this page?</span>
+        <div style="display:flex;gap:20px;font-family:'Geist Mono',monospace;font-size:12.5px">
+          <a href="https://github.com/admirable-oss/hive/issues/new" target="_blank" rel="noopener" style="color:#B5B1A8" style-hover="color:#F5B942">Open an issue ↗</a>
+          <a href="https://github.com/admirable-oss/hive/blob/main/README.md#quick-start" target="_blank" rel="noopener" style="color:#B5B1A8" style-hover="color:#F5B942">View source ↗</a>
+        </div>
+      </div>
+    </article>
+
+    <sc-if value="{{ toc }}" hint-placeholder-val="{{ true }}">
+      <aside aria-label="On this page" style="width:220px;flex:none;position:sticky;top:100px;display:flex;flex-direction:column;gap:32px">
+        <nav style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.16em;color:#8F8B82;padding-bottom:10px">ON THIS PAGE</span>
+          <sc-for list="{{ tocItems }}" as="i" hint-placeholder-count="7">
+            <a href="#" onClick="{{ i.go }}" aria-current="{{ i.current }}" style="display:flex;align-items:center;gap:10px;padding:5px 0;font-size:13.5px;line-height:1.4;color:{{ i.color }};transition:color 160ms" style-hover="color:#EDEAE3"><span style="width:4px;height:4px;flex:none;background:{{ i.mark }}"></span>{{ i.t }}</a>
+          </sc-for>
+        </nav>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-top:18px;border-top:1px solid #1C1C1A">
+          <p style="margin:0;font-size:13px;line-height:1.55;color:#8F8B82">Found Hive useful? Give the bees a little encouragement.</p>
+          <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener" style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#EDEAE3" style-hover="color:#F5B942">Star the repository ↗</a>
+          <button onClick="{{ openBee }}" style="align-self:flex-start;padding:0;background:transparent;border:0;cursor:pointer;font-family:'Geist Mono',monospace;font-size:12.5px;color:#8F8B82" style-hover="color:#EDEAE3">Ask Bee →</button>
+        </div>
+      </aside>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<footer style="border-top:1px solid #1C1C1A">
+  <div style="max-width:1440px;margin:0 auto;padding:28px clamp(20px,4vw,48px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;font-size:13.5px;color:#8F8B82">
+    <div style="display:flex;align-items:center;gap:14px"><img src="assets/hive-wordmark-dark.svg" alt="hive" style="width:46px;height:16px;image-rendering:pixelated"><span>The hive keeps going.</span></div>
+    <nav aria-label="Footer" style="display:flex;flex-wrap:wrap;gap:8px 24px;font-family:'Geist Mono',monospace;font-size:12.5px">
+      <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener" style="color:#8F8B82" style-hover="color:#EDEAE3">GitHub ↗</a>
+      <a href="https://github.com/admirable-oss/hive/blob/main/ROADMAP.md" target="_blank" rel="noopener" style="color:#8F8B82" style-hover="color:#EDEAE3">Roadmap ↗</a>
+      <a href="https://github.com/admirable-oss/hive/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" style="color:#8F8B82" style-hover="color:#EDEAE3">Contributing ↗</a>
+      <a href="https://github.com/admirable-oss/hive/blob/main/SECURITY.md" target="_blank" rel="noopener" style="color:#8F8B82" style-hover="color:#EDEAE3">Security ↗</a>
+      <span>Apache-2.0</span>
+    </nav>
+  </div>
+</footer>
+
+<sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeSearch }}" style="position:fixed;inset:0;z-index:60;background:rgba(5,5,4,.74);display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px">
+    <div role="dialog" aria-modal="true" aria-label="Search the docs" onClick="{{ stop }}" style="width:100%;max-width:640px;background:#121211;border:1px solid #2A2926;border-top-color:#3A3934;display:flex;flex-direction:column;max-height:76vh">
+      <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 14px 0 18px;border-bottom:1px solid #1C1C1A">
+        <span aria-hidden="true" style="font-family:'Geist Mono',monospace;color:#F5B942">›</span>
+        <input ref="{{ searchRef }}" value="{{ q }}" onChange="{{ onQ }}" onKeyDown="{{ onSearchKey }}" aria-label="Search the docs" role="combobox" aria-expanded="true" aria-controls="hv-results" placeholder="Search pages and sections" style="flex:1;min-width:0;height:100%;background:transparent;border:0;outline:none;color:#EDEAE3;font-family:Geist,sans-serif;font-size:16px">
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;padding:2px 6px;border:1px solid #2A2926;border-radius:3px;color:#8F8B82">esc</span>
+      </div>
+      <div id="hv-results" role="listbox" style="overflow-y:auto;padding:8px">
+        <sc-for list="{{ results }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.go }}" onMouseEnter="{{ r.hover }}" role="option" aria-selected="{{ r.selected }}" style="width:100%;display:grid;grid-template-columns:72px 1fr auto;align-items:center;gap:14px;padding:10px 12px;background:{{ r.bg }};border:0;border-radius:4px;text-align:left;cursor:pointer">
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:{{ r.kindColor }}">{{ r.kind }}</span>
+            <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:#EDEAE3">{{ r.t }}</span><span style="font-size:13px;color:#8F8B82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.d }}</span></span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#77736A">{{ r.s }}</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:28px 12px;text-align:center;font-size:14px;color:#8F8B82">No pages match “{{ q }}”. Try <span style="font-family:'Geist Mono',monospace;color:#B5B1A8">daemon</span>, <span style="font-family:'Geist Mono',monospace;color:#B5B1A8">detach</span> or <span style="font-family:'Geist Mono',monospace;color:#B5B1A8">config</span>.</div>
+        </sc-if>
+      </div>
+      <div style="display:flex;gap:18px;padding:10px 18px;border-top:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:11.5px;color:#77736A"><span>↑↓ select</span><span>⏎ open</span><span>esc close</span></div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ beeOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeBee }}" style="position:fixed;inset:0;z-index:60;background:rgba(5,5,4,.6);display:flex;justify-content:flex-end">
+    <div role="dialog" aria-modal="true" aria-labelledby="hv-bee-title" onClick="{{ stop }}" style="width:min(420px,100%);height:100%;background:#0E0E0D;border-left:1px solid #2A2926;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:12px;height:64px;padding:0 12px 0 20px;border-bottom:1px solid #1C1C1A">
+        <img src="assets/hive-bee-dark.svg" alt="" style="width:30px;height:22px;image-rendering:pixelated;filter:saturate(.35) brightness(.7)">
+        <span id="hv-bee-title" style="font-size:16px;font-weight:500">Ask Bee</span>
+        <span style="display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11.5px;color:#8F8B82"><span style="width:6px;height:6px;background:#55534E"></span>not connected</span>
+        <div style="flex:1"></div>
+        <button onClick="{{ closeBee }}" aria-label="Close" style="width:36px;height:36px;background:transparent;border:0;cursor:pointer;color:#8F8B82;font-size:18px">×</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:22px">
+        <p style="margin:0;font-size:15px;line-height:1.6;color:#B5B1A8">Bee will answer questions from these docs once it has a backend that can answer honestly. It isn't connected yet, so nothing you type here goes anywhere.</p>
+        <div style="padding:12px 14px;background:#121211;border:1px solid #1C1C1A;font-family:'Geist Mono',monospace;font-size:12.5px;line-height:1.7;color:#8F8B82"><div>integration point</div><div style="color:#EDEAE3">ASK_BEE_ENDPOINT <span style="color:#77736A">= unset</span></div></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.16em;color:#8F8B82">MEANWHILE</span>
+          <button onClick="{{ beeToSearch }}" style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:transparent;border:1px solid #2A2926;cursor:pointer;font-size:14.5px;color:#EDEAE3;text-align:left">Search the docs <span style="font-family:'Geist Mono',monospace;font-size:11.5px;color:#8F8B82">{{ kbd }}</span></button>
+          <div style="border:1px solid #2A2926">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 6px 10px 14px;border-bottom:1px solid #1C1C1A;font-size:14.5px">Hand the docs to your own agent<button onClick="{{ cp.prompt2 }}" style="height:26px;padding:0 10px;background:#1C1C1A;border:0;border-radius:4px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ lblColor.prompt2 }};cursor:pointer">{{ lbl.prompt2 }}</button></div>
+            <p style="margin:0;padding:12px 14px;font-family:'Geist Mono',monospace;font-size:12.5px;line-height:1.65;color:#B5B1A8;overflow-wrap:anywhere">Help me understand and set up Hive. Read https://hive.admir-saheta.com/agent-guide.md first, then walk me through it step by step.</p>
+          </div>
+        </div>
+      </div>
+      <div style="padding:14px 20px 20px;border-top:1px solid #1C1C1A">
+        <input disabled aria-disabled="true" placeholder="Bee is offline" aria-label="Ask Bee (offline)" style="width:100%;height:44px;padding:0 14px;background:#121211;border:1px solid #1C1C1A;border-radius:6px;color:#77736A;font-size:14.5px;cursor:not-allowed">
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:60;background:rgba(5,5,4,.6)">
+    <div role="dialog" aria-modal="true" aria-label="Navigation" onClick="{{ stop }}" style="width:min(320px,88vw);height:100%;overflow-y:auto;background:#0E0E0D;border-right:1px solid #2A2926;padding:16px 20px 40px;display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between"><img src="assets/hive-wordmark-dark.svg" alt="hive" style="width:52px;height:18px;image-rendering:pixelated"><button onClick="{{ closeMenu }}" aria-label="Close navigation" style="width:40px;height:40px;background:transparent;border:0;color:#8F8B82;font-size:20px;cursor:pointer">×</button></div>
+      <nav style="display:flex;flex-direction:column;font-family:'Geist Mono',monospace;font-size:13px;letter-spacing:.1em">
+        <a href="https://hive.admir-saheta.com" style="padding:12px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">OVERVIEW</a>
+        <a href="#" onClick="{{ goHome }}" style="padding:12px 0;border-bottom:1px solid #1C1C1A;color:#EDEAE3">DOCS</a>
+        <a href="https://github.com/admirable-oss/hive/releases" target="_blank" rel="noopener" style="padding:12px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">CHANGELOG ↗</a>
+        <a href="https://github.com/admirable-oss/hive/blob/main/ROADMAP.md" target="_blank" rel="noopener" style="padding:12px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">ROADMAP ↗</a>
+        <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener" style="padding:12px 0;border-bottom:1px solid #1C1C1A;color:#8F8B82">GITHUB ↗</a>
+      </nav>
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-family:'Geist Mono',monospace;font-size:11.5px;letter-spacing:.16em;color:#8F8B82;padding-bottom:6px">{{ g.t }}</span>
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <a href="#" onClick="{{ it.go }}" aria-current="{{ it.current }}" style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;margin-left:-10px;font-size:15px;color:{{ it.color }};background:{{ it.bg }}"><span style="width:4px;height:4px;background:{{ it.mark }}"></span><span style="flex:1">{{ it.t }}</span><sc-if value="{{ it.hasTag }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:10.5px;color:#77736A">{{ it.tag }}</span></sc-if></a>
+          </sc-for>
+        </div>
+      </sc-for>
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#8F8B82">v0 · pre-release</span>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:70;max-width:calc(100% - 32px);padding:12px 16px;background:#1C1C1A;border-top:1px solid rgba(237,234,227,.14);font-family:'Geist Mono',monospace;font-size:12.5px;color:#EDEAE3;display:flex;gap:10px;align-items:center"><span style="color:#8B7CFF">◇</span>{{ toast }}</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;article&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;'home' | 'article'&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;headline&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Inside the hive&quot;,&quot;Hive Devtrove&quot;,&quot;The Hive Handbook&quot;],&quot;default&quot;:&quot;Inside the hive&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Copy&quot;},&quot;beeMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;honeycomb&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  state = { view: null, w: 1440, searchOpen: false, q: '', sel: 0, beeOpen: false, menuOpen: false, copied: {}, toast: null, active: 'requirements', closed: {}, tocOpen: false };
+  rootRef = React.createRef();
+  searchRef = React.createRef();
+
+  PROMPT = 'Help me understand and set up Hive. Read https://hive.admir-saheta.com/agent-guide.md first, then walk me through it step by step.';
+  CODE = {
+    build: 'git clone https://github.com/admirable-oss/hive\ncd hive\nmake build',
+    demo: './hive demo\n./hive',
+    attach: './hive ps list\n./hive terminal attach <id>',
+    daemon: './hive daemon install',
+  };
+  TOC = [['requirements', 'Requirements'], ['build', 'Build Hive'], ['demo', 'Start the demo agents'], ['move-around', 'Move around'], ['detach', 'Detach, and come back'], ['daemon', 'Keep the daemon running'], ['next', 'Next steps']];
+  GROUPS = [
+    { id: 'start', t: 'GETTING STARTED', items: [['Introduction', 'home'], ['Installation', 'installation'], ['Quick start', 'quick-start']] },
+    { id: 'concepts', t: 'CONCEPTS', items: [['Core concepts', 'concepts'], ['Agents', 'agents'], ['Machines', 'machines', 'roadmap'], ['Session state', 'session-state']] },
+    { id: 'guides', t: 'GUIDES', items: [['Configuration', 'configuration'], ['Keybindings', 'keybindings'], ['Copy mode', 'copy-mode'], ['Themes', 'themes']] },
+    { id: 'dev', t: 'DEVELOPMENT', items: [['CLI', 'cli'], ['Socket API', 'api'], ['Architecture', 'architecture'], ['Plugins', 'plugins', 'roadmap'], ['Marketplace', 'marketplace', 'later']] },
+  ];
+  GUIDES = [
+    { id: '/agents', t: 'Agents', slug: 'agents', cta: 'Meet the agents', tag: 'state detection: next', tagColor: '#8B7CFF', d: 'Meet the residents. Learn how Hive detects coding agents, handles integrations, supports custom labels, and attaches directly to running sessions.' },
+    { id: '/machines', t: 'Connecting machines', slug: 'machines', cta: 'Connect your machines', tag: 'SSH: roadmap', tagColor: '#8F8B82', d: 'One hive, multiple machines. Connect locally or over SSH, manage agents in one view, and reconnect without bringing the whole operation down.' },
+    { id: '/session-state', t: 'Session state', slug: 'session-state', cta: 'Understand session state', d: 'Disconnect without the drama. Understand session persistence, restart recovery, pane history and crash recovery. Your SSH connection can quit. Your work shouldn’t.' },
+    { id: '/configuration', t: 'Configuration', slug: 'configuration', cta: 'Make it yours', d: 'Make yourself at home. Customize keybindings, themes, the sidebar, mouse and clipboard, scrollback, and advanced settings until Hive feels like yours.' },
+    { id: '/api', t: 'API', slug: 'api', cta: 'Explore the API', tag: 'agent-facing: planned', tagColor: '#8F8B82', d: 'Because clicking everything gets old. Automate Hive through the CLI and local socket API, whether you’re scripting workflows or putting agents in charge of other agents.' },
+    { id: '/plugins', t: 'Plugins', slug: 'plugins', cta: 'Build a plugin', tag: 'roadmap', tagColor: '#8F8B82', d: 'Teach Hive new tricks. Build local executable plugins with manifest-defined actions and event hooks. No bee-keeping license required.' },
+    { id: '/marketplace', t: 'Marketplace', slug: 'marketplace', cta: 'Share your plugin', tag: 'not launched', tagColor: '#8F8B82', d: 'Built something useful? Share it with the hive. Plugins will install straight from git first; a marketplace index for discovery comes after.' },
+  ];
+  IDX = [
+    ['Introduction', 'Getting started', 'Pick your path: new here, from tmux, or via your agent.', 'home', null, 'page'],
+    ['Installation', 'Getting started', 'Build from source with Go 1.26+ on macOS or Linux.', 'installation', null, 'page'],
+    ['Quick start', 'Getting started', 'Build Hive, start demo agents, learn the multiplexer.', 'quick-start', null, 'page'],
+    ['Build Hive', 'Quick start', 'git clone, then make build or go build.', 'quick-start', 'build', 'section'],
+    ['Move around', 'Quick start', 'Prefix ctrl+b, then a key. Splits, tabs, zoom, Overview.', 'quick-start', 'move-around', 'section'],
+    ['Detach, and come back', 'Quick start', 'ctrl+b d leaves the UI; agents keep running. hive terminal attach.', 'quick-start', 'detach', 'section'],
+    ['Keep the daemon running', 'Quick start', 'hive daemon install: launchd on macOS, systemd on Linux.', 'quick-start', 'daemon', 'section'],
+    ['Core concepts', 'Concepts', 'Shims, the daemon and clients. Environments and processes.', 'concepts', null, 'page'],
+    ['Agents', 'Concepts', 'Bring Claude Code, Codex, OpenCode or your own CLI agent.', 'agents', null, 'page'],
+    ['Session state', 'Concepts', 'Persistence, restart recovery, scrollback and crash recovery.', 'session-state', null, 'page'],
+    ['Configuration', 'Guides', '~/.config/hive/config.toml. Every key is optional.', 'configuration', null, 'page'],
+    ['Keybindings', 'Guides', 'Every binding by mode, and how to rebind it.', 'keybindings', null, 'page'],
+    ['Copy mode', 'Guides', 'Vim keys over history: / to search, v to select, y to copy.', 'copy-mode', null, 'page'],
+    ['CLI', 'Development', 'hive env, ps, terminal, events, daemon, config.', 'cli', null, 'page'],
+    ['Socket API', 'Development', 'Newline-delimited JSON over a unix socket. Protocols 1 and 2.', 'api', null, 'page'],
+    ['Architecture', 'Development', 'One binary, three roles. Dependencies only point down.', 'architecture', null, 'page'],
+    ['Plugins', 'Development', 'Roadmap: hive-plugin.toml manifests, actions and event hooks.', 'plugins', null, 'page'],
+  ].map(([t, s, d, slug, a, kind]) => ({ t, s, d, slug, a, kind }));
+  KEYS = [
+    [['%', '"'], 'Split the pane right · down'],
+    [['← ↓ ↑ →', 'h j k l'], 'Move between panes (space: sticky navigate mode, r: resize mode)'],
+    [['z', 'x'], 'Zoom the pane · close it'],
+    [['c', '1–9', 'n', 'p'], 'New tab · go to a tab · next, previous'],
+    [['w'], 'Go to any agent or pane (fuzzy)'],
+    [['O'], 'The Overview: every agent, with a live preview'],
+    [['['], 'Copy mode: vim keys, / search, v select, y copy'],
+    [['?'], 'Every binding, with a filter'],
+    [['d'], 'Detach. Agents keep running.'],
+  ].map(([keys, act]) => ({ keys, act }));
+
+  componentDidMount() {
+    this.isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const el = this.rootRef.current;
+    this.setState({ w: (el && el.clientWidth) || window.innerWidth });
+    if (el && window.ResizeObserver) {
+      this.ro = new ResizeObserver(e => { const w = Math.round(e[0].contentRect.width); if (w !== this.state.w) this.setState({ w }); });
+      this.ro.observe(el);
+    }
+    this.onKey = e => {
+      const k = (e.key || '').toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && k === 'k') { e.preventDefault(); this.state.searchOpen ? this.closeSearch() : this.openSearch(); return; }
+      if (k === 'escape') { if (this.state.searchOpen) this.closeSearch(); else if (this.state.beeOpen || this.state.menuOpen) this.setState({ beeOpen: false, menuOpen: false }); return; }
+      const tag = (e.target && e.target.tagName) || '';
+      if (k === '/' && !/INPUT|TEXTAREA/.test(tag) && !this.state.searchOpen) { e.preventDefault(); this.openSearch(); }
+    };
+    window.addEventListener('keydown', this.onKey);
+    this.onScroll = () => { if (!this.raf) this.raf = requestAnimationFrame(() => { this.raf = 0; this.trackToc(); }); };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+  }
+  componentWillUnmount() {
+    this.ro && this.ro.disconnect();
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('scroll', this.onScroll);
+    clearInterval(this.beeTimer);
+  }
+  componentDidUpdate(pp, ps) {
+    if (pp.startView !== this.props.startView && this.state.view) this.setState({ view: null });
+    if (this.state.searchOpen && !ps.searchOpen) setTimeout(() => this.searchRef.current && this.searchRef.current.focus(), 0);
+    if (!this.state.searchOpen && ps.searchOpen && this.lastFocus && this.lastFocus.focus) this.lastFocus.focus();
+    if (this.pending !== undefined) { const a = this.pending; this.pending = undefined; requestAnimationFrame(() => this.scrollToId(a)); }
+  }
+
+  view() { return this.state.view || (this.props.startView === 'article' ? 'article' : 'home'); }
+  scrollToId(id) {
+    const behavior = this.reduced ? 'auto' : 'smooth';
+    if (!id) { window.scrollTo({ top: 0, behavior: 'auto' }); return; }
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 84, behavior });
+  }
+  trackToc() {
+    if (this.view() !== 'article') return;
+    let active = this.TOC[0][0];
+    for (const [id] of this.TOC) { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top < 140) active = id; }
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) active = this.TOC[this.TOC.length - 1][0];
+    if (active !== this.state.active) this.setState({ active });
+  }
+  go(slug, anchor) {
+    const close = { menuOpen: false, searchOpen: false, beeOpen: false };
+    if (slug === 'home' || slug === 'quick-start') {
+      this.pending = anchor || null;
+      this.setState({ ...close, view: slug === 'home' ? 'home' : 'article', active: anchor || 'requirements' });
+    } else {
+      this.setState(close);
+      this.showToast(`/docs/${slug}/ is a production route. Only Quick start is mocked here.`);
+    }
+  }
+  showToast(toast) { clearTimeout(this.tt); this.setState({ toast }); this.tt = setTimeout(() => this.setState({ toast: null }), 3200); }
+  openSearch() { this.lastFocus = document.activeElement; this.setState({ searchOpen: true, q: '', sel: 0, beeOpen: false, menuOpen: false }); }
+  closeSearch() { this.setState({ searchOpen: false }); }
+  copy(key, text) {
+    const done = ok => {
+      this.setState(s => ({ copied: { ...s.copied, [key]: ok ? 'ok' : 'fail' } }));
+      clearTimeout(this['ct' + key]);
+      this['ct' + key] = setTimeout(() => this.setState(s => ({ copied: { ...s.copied, [key]: null } })), 1800);
+    };
+    const fallback = () => {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand('copy'); ta.remove(); done(ok);
+      } catch (e) { done(false); }
+    };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => done(true), fallback);
+    else fallback();
+  }
+  results() {
+    const q = this.state.q.trim().toLowerCase();
+    const terms = q.split(/\s+/).filter(Boolean);
+    const list = q ? this.IDX.filter(r => { const hay = (r.t + ' ' + r.s + ' ' + r.d).toLowerCase(); return terms.every(t => hay.includes(t)); }) : this.IDX.filter(r => r.kind === 'page');
+    return list.slice(0, 8);
+  }
+
+  getBee() {
+    if (this._Bee) return this._Bee;
+    const h = React.createElement;
+    const self = this;
+    const U = 6, W = 560, H = 440, R = 30, SX = Math.sqrt(3) * R, SY = 1.5 * R;
+    const cells = [];
+    for (let r = -1; r < 12; r++) for (let c = -1; c < 12; c++) cells.push({ x: c * SX + ((r & 1) ? SX / 2 : 0) + 14, y: r * SY + 12 });
+    const hex = (x, y) => { const p = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 3 * i - Math.PI / 6; p.push((x + R * Math.cos(a)).toFixed(1) + ',' + (y + R * Math.sin(a)).toFixed(1)); } return p.join(' '); };
+    const near = (x, y) => { let b = 0, bd = 1e9; cells.forEach((c, i) => { const d = (c.x - x) ** 2 + (c.y - y) ** 2; if (d < bd) { bd = d; b = i; } }); return b; };
+    const targets = [near(330, 220), near(190, 320), near(420, 330), near(260, 140)];
+    const hover = i => ({ x: cells[i].x - 2, y: cells[i].y - 56 });
+    const Y = '#F5B942', A = '#8D8D98', D = '#0B0B0C';
+    const BODY = [[8,0,1,Y],[17,0,1,Y],[9,1,1,A],[16,1,1,A],[10,2,1,A],[15,2,1,A],[9,3,8,Y],[8,4,10,Y],[8,5,2,Y],[11,5,4,Y],[16,5,2,Y],[8,6,2,Y],[10,6,1,D],[11,6,4,Y],[15,6,1,D],[16,6,2,Y],[8,7,10,Y],[8,8,1,Y],[9,8,8,D],[17,8,1,Y],[6,9,14,Y],[9,10,1,Y],[10,10,6,D],[16,10,1,Y],[9,11,1,Y],[11,11,1,Y],[14,11,1,Y],[16,11,1,Y],[9,12,1,Y],[11,12,1,Y],[14,12,1,Y],[16,12,1,Y]];
+    const WINGS = [[5,2,2],[5,3,3],[5,4,3],[6,5,2],[19,2,2],[18,3,3],[18,4,3],[18,5,2]];
+    const wing = f => WINGS.map(([x, y, w]) => { let yy = (f === 2 || f === 3) ? 7 - y : y; yy += f === 0 ? -1 : f === 3 ? 1 : 0; return [x, yy, w]; });
+    const CYCLE = [0, 1, 2, 3, 2, 1];
+    const FLY = 28, STAY = 22, SEG = FLY + STAY;
+    const q = v => Math.round(v / U) * U;
+    const FILL = [0, .05, .1, .15, .2];
+
+    function BeeStage(props) {
+      const [t, setT] = React.useState(0);
+      const still = !props.motion || self.reduced;
+      React.useEffect(() => {
+        if (still) return;
+        const id = setInterval(() => { if (!document.hidden) setT(x => x + 1); }, 100);
+        return () => clearInterval(id);
+      }, [still]);
+      let pos, lit = {}, frame = 1, blink = false;
+      if (still) { pos = hover(targets[0]); lit[targets[0]] = 4; }
+      else {
+        const seg = Math.floor(t / SEG), k = t % SEG, n = targets.length;
+        const cur = targets[seg % n], prev = seg === 0 ? null : targets[(seg - 1) % n];
+        const from = prev == null ? { x: W + 80, y: 150 } : hover(prev), to = hover(cur);
+        if (k < FLY) {
+          const p = k / (FLY - 1), e = p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p);
+          const mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2, dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy) || 1, off = seg % 2 ? 60 : -60;
+          const cx = mx - dy / len * off, cy = my + dx / len * off;
+          pos = { x: (1 - e) ** 2 * from.x + 2 * (1 - e) * e * cx + e * e * to.x, y: (1 - e) ** 2 * from.y + 2 * (1 - e) * e * cy + e * e * to.y + Math.sin(t * .8) * U * .7 };
+          if (prev != null) lit[prev] = Math.max(0, 4 - Math.floor(k / 4));
+        } else {
+          pos = { x: to.x, y: to.y + ((((k - FLY) >> 2) & 1) ? -U : 0) };
+          lit[cur] = Math.min(4, ((k - FLY) >> 1) + 1);
+        }
+        frame = CYCLE[t % 6];
+        blink = t % 37 === 0;
+      }
+      const bx = q(pos.x) - 13 * U, by = q(pos.y) - 6 * U;
+      const litCells = Object.keys(lit).filter(i => lit[i] > 0).map(i => {
+        const c = cells[i], l = lit[i];
+        return h('g', { key: 'l' + i },
+          h('polygon', { points: hex(c.x, c.y), fill: Y, fillOpacity: FILL[l], stroke: Y, strokeOpacity: l * .16, strokeWidth: 1 }),
+          l >= 3 ? h('rect', { x: c.x - 3, y: c.y - 3, width: 6, height: 6, fill: Y, opacity: l === 4 ? 1 : .5 }) : null);
+      });
+      const rects = BODY.map(([x, y, w, f], i) => h('rect', { key: 'b' + i, x: x * U, y: y * U, width: w * U, height: U, fill: f }));
+      rects.push(h('rect', { key: 'el', x: 10 * U, y: 5 * U, width: U, height: U, fill: blink ? Y : D }), h('rect', { key: 'er', x: 15 * U, y: 5 * U, width: U, height: U, fill: blink ? Y : D }));
+      const wings = wing(frame).map(([x, y, w], i) => h('rect', { key: 'w' + i, x: x * U, y: y * U, width: w * U, height: U, fill: '#F4F4F2', fillOpacity: .75 }));
+      return h('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Hive agent, working: a bee inspecting a honeycomb cell', style: { display: 'block', width: '100%', height: 'auto' }, shapeRendering: 'crispEdges' },
+        h('defs', null,
+          h('radialGradient', { id: 'hvFade', cx: '.52', cy: '.52', r: '.52' }, h('stop', { offset: '0', stopColor: '#fff', stopOpacity: 1 }), h('stop', { offset: '.55', stopColor: '#fff', stopOpacity: .7 }), h('stop', { offset: '1', stopColor: '#fff', stopOpacity: 0 })),
+          h('mask', { id: 'hvMask' }, h('rect', { width: W, height: H, fill: 'url(#hvFade)' }))),
+        h('g', { mask: 'url(#hvMask)', opacity: props.comb },
+          h('g', { fill: 'none', stroke: '#EDEAE3', strokeOpacity: .08, strokeWidth: 1, shapeRendering: 'geometricPrecision' }, cells.map((c, i) => h('polygon', { key: i, points: hex(c.x, c.y) }))),
+          litCells),
+        h('g', { transform: `translate(${bx} ${by})` }, wings, rects));
+    }
+    this._Bee = BeeStage;
+    return BeeStage;
+  }
+
+  renderVals() {
+    const s = this.state, w = s.w, view = this.view();
+    const desk = w >= 1024, toc = w >= 1240, mobile = w < 720;
+    const cols = w >= 1100 ? 3 : w >= 700 ? 2 : 1;
+    const comb = this.props.honeycomb ?? 1;
+    const curSlug = view === 'home' ? 'home' : 'quick-start';
+    const lbl = {}, lblColor = {}, cp = {};
+    ['prompt', 'prompt2', 'build', 'demo', 'attach', 'daemon'].forEach(k => {
+      const st = s.copied[k];
+      lbl[k] = st === 'ok' ? 'Copied ✓' : st === 'fail' ? 'Select & copy' : 'Copy';
+      lblColor[k] = st === 'ok' ? '#F5B942' : st === 'fail' ? '#FF6B6B' : '#B5B1A8';
+      cp[k] = () => this.copy(k, k.startsWith('prompt') ? this.PROMPT : this.CODE[k]);
+    });
+    const link = (slug, a) => e => { e && e.preventDefault && e.preventDefault(); this.go(slug, a); };
+    const res = s.searchOpen ? this.results() : [];
+    const sel = Math.min(s.sel, Math.max(0, res.length - 1));
+    const pick = r => this.go(r.slug, r.a);
+    return {
+      rootRef: this.rootRef, searchRef: this.searchRef,
+      desk, notDesk: !desk, toc, notToc: !toc, mobile, notMobile: !mobile,
+      isHome: view === 'home', isArticle: view === 'article',
+      headline: this.props.headline || 'Inside the hive',
+      kbd: this.isMac === false ? 'Ctrl K' : '⌘K',
+      combOpacity: Math.min(1, comb),
+      beeStage: React.createElement(this.getBee(), { motion: this.props.beeMotion ?? true, comb: Math.min(2, comb) }),
+      refCols: `repeat(${cols}, minmax(0, 1fr))`,
+      alsoSpan: cols === 3 ? 'span 2' : 'span 1',
+      guides: this.GUIDES.map(g => ({ ...g, hasTag: !!g.tag, go: link(g.slug) })),
+      cp, lbl, lblColor,
+      goHome: link('home'), goQuick: link('quick-start'), goInstall: link('quick-start', 'build'), goInstallPage: link('installation'),
+      goConcepts: link('concepts'), goKeys: link('keybindings'), goConfig: link('configuration'), goCli: link('cli'), goApi: link('api'),
+      openSearch: () => this.openSearch(), closeSearch: () => this.closeSearch(),
+      openBee: () => this.setState({ beeOpen: true, menuOpen: false }), closeBee: () => this.setState({ beeOpen: false }),
+      beeToSearch: () => this.openSearch(),
+      openMenu: () => this.setState({ menuOpen: true }), closeMenu: () => this.setState({ menuOpen: false }),
+      stop: e => e.stopPropagation(),
+      groups: this.GROUPS.map(g => {
+        const open = !s.closed[g.id];
+        return {
+          t: g.t, open, chev: open ? '▾' : '▸',
+          toggle: () => this.setState(st => ({ closed: { ...st.closed, [g.id]: open } })),
+          items: g.items.map(([t, slug, tag]) => {
+            const on = slug === curSlug;
+            return { t, tag, hasTag: !!tag, go: link(slug), current: on ? 'page' : undefined, color: on ? '#EDEAE3' : '#B5B1A8', bg: on ? '#1C1C1A' : 'transparent', mark: on ? '#F5B942' : 'transparent' };
+          }),
+        };
+      }),
+      tocItems: this.TOC.map(([id, t]) => {
+        const on = s.active === id;
+        return { id, t, current: on ? 'location' : undefined, color: on ? '#EDEAE3' : '#8F8B82', mark: on ? '#F5B942' : '#2A2926', go: e => { e.preventDefault(); this.scrollToId(id); this.setState({ active: id, tocOpen: false }); } };
+      }),
+      tocOpen: s.tocOpen, tocChev: s.tocOpen ? '−' : '+', toggleToc: () => this.setState({ tocOpen: !s.tocOpen }),
+      keyRows: this.KEYS,
+      searchOpen: s.searchOpen, beeOpen: s.beeOpen, menuOpen: s.menuOpen,
+      q: s.q,
+      onQ: e => this.setState({ q: e.target.value, sel: 0 }),
+      onSearchKey: e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ sel: res.length ? (sel + 1) % res.length : 0 }); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ sel: res.length ? (sel - 1 + res.length) % res.length : 0 }); }
+        else if (e.key === 'Enter' && res[sel]) { e.preventDefault(); pick(res[sel]); }
+      },
+      results: res.map((r, i) => ({ ...r, selected: i === sel, bg: i === sel ? '#1C1C1A' : 'transparent', kindColor: r.kind === 'page' ? '#F5B942' : '#8F8B82', go: () => pick(r), hover: () => i !== sel && this.setState({ sel: i }) })),
+      noResults: s.searchOpen && res.length === 0,
+      hasToast: !!s.toast, toast: s.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>

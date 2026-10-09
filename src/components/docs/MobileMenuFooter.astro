@@ -1,0 +1,59 @@
+---
+import { DOCS_NAV, DOCS_VERSION } from "@/lib/docs";
+import { LINKS } from "@/lib/site";
+
+const links = [...DOCS_NAV, { label: "GitHub", href: LINKS.github, external: true }];
+const onDocs = Astro.url.pathname.startsWith("/docs");
+---
+
+<div class="menu-footer">
+  <nav aria-label="Primary">
+    {
+      links.map((l) => {
+        const current = l.href === "/docs/" && onDocs;
+        const external = "external" in l && l.external;
+        return (
+          <a
+            href={l.href}
+            aria-current={current ? "page" : undefined}
+            {...(external ? { target: "_blank", rel: "noopener" } : {})}
+          >
+            {l.label.toUpperCase()}
+            {external && " ↗"}
+          </a>
+        );
+      })
+    }
+  </nav>
+  <span class="version">{DOCS_VERSION}</span>
+</div>
+
+<style>
+  .menu-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 8px;
+  }
+  nav {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--sl-font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+  }
+  a {
+    padding: 12px 0;
+    border-bottom: 1px solid #1c1c1a;
+    color: #8f8b82;
+    text-decoration: none;
+  }
+  a[aria-current="page"] {
+    color: #edeae3;
+  }
+  .version {
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    color: #8f8b82;
+  }
+</style>

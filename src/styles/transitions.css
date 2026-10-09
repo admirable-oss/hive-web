@@ -1,0 +1,35 @@
+/*
+ * Page transitions (cross-document View Transitions, no router needed): a quick,
+ * quiet cross-fade with the incoming page settling up a few pixels. Shared by
+ * the landing (global.css) and the docs (docs.css); unsupported browsers just navigate.
+ */
+@view-transition {
+    navigation: auto;
+}
+
+@keyframes hv-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes hv-fade-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+
+::view-transition-old(root) {
+    animation: hv-fade-out 160ms ease-out both;
+}
+
+::view-transition-new(root) {
+    animation: hv-fade-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) 60ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}

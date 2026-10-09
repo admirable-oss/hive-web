@@ -1,0 +1,44 @@
+---
+interface Props {
+  items: { href: string; title: string; detail?: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="link-list not-content">
+  {
+    items.map((i) => (
+      <a href={i.href}>
+        <span>
+          {i.title}
+          {i.detail && <span class="detail">: {i.detail}</span>}
+        </span>
+        <span aria-hidden="true">→</span>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .link-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid #1c1c1a;
+  }
+  a {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #1c1c1a;
+    color: #edeae3;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #f5b942;
+  }
+  .detail {
+    color: #8f8b82;
+  }
+</style>

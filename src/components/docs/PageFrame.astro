@@ -1,0 +1,71 @@
+---
+import Default from "@astrojs/starlight/components/PageFrame.astro";
+import wordmark from "@/content/assets/hive-wordmark-dark.svg";
+import { DOCS_FOOTER_LINKS } from "@/lib/docs";
+import { LICENSE_LABEL } from "@/lib/site";
+import DocsMotion from "./DocsMotion.astro";
+---
+
+<Default>
+  <slot name="header" slot="header" />
+  <slot name="sidebar" slot="sidebar" />
+  <DocsMotion />
+  <slot />
+  {/* Sits in the content column (beside the fixed sidebar), pinned to the bottom on short pages. */}
+  <footer class="site-footer print:hidden">
+    <div class="inner">
+      <div class="sign">
+        <img src={wordmark.src} alt="hive" width="46" height="16" class="pixelated" />
+        <span>The hive keeps going.</span>
+      </div>
+      <nav aria-label="Footer">
+        {
+          DOCS_FOOTER_LINKS.map((l) => (
+            <a href={l.href} target="_blank" rel="noopener">
+              {l.label} ↗
+            </a>
+          ))
+        }
+        <span>{LICENSE_LABEL}</span>
+      </nav>
+    </div>
+  </footer>
+</Default>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+    border-top: 1px solid #1c1c1a;
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px clamp(20px, 4vw, 48px);
+    font-size: 13.5px;
+    color: #8f8b82;
+  }
+  .sign {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+  }
+  a {
+    color: #8f8b82;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #edeae3;
+  }
+</style>

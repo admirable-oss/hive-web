@@ -1,0 +1,75 @@
+---
+import { HiveStage } from "@/components/docs/hero/HiveStage";
+
+const { data } = Astro.locals.starlightRoute.entry;
+const { title = data.title, tagline, actions = [] } = data.hero ?? {};
+const meta = data.heroMeta ?? [];
+
+// Headlines read as statements: the trailing full stop is drawn in honey.
+const headline = title.replace(/\.$/, "");
+---
+
+<section data-docs-hero class="not-content relative overflow-hidden border-b border-graphite">
+  <div
+    class="mx-auto grid max-w-[1200px] grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-center gap-[clamp(20px,3.5vw,44px)] px-[clamp(20px,4vw,48px)] pt-[clamp(32px,4.5vw,56px)] pb-[clamp(32px,4vw,52px)]"
+  >
+    <div class="relative z-[1] flex flex-col gap-6">
+      <div data-docs-intro class="flex items-center gap-3 font-mono text-[12.5px] tracking-[.24em] text-stone">
+        <span class="size-2 bg-honey"></span>HIVE / DOCUMENTATION
+      </div>
+      <h1
+        id="_top"
+        data-page-title
+        data-docs-intro
+        class="m-0 text-[clamp(42px,5.6vw,72px)] leading-[.98] font-medium tracking-[-.045em] text-balance text-bone"
+      >
+        {headline}<span class="text-honey">.</span>
+      </h1>
+      {
+        tagline && (
+          <p data-docs-intro class="m-0 max-w-[520px] text-[clamp(16px,1.4vw,18px)] leading-[1.6] text-pretty text-fog" set:html={tagline} />
+        )
+      }
+      {
+        actions.length > 0 && (
+          <div data-docs-intro class="flex flex-wrap gap-3 pt-1">
+            {actions.map(({ text, link, variant, attrs }) =>
+              variant === "primary" ? (
+                <a
+                  href={link}
+                  class="clip-pixel-4 flex h-12 items-center gap-2.5 bg-honey px-[22px] text-base font-medium text-ink no-underline hover:bg-[#FFC85A] hover:text-ink"
+                  {...attrs}
+                >
+                  {text} <span aria-hidden="true">→</span>
+                </a>
+              ) : (
+                <a
+                  href={link}
+                  class="flex h-12 items-center gap-2.5 rounded-md border-t border-bone/12 bg-graphite px-5 text-base text-bone no-underline hover:bg-[#262523] hover:text-bone"
+                  {...attrs}
+                >
+                  {text} <span aria-hidden="true" class="text-stone">↗</span>
+                </a>
+              ),
+            )}
+          </div>
+        )
+      }
+      {
+        meta.length > 0 && (
+          <div data-docs-intro class="flex flex-wrap gap-x-[18px] gap-y-1.5 font-mono text-[12px] text-stone">
+            {meta.map((m) => (
+              <span>{m}</span>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    {/* React Three Fiber provides the living agent workspace. */}
+    <div data-docs-intro class="hive-stage relative aspect-[560/440] w-full max-w-[560px] justify-self-center">
+      <HiveStage client:only="react" />
+    </div>
+  </div>
+</section>
+

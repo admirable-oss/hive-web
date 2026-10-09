@@ -1,0 +1,235 @@
+---
+import bee from "@/content/assets/hive-bee-dark.svg";
+import { AGENT_PROMPT } from "@/lib/docs";
+import CopyButton from "./CopyButton.astro";
+---
+
+<dialog id="hive-ask-bee" class="drawer" aria-labelledby="hive-ask-bee-title">
+  <div class="panel">
+    <div class="top">
+      <img src={bee.src} alt="" width="30" height="22" class="pixelated asleep" />
+      <span id="hive-ask-bee-title" class="title">Ask Bee</span>
+      <span class="status"><span class="dot"></span>not connected</span>
+      <span class="grow"></span>
+      <button type="button" class="close" aria-label="Close" data-close>×</button>
+    </div>
+
+    <div class="body">
+      <p class="lead">
+        Bee will answer questions from these docs once it has a backend that can answer honestly. It isn't
+        connected yet, so nothing you type here goes anywhere.
+      </p>
+      <div class="integration">
+        <div>integration point</div>
+        <div class="bone">ASK_BEE_ENDPOINT <span class="ash">= unset</span></div>
+      </div>
+      <div class="meanwhile">
+        <span class="label">MEANWHILE</span>
+        <button type="button" class="row" data-open-search>
+          Search the docs <kbd data-search-kbd>Ctrl K</kbd>
+        </button>
+        <div class="handoff">
+          <div class="handoff-head">
+            Hand the docs to your own agent
+            <CopyButton text={AGENT_PROMPT} />
+          </div>
+          <p>{AGENT_PROMPT}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <input disabled aria-disabled="true" placeholder="Bee is offline" aria-label="Ask Bee (offline)" />
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .drawer {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-inline-start: 1px solid #2a2926;
+    background: #0e0e0d;
+    color: #edeae3;
+  }
+  .drawer::backdrop {
+    background: rgb(5 5 4 / 0.6);
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 64px;
+    padding: 0 12px 0 20px;
+    border-bottom: 1px solid #1c1c1a;
+  }
+  .asleep {
+    filter: saturate(0.35) brightness(0.7);
+  }
+  .title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--sl-font-mono);
+    font-size: 11.5px;
+    color: #8f8b82;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    background: #55534e;
+  }
+  .grow {
+    flex: 1;
+  }
+  .close {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: transparent;
+    font-size: 18px;
+    color: #8f8b82;
+    cursor: pointer;
+  }
+  .body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+    padding: 24px 20px;
+  }
+  .lead {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #b5b1a8;
+  }
+  .integration {
+    padding: 12px 14px;
+    border: 1px solid #1c1c1a;
+    background: #121211;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #8f8b82;
+  }
+  .bone {
+    color: #edeae3;
+  }
+  .ash {
+    color: #77736a;
+  }
+  .meanwhile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .label {
+    font-family: var(--sl-font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    color: #8f8b82;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid #2a2926;
+    background: transparent;
+    font-size: 14.5px;
+    color: #edeae3;
+    text-align: start;
+    cursor: pointer;
+  }
+  .row kbd {
+    font-size: 11.5px;
+    color: #8f8b82;
+  }
+  .handoff {
+    border: 1px solid #2a2926;
+  }
+  .handoff-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 6px 10px 14px;
+    border-bottom: 1px solid #1c1c1a;
+    font-size: 14.5px;
+  }
+  .handoff p {
+    margin: 0;
+    padding: 12px 14px;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #b5b1a8;
+    overflow-wrap: anywhere;
+  }
+  .foot {
+    padding: 14px 20px 20px;
+    border-top: 1px solid #1c1c1a;
+  }
+  input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #1c1c1a;
+    border-radius: 6px;
+    background: #121211;
+    font: inherit;
+    font-size: 14.5px;
+    color: #77736a;
+    cursor: not-allowed;
+  }
+  input::placeholder {
+    color: #77736a;
+  }
+</style>
+
+<script>
+  /*
+   * Page-wide triggers, so any island or override can open these without shared refs:
+   *   [data-ask-bee]     opens the Ask Bee drawer
+   *   [data-open-search] opens Starlight's search dialog
+   *   [data-search-kbd]  shows the platform's shortcut (⌘K on Apple devices)
+   */
+  const drawer = document.querySelector<HTMLDialogElement>("#hive-ask-bee");
+  const openSearch = () => document.querySelector<HTMLButtonElement>("site-search button[data-open-modal]")?.click();
+
+  document.addEventListener("click", (e) => {
+    const el = e.target instanceof Element ? e.target : null;
+    if (!el) return;
+    if (el.closest("[data-ask-bee]")) {
+      document.querySelector<HTMLElement>("#starlight__sidebar:popover-open")?.hidePopover();
+      drawer?.showModal();
+    } else if (el.closest("[data-open-search]")) {
+      drawer?.close();
+      openSearch();
+    } else if (el.closest("#hive-ask-bee [data-close]") || el === drawer) {
+      // The dialog element itself is only hit through its backdrop.
+      drawer?.close();
+    }
+  });
+
+  if (/(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+    document.querySelectorAll("[data-search-kbd]").forEach((kbd) => (kbd.textContent = "⌘K"));
+  }
+</script>

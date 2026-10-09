@@ -1,0 +1,52 @@
+---
+import Default from "@astrojs/starlight/components/TableOfContents.astro";
+import { LINKS } from "@/lib/site";
+---
+
+<Default />
+
+<div class="kudos">
+  <p>Found Hive useful? Give the bees a little encouragement.</p>
+  <a href={LINKS.github} target="_blank" rel="noopener">Star the repository ↗</a>
+  <button type="button" data-ask-bee>Ask Bee →</button>
+</div>
+
+<style>
+  .kudos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px solid #1c1c1a;
+  }
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #8f8b82;
+  }
+  a,
+  button {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--sl-font-mono);
+    font-size: 12.5px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  a {
+    color: #edeae3;
+  }
+  a:hover {
+    color: #f5b942;
+  }
+  button {
+    color: #8f8b82;
+  }
+  button:hover {
+    color: #edeae3;
+  }
+</style>

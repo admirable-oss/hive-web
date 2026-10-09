@@ -1,0 +1,771 @@
+/*
+ * Starlight theme for the Hive docs.
+ *
+ * Layer order follows Starlight's Tailwind guide: Starlight's own styles sit in
+ * `starlight.*`, our skin in `components` (wins over Starlight and Expressive
+ * Code, loses to Tailwind utilities used inside components).
+ */
+@layer base, starlight, theme, components, utilities;
+
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "./brand.css";
+@import "./transitions.css";
+
+@theme {
+    --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+}
+
+/* Tokens. Unlayered so they beat the values starlight-tailwind derives from the Tailwind palette. */
+:root,
+::backdrop {
+    --sl-color-white: #EDEAE3;
+    --sl-color-gray-1: #EDEAE3;
+    --sl-color-gray-2: #B5B1A8;
+    --sl-color-gray-3: #8F8B82;
+    --sl-color-gray-4: #77736A;
+    --sl-color-gray-5: #2A2926;
+    --sl-color-gray-6: #1C1C1A;
+    --sl-color-gray-7: #121211;
+    --sl-color-black: #0C0C0B;
+
+    --sl-color-accent-low: #2B220F;
+    --sl-color-accent: #F5B942;
+    --sl-color-accent-high: #F5B942;
+    --sl-color-orange-low: rgb(245 185 66 / 0.05);
+    --sl-color-orange: #F5B942;
+    --sl-color-orange-high: #F5B942;
+    --sl-color-purple-low: rgb(139 124 255 / 0.06);
+    --sl-color-purple: #8B7CFF;
+    --sl-color-purple-high: #A99EFF;
+    --sl-color-red-low: rgb(255 107 107 / 0.06);
+    --sl-color-red: #FF6B6B;
+    --sl-color-red-high: #FF8F8F;
+    --sl-color-blue-low: rgb(245 185 66 / 0.05);
+    --sl-color-blue: #F5B942;
+    --sl-color-blue-high: #F5B942;
+
+    --sl-color-text: #B5B1A8;
+    --sl-color-text-accent: #F5B942;
+    --sl-color-text-invert: #0A0A09;
+    --sl-color-bg: transparent;
+    --sl-color-bg-nav: rgb(18 18 17 / 0.9);
+    --sl-color-bg-sidebar: transparent;
+    --sl-color-bg-inline-code: #1C1C1A;
+    --sl-color-bg-accent: #F5B942;
+    --sl-color-hairline-light: #2A2926;
+    --sl-color-hairline: #1C1C1A;
+    --sl-color-hairline-shade: #1C1C1A;
+    --sl-color-backdrop-overlay: rgb(5 5 4 / 0.74);
+
+    --sl-shadow-sm: none;
+    --sl-shadow-md: none;
+    --sl-shadow-lg: none;
+
+    --sl-text-h1: clamp(34px, 4vw, 44px);
+    --sl-text-h2: 26px;
+    --sl-text-h3: 20px;
+    --sl-line-height: 1.7;
+    --sl-line-height-headings: 1.08;
+
+    --sl-nav-height: 64px;
+    --sl-nav-pad-x: clamp(16px, 3vw, 32px);
+    --sl-nav-pad-y: 0px;
+    --sl-nav-gap: 20px;
+    --sl-mobile-toc-height: 44px;
+    --sl-sidebar-width: 268px;
+    --sl-sidebar-pad-x: 16px;
+    --sl-content-width: 740px;
+    --sl-content-pad-x: clamp(20px, 4vw, 56px);
+    --sl-content-gap-y: 16px;
+    --sl-main-pad: 0 0 96px 0;
+    --sl-menu-button-size: 40px;
+
+    color-scheme: dark;
+}
+
+:root[data-has-hero] {
+    --sl-main-pad: 0;
+}
+
+@layer components {
+    body {
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection {
+        background: rgb(245 185 66 / 0.3);
+    }
+
+    :focus-visible {
+        outline: 2px solid #F5B942;
+        outline-offset: 2px;
+    }
+
+    kbd {
+        font-family: var(--sl-font-mono);
+    }
+
+    /* ------------------------------------------------------------ chrome */
+
+    header.header {
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        background-color: rgb(18 18 17 / 90%);
+        border-bottom: 1px solid rgb(237 234 227 / 8%);
+    }
+
+    /* Mobile: the menu button sits at the start of the header, like the hive app. */
+    @media (max-width: 49.9375rem) {
+        :root[data-has-sidebar] header.header {
+            padding-inline: calc(var(--sl-nav-pad-x) + 36px) var(--sl-nav-pad-x);
+        }
+    }
+
+    /* Mobile menu: a drawer from the start edge instead of a full-screen sheet. */
+    @media (max-width: 49.9375rem) {
+        .sidebar-pane {
+            width: min(320px, 88vw);
+            border-inline-end: 1px solid #2A2926;
+            background-color: #1C1C1A;
+        }
+        .sidebar-pane::backdrop {
+            background: rgb(5 5 4 / 0.6);
+        }
+    }
+
+    .sidebar-content {
+        padding: 20px 16px 48px 24px;
+        gap: 20px;
+    }
+
+    /* Sidebar groups. */
+    .sidebar-content ul.top-level {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .sidebar-content details > summary {
+        padding: 4px 0 6px;
+    }
+    .sidebar-content summary .large {
+        font-family: var(--sl-font-mono);
+        font-size: 11.5px;
+        font-weight: 400;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #8F8B82;
+    }
+    .sidebar-content summary .caret {
+        font-size: 14px;
+        color: #77736A;
+    }
+    .sidebar-content ul ul {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .sidebar-content ul ul li {
+        margin: 0;
+        border: 0;
+        padding: 0;
+    }
+    .sidebar-content ul ul a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-inline-start: -10px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #B5B1A8;
+    }
+    .sidebar-content ul ul a::before {
+        content: "";
+        flex: none;
+        width: 4px;
+        height: 4px;
+        background: transparent;
+    }
+    .sidebar-content ul ul a > span:first-of-type {
+        flex: 1;
+    }
+    .sidebar-content ul ul a:hover {
+        color: #EDEAE3;
+        background: transparent;
+    }
+    .sidebar-content ul ul a[aria-current="page"],
+    .sidebar-content ul ul a[aria-current="page"]:hover,
+    .sidebar-content ul ul a[aria-current="page"]:focus {
+        color: #EDEAE3;
+        font-weight: 400;
+        background: #1C1C1A;
+    }
+    .sidebar-content ul ul a[aria-current="page"]::before {
+        background: #F5B942;
+    }
+    .sidebar-content .sl-badge {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        font-family: var(--sl-font-mono);
+        font-size: 10.5px;
+        line-height: 1;
+        color: #77736A;
+    }
+    @media (max-width: 49.9375rem) {
+        .sidebar-content ul ul a {
+            min-height: 44px;
+            font-size: 15px;
+        }
+    }
+
+    /* Right sidebar: no rule, sticky under the header. */
+    @media (min-width: 72rem) {
+        .right-sidebar {
+            border-inline-start: 0;
+            padding-top: calc(var(--sl-nav-height) + 36px);
+        }
+        .right-sidebar-panel {
+            padding: 0 32px 32px 8px;
+        }
+        .right-sidebar-panel .sl-container {
+            width: 220px;
+        }
+    }
+
+    starlight-toc h2 {
+        padding-bottom: 10px;
+        font-family: var(--sl-font-mono);
+        font-size: 11.5px;
+        font-weight: 400;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #8F8B82;
+    }
+    starlight-toc ul {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    starlight-toc a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 0;
+        font-size: 13.5px;
+        line-height: 1.4;
+        color: #8F8B82;
+        text-decoration: none;
+        transition: color 160ms;
+    }
+    starlight-toc a::before {
+        content: "";
+        flex: none;
+        width: 4px;
+        height: 4px;
+        background: #2A2926;
+    }
+    starlight-toc a:hover {
+        color: #EDEAE3;
+    }
+    /* The title entry stays wired for tracking; at the top of the page the first section reads as current. */
+    starlight-toc li:has(> a[href="#_top"]) {
+        display: none;
+    }
+    /* Nothing but the title entry: no "On this page" heading to show. */
+    starlight-toc:not(:has(li:nth-child(2))) {
+        display: none;
+    }
+    starlight-toc a[aria-current="true"],
+    starlight-toc:has(a[href="#_top"][aria-current="true"]) li:nth-child(2) > a,
+    starlight-toc:not(:has([aria-current="true"])) li:nth-child(2) > a {
+        color: #EDEAE3;
+    }
+    starlight-toc a[aria-current="true"]::before,
+    starlight-toc:has(a[href="#_top"][aria-current="true"]) li:nth-child(2) > a::before,
+    starlight-toc:not(:has([aria-current="true"])) li:nth-child(2) > a::before {
+        background: #F5B942;
+    }
+
+    /* Mobile "On this page". */
+    mobile-starlight-toc nav {
+        border-top: 0;
+        background: #20201e;
+    }
+    mobile-starlight-toc summary {
+        padding-inline: var(--sl-content-pad-x);
+        border-bottom: 1px solid #1C1C1A;
+        font-family: var(--sl-font-mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #8F8B82;
+    }
+    mobile-starlight-toc .toggle {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: #8F8B82;
+    }
+    mobile-starlight-toc .display-current {
+        text-transform: none;
+        letter-spacing: 0;
+        color: #EDEAE3;
+    }
+    mobile-starlight-toc .dropdown {
+        border: 0;
+        border-bottom: 1px solid #1C1C1A;
+        background: #20201e;
+        box-shadow: none;
+    }
+    mobile-starlight-toc .isMobile a {
+        padding-inline: var(--sl-content-pad-x);
+        border-top-color: #1C1C1A;
+        font-size: 14.5px;
+        color: #8F8B82;
+    }
+    mobile-starlight-toc .isMobile a[aria-current="true"] {
+        color: #EDEAE3;
+    }
+    mobile-starlight-toc .isMobile a[aria-current="true"]::after {
+        background-color: #F5B942;
+    }
+
+    /* Search trigger in the header. */
+    site-search button[data-open-modal] {
+        height: 36px;
+        gap: 10px;
+        padding: 0 8px 0 12px;
+        border: 1px solid #2A2926;
+        border-radius: 6px;
+        background: #121211;
+        font-size: 14px;
+        color: #8F8B82;
+        transition: border-color 160ms, color 160ms;
+    }
+    site-search button[data-open-modal]:hover {
+        border-color: #3A3934;
+        color: #B5B1A8;
+    }
+    site-search button[data-open-modal] > svg {
+        width: 14px;
+        height: 14px;
+    }
+    site-search button[data-open-modal] > span {
+        width: 118px;
+        text-align: start;
+    }
+    site-search button[data-open-modal] > kbd {
+        gap: 0;
+        padding: 2px 6px;
+        border: 1px solid #2A2926;
+        border-radius: 3px;
+        background: #171716;
+        font-family: var(--sl-font-mono);
+        font-size: 11.5px;
+        color: #8F8B82;
+    }
+    site-search button[data-open-modal] > kbd kbd {
+        all: unset;
+    }
+    @media (min-width: 50rem) {
+        site-search button[data-open-modal] {
+            width: auto;
+            max-width: none;
+        }
+    }
+
+    /* Search dialog. */
+    site-search dialog {
+        border: 1px solid #2A2926;
+        border-top-color: #3A3934;
+        border-radius: 0;
+        background: #121211;
+        box-shadow: none;
+    }
+    site-search .dialog-frame {
+        --pagefind-ui-primary: #EDEAE3;
+        --pagefind-ui-text: #B5B1A8;
+        --pagefind-ui-background: #0A0A09;
+        --pagefind-ui-border: #2A2926;
+        --pagefind-ui-tag: #1C1C1A;
+        --pagefind-ui-border-radius: 0;
+    }
+    site-search mark {
+        background: transparent;
+        color: #F5B942;
+    }
+
+    /* ----------------------------------------------------------- content */
+
+    .content-panel {
+        padding: 0 var(--sl-content-pad-x);
+    }
+    .content-panel + .content-panel {
+        border-top: 0;
+    }
+    main > .content-panel:first-of-type {
+        padding-top: 36px;
+    }
+    .sl-container > * + * {
+        margin-top: 0;
+    }
+    @media (min-width: 72rem) {
+        :root[data-has-sidebar][data-has-toc] .main-pane .sl-container {
+            margin-inline: auto 56px;
+        }
+    }
+
+    /* Docs home: full-bleed sections share the page's charcoal field. */
+    :root[data-has-hero] main > .content-panel {
+        padding: 0;
+    }
+    :root[data-has-hero] main .sl-container {
+        max-width: none;
+    }
+    :root[data-has-hero] .sl-markdown-content > .not-content {
+        margin-top: 0;
+    }
+    .home-section {
+        padding-block: clamp(40px, 5.2vw, 68px);
+        background: transparent;
+    }
+    .home-section + .home-section {
+        border-top: 1px solid rgb(237 234 227 / 8%);
+    }
+
+    .sl-markdown-content {
+        font-size: 16.5px;
+        line-height: 1.7;
+        color: #B5B1A8;
+        text-wrap: pretty;
+    }
+
+    .sl-markdown-content :is(h2, h3, h4):not(:where(.not-content *)) {
+        scroll-margin-top: 88px;
+        font-weight: 500;
+        color: #EDEAE3;
+    }
+    .sl-markdown-content h2:not(:where(.not-content *)) {
+        margin: 44px 0 14px;
+        font-size: 26px;
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+    }
+    .sl-markdown-content h3:not(:where(.not-content *)) {
+        margin: 32px 0 12px;
+        font-size: 20px;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+    }
+    .sl-markdown-content :is(h2, h3) + *:not(:where(.not-content *)) {
+        margin-top: 14px;
+    }
+
+    .sl-markdown-content a:not(:where(.not-content *)) {
+        color: #F5B942;
+        text-decoration: none;
+    }
+    .sl-markdown-content a:not(:where(.not-content *)):hover {
+        color: #EDEAE3;
+    }
+    .sl-markdown-content strong:not(:where(.not-content *)) {
+        font-weight: 500;
+        color: #EDEAE3;
+    }
+
+    .sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: #1C1C1A;
+        font-family: var(--sl-font-mono);
+        font-size: 0.88em;
+        color: #EDEAE3;
+    }
+
+    .sl-markdown-content kbd:not(:where(.not-content *)) {
+        display: inline-block;
+        padding: 2px 7px;
+        border: 1px solid #2A2926;
+        border-bottom-width: 2px;
+        border-radius: 3px;
+        background: #121211;
+        font-size: 12.5px;
+        line-height: 1.4;
+        color: #EDEAE3;
+    }
+
+    /* Lists: honey dots, no indent. */
+    .sl-markdown-content ul:not(:where(.not-content *)) {
+        padding: 0;
+        list-style: none;
+    }
+    .sl-markdown-content ul:not(:where(.not-content *)) > li {
+        position: relative;
+        padding-inline-start: 20px;
+        line-height: 1.65;
+    }
+    .sl-markdown-content ul:not(:where(.not-content *)) > li::before {
+        content: "·";
+        position: absolute;
+        inset-inline-start: 0;
+        font-family: var(--sl-font-mono);
+        color: #F5B942;
+    }
+    .sl-markdown-content li + li:not(:where(.not-content *)) {
+        margin-top: 8px;
+    }
+    .sl-markdown-content ol:not(:where(.not-content *)) {
+        padding-inline-start: 20px;
+    }
+    .sl-markdown-content ol:not(:where(.not-content *)) > li::marker {
+        font-family: var(--sl-font-mono);
+        font-size: 0.85em;
+        color: #F5B942;
+    }
+
+    /* Tables: hairlines, mono column labels. */
+    .sl-markdown-content table:not(:where(.not-content *)) {
+        display: block;
+        overflow-x: auto;
+        width: 100%;
+        border-collapse: collapse;
+        border-top: 1px solid #2A2926;
+        font-size: 15px;
+    }
+    .sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+        padding: 10px 16px 10px 0;
+        border: 0;
+        border-bottom: 1px solid #1C1C1A;
+        background: transparent;
+        vertical-align: top;
+        text-align: start;
+    }
+    .sl-markdown-content th:not(:where(.not-content *)) {
+        font-family: var(--sl-font-mono);
+        font-size: 12px;
+        font-weight: 400;
+        color: #8F8B82;
+    }
+    .sl-markdown-content td:not(:where(.not-content *)) {
+        line-height: 1.55;
+        color: #B5B1A8;
+    }
+    .sl-markdown-content td:first-child:not(:where(.not-content *)) {
+        width: 200px;
+        white-space: nowrap;
+    }
+    .sl-markdown-content tr:nth-child(2n):not(:where(.not-content *)) {
+        background: transparent;
+    }
+
+    .sl-markdown-content hr:not(:where(.not-content *)) {
+        border: 0;
+        border-top: 1px solid #1C1C1A;
+    }
+
+    .sl-markdown-content blockquote:not(:where(.not-content *)) {
+        border-inline-start: 2px solid #2A2926;
+        padding-inline-start: 16px;
+        color: #8F8B82;
+    }
+
+    /* Asides: mono label on the left, tinted hairline box. */
+    .starlight-aside {
+        display: flex;
+        gap: 14px;
+        padding: 14px 16px;
+        border: 1px solid var(--hv-aside-border);
+        background: var(--hv-aside-bg);
+        font-size: 15px;
+        line-height: 1.6;
+        color: #B5B1A8;
+    }
+    .starlight-aside--note,
+    .starlight-aside--caution {
+        --hv-aside-bg: rgb(245 185 66 / 0.05);
+        --hv-aside-border: rgb(245 185 66 / 0.2);
+        --sl-color-asides-text-accent: #F5B942;
+    }
+    .starlight-aside--tip {
+        --hv-aside-bg: rgb(139 124 255 / 0.06);
+        --hv-aside-border: rgb(139 124 255 / 0.22);
+        --sl-color-asides-text-accent: #A99EFF;
+    }
+    .starlight-aside--danger {
+        --hv-aside-bg: rgb(255 107 107 / 0.06);
+        --hv-aside-border: rgb(255 107 107 / 0.22);
+        --sl-color-asides-text-accent: #FF8F8F;
+    }
+    .starlight-aside__title {
+        flex: none;
+        padding-top: 2px;
+        font-family: var(--sl-font-mono);
+        font-size: 12.5px;
+        font-weight: 400;
+        line-height: 1.6;
+        text-transform: lowercase;
+    }
+    .starlight-aside__icon {
+        display: none;
+    }
+    .starlight-aside__title + .starlight-aside__content {
+        margin-top: 0;
+    }
+    .starlight-aside__content kbd {
+        font-size: 12px;
+        padding: 1px 6px;
+        border-bottom-width: 1px;
+    }
+
+    /* Code blocks (Expressive Code): `sh` label + Copy in a hairline header. */
+    .sl-markdown-content .expressive-code {
+        margin-top: 16px;
+    }
+    .expressive-code .frame {
+        border-top: 1px solid rgb(237 234 227 / 0.1);
+        background: #121211;
+    }
+    .expressive-code .frame .header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        height: 38px;
+        padding: 0 6px 0 16px;
+        border: 0;
+        border-bottom: 1px solid #1C1C1A;
+        background: #121211;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+    .expressive-code .frame .header::before,
+    .expressive-code .frame .header::after {
+        display: none;
+    }
+    .expressive-code .frame.has-title:not(.is-terminal) .title {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #8F8B82;
+    }
+    .expressive-code .frame .title::after {
+        display: none;
+    }
+    .expressive-code .frame pre {
+        border: 0;
+    }
+    .expressive-code .frame .copy {
+        inset-block-start: 6px;
+        inset-inline-end: 6px;
+    }
+    .expressive-code .frame .copy button,
+    .expressive-code .frame .copy button:not(:hover) {
+        width: auto;
+        height: 26px;
+        padding: 0 10px;
+        border-radius: 4px;
+        background: transparent;
+        opacity: 1;
+    }
+    .expressive-code .frame .copy button div,
+    .expressive-code .frame .copy button::before {
+        display: none;
+    }
+    .expressive-code .frame .copy button::after {
+        content: "Copy";
+        position: static;
+        margin: 0;
+        background: none;
+        -webkit-mask: none;
+        mask: none;
+        font-family: var(--sl-font-mono);
+        font-size: 12px;
+        line-height: 26px;
+        color: #B5B1A8;
+    }
+    .expressive-code .frame .copy button:hover {
+        background: #1C1C1A;
+    }
+    .expressive-code .frame .copy:has(.feedback) button::after {
+        content: "Copied ✓";
+        color: #F5B942;
+    }
+    .expressive-code .frame .copy .feedback {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+    .expressive-code :nth-child(1 of .ec-line) .code {
+        padding-inline-end: var(--ec-codePadInl);
+    }
+
+    /* Shell prompts drawn by the hive-code plugin (ec.config.mjs). */
+    .expressive-code .ec-line.hv-cmd .code::before {
+        content: "$ ";
+        color: #F5B942;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    .expressive-code .ec-line.hv-out .code,
+    .expressive-code .ec-line.hv-out .code span {
+        color: #8F8B82;
+    }
+    .expressive-code .ec-line.hv-out .code::first-letter {
+        color: #F5B942;
+    }
+
+    /* ---------------------------------------------------------- tweaks */
+
+    /* The docs keep the landing hero's charcoal gradient throughout the page. */
+    html {
+        min-height: 100%;
+        background: #0C0C0B;
+    }
+    body {
+        background: transparent;
+    }
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: radial-gradient(ellipse 95% 80% at 50% 44%, #1E1E1C 0%, #151514 52%, #0C0C0B 100%);
+    }
+
+    /* Footer pinned to the bottom of short pages, inside the content column. */
+    .main-frame {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* Chrome stays put while the page content cross-fades (transitions.css). */
+    header.header {
+        view-transition-name: hv-header;
+    }
+    @media (min-width: 50rem) {
+        .sidebar-pane {
+            view-transition-name: hv-sidebar;
+        }
+    }
+    ::view-transition-group(hv-header),
+    ::view-transition-group(hv-sidebar),
+    ::view-transition-old(hv-header),
+    ::view-transition-new(hv-header),
+    ::view-transition-old(hv-sidebar),
+    ::view-transition-new(hv-sidebar) {
+        animation: none;
+    }
+}

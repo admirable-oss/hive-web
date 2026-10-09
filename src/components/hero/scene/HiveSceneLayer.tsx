@@ -1,19 +1,10 @@
-import { Component, Suspense, lazy, useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { RuntimeDemo } from "@/components/hero/runtime/RuntimeDemo";
+import { WebGLBoundary } from "@/components/shared/WebGLBoundary";
 import type { HiveSceneProps } from "./HiveScene";
 
 // three.js + R3F + drei load in their own chunk, off the critical path.
 const HiveScene = lazy(() => import("./HiveScene"));
-
-class WebGLBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
 
 /** No WebGL: the same terminal, tilted with plain CSS 3D — never a broken hero. */
 function FlatTerminal({ signals, reducedMotion, introAt }: Pick<HiveSceneProps, "signals" | "reducedMotion" | "introAt">) {

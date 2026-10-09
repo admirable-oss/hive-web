@@ -1,0 +1,47 @@
+---
+/** Same popover wiring as Starlight's toggle; drawn as the hive's three-bar button at the header start. */
+---
+
+<button popovertarget="starlight__sidebar" class="sl-menu-button md:sl-hidden print:hidden">
+  <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+  <span class="sr-only">{Astro.locals.t("menuButton.accessibleLabel")}</span>
+</button>
+
+<style>
+  button {
+    position: fixed;
+    top: calc((var(--sl-nav-height) - var(--sl-menu-button-size)) / 2);
+    inset-inline-start: calc(var(--sl-nav-pad-x) - 8px);
+    z-index: var(--sl-z-index-navbar);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sl-menu-button-size);
+    height: var(--sl-menu-button-size);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #edeae3;
+    cursor: pointer;
+  }
+  .bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bars > span {
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+    transition: transform 160ms, opacity 160ms;
+  }
+  button:has(~ :popover-open) .bars > span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  button:has(~ :popover-open) .bars > span:nth-child(2) {
+    opacity: 0;
+  }
+  button:has(~ :popover-open) .bars > span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+</style>

@@ -1,0 +1,31 @@
+---
+import bee from "@/content/assets/hive-bee-dark.svg";
+import wordmark from "@/content/assets/hive-wordmark-dark.svg";
+
+const { siteTitleHref } = Astro.locals.starlightRoute;
+---
+
+<a href={siteTitleHref} class="site-title" aria-label="Hive docs home">
+  <img src={bee.src} alt="" width="32" height="23" class="pixelated" />
+  <img src={wordmark.src} alt="hive" width="52" height="18" class="pixelated" />
+  <span class="badge">DOCS</span>
+</a>
+
+<style>
+  .site-title {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .badge {
+    padding: 3px 6px;
+    border: 1px solid #2a2926;
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    color: #8f8b82;
+  }
+</style>

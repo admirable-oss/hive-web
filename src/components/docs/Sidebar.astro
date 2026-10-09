@@ -1,0 +1,52 @@
+---
+import Default from "@astrojs/starlight/components/Sidebar.astro";
+---
+
+<div class="sidebar-top">
+  <button type="button" class="search sl-hidden md:sl-flex" data-open-search>
+    Search <kbd data-search-kbd>Ctrl K</kbd>
+  </button>
+  <a href="/docs/" class="home"><span aria-hidden="true">←</span> Docs home</a>
+</div>
+<Default />
+
+<style>
+  .sidebar-top {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .search {
+    height: 34px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 12px;
+    border: 1px solid #2a2926;
+    border-radius: 6px;
+    background: #121211;
+    font-size: 13.5px;
+    color: #8f8b82;
+    cursor: pointer;
+  }
+  .search:hover {
+    border-color: #3a3934;
+  }
+  kbd {
+    font-size: 11px;
+  }
+  .home {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #b5b1a8;
+    text-decoration: none;
+  }
+  .home:hover {
+    color: #edeae3;
+  }
+  .home span {
+    font-family: var(--sl-font-mono);
+    color: #77736a;
+  }
+</style>

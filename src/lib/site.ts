@@ -4,7 +4,7 @@ export const INSTALL_URL = "https://hive.admir-saheta.com/install.sh";
 export const INSTALL_COMMAND = `curl -fsSL ${INSTALL_URL} | sh`;
 
 export const LINKS = {
-  docs: `${REPO}#readme`,
+  docs: `/docs`,
   install: `${REPO}#install`,
   changelog: `${REPO}/releases`,
   roadmap: `${REPO}/blob/main/ROADMAP.md`,

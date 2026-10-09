@@ -61,7 +61,7 @@ export default function Hero({ intensity = 1 }: { intensity?: number }) {
       <canvas ref={backRef} aria-hidden className="pixelated pointer-events-none absolute inset-0 size-full" />
       <div ref={htmlLayerRef} className="pointer-events-none absolute inset-0 z-2" />
 
-      <div className="pointer-events-none relative z-3 mx-auto box-border flex w-full max-w-300 flex-col items-start gap-0 px-4 pt-[76px] text-left sm:items-center sm:gap-[clamp(12px,2.2vh,20px)] sm:px-[clamp(16px,4vw,64px)] sm:pt-[clamp(88px,11.5vh,116px)] sm:text-center">
+      <div className="pointer-events-none relative z-3 mx-auto box-border flex w-full max-w-300 flex-col items-start gap-0 px-4 pt-19 text-left sm:items-center sm:gap-[clamp(12px,2.2vh,20px)] sm:px-[clamp(16px,4vw,64px)] sm:pt-[clamp(88px,11.5vh,116px)] sm:text-center">
         <HeroEyebrow />
         <HeroHeadline />
         <p

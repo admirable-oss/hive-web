@@ -31,7 +31,7 @@ export function RuntimeDemo({ signals, reducedMotion, introAt, className, style 
       data-mascot-target="demo"
       style={style}
       className={cn(
-        "@container flex flex-col overflow-hidden rounded-[4px] border border-bone/12 bg-[#0B0B0A]/85 font-mono text-[13px] text-bone @max-xl:text-[12px] transition-transform duration-120 select-none",
+        "@container flex flex-col overflow-hidden rounded-lg border border-bone/12 bg-[#0B0B0A]/85 font-mono text-[13px] text-bone @max-xl:text-[12px] transition-transform duration-120 select-none",
         className
       )}
     >

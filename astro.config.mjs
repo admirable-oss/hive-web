@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
@@ -7,12 +7,25 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
 import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
 
 const REPO = 'https://github.com/admirable-oss/hive';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://hive.admir-saheta.com',
+
+  // Pages are static by default; on-demand ones (/roadmap) are ISR-cached for 8 hours,
+  // so ROADMAP.md is re-read at most three times a day. Actions always run live.
+  adapter: vercel({
+    isr: { expiration: 60 * 60 * 8, exclude: [/^\/_actions\//] },
+  }),
+
+  env: {
+    schema: {
+      GITHUB_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
 
   vite: {
     plugins: [tailwindcss()]

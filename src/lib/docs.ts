@@ -5,7 +5,7 @@ export const DOCS_NAV = [
   { label: "Overview", href: "/" },
   { label: "Docs", href: "/docs/" },
   { label: "Changelog", href: LINKS.changelog, external: true },
-  { label: "Roadmap", href: LINKS.roadmap, external: true },
+  { label: "Roadmap", href: LINKS.roadmap },
 ] as const;
 
 export const DOCS_VERSION = "v0 · pre-release";

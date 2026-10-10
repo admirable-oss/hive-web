@@ -7,7 +7,7 @@ export const LINKS = {
   docs: `/docs`,
   install: `${REPO}#install`,
   changelog: `${REPO}/releases`,
-  roadmap: `${REPO}/blob/main/ROADMAP.md`,
+  roadmap: "/roadmap",
   github: REPO,
   brand: "/brand",
   author: "https://admir-saheta.com",

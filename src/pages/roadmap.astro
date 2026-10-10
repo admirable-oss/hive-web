@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+import RoadmapApp from "../components/roadmap/RoadmapApp";
+import { getRoadmapData } from "../lib/roadmap/server";
+
+// Rendered on demand and ISR-cached on Vercel (see astro.config.mjs): the HTML is
+// complete without JS, and ROADMAP.md is re-read at most three times a day.
+export const prerender = false;
+
+const initial = await getRoadmapData();
+---
+
+<Layout
+  title="Roadmap — Hive"
+  description="Hive's roadmap, read live from ROADMAP.md on main: shipped milestones, what's being built now, and every recent commit flying to the work it touches."
+>
+  <RoadmapApp client:load initial={{ ...initial, renderedAt: Date.now() }} />
+</Layout>

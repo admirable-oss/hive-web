@@ -72,6 +72,12 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss(), vercelEntrypointConstantsPlugin],
+    ssr: {
+      // Bundle GSAP plugins into the server chunks. Their package export map
+      // exposes CJS files to Vercel's Node runtime, which cannot provide the
+      // named ESM exports used by SplitText and ScrollTrigger imports.
+      noExternal: ['gsap', '@gsap/react'],
+    },
     build: {
       rolldownOptions: {
         output: {

@@ -1,6 +1,11 @@
 ---
 title: Marketplace
 description: "Built something useful? Share it with the hive. Plugins will install straight from git first; a marketplace index for discovery comes after."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 :::note[being written]

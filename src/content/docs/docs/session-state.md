@@ -1,6 +1,11 @@
 ---
 title: Session state
 description: "Disconnect without the drama. Understand session persistence, restart recovery, pane history and crash recovery. Your SSH connection can quit. Your work shouldn’t."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Persistence, restart recovery, scrollback and crash recovery.

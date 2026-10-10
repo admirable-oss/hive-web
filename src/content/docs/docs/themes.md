@@ -1,6 +1,11 @@
 ---
 title: Themes
 description: "Customize the colours Hive draws with."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 :::note[being written]

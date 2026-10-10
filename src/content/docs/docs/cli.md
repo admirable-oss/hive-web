@@ -1,6 +1,11 @@
 ---
 title: CLI
 description: "hive env, ps, terminal, events, daemon, config."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Add `--json` to any command for machine-readable output.

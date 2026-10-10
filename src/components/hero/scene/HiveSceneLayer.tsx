@@ -21,18 +21,42 @@ function FlatTerminal({ signals, reducedMotion, introAt }: Pick<HiveSceneProps, 
 }
 
 export function HiveSceneLayer(props: HiveSceneProps) {
-  // Client-only: never pull three.js into the server render.
+  // Keep the DOM version in the first paint. Start the Three/R3F chunk after
+  // the hero has painted and the browser has an idle slice; skip it entirely
+  // when the visitor has asked for reduced motion.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (props.reducedMotion) return;
+
+    let idleId: number | undefined;
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    const timer = window.setTimeout(() => {
+      if (idleWindow.requestIdleCallback) {
+        idleId = idleWindow.requestIdleCallback(() => setMounted(true), { timeout: 1200 });
+      } else {
+        setMounted(true);
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId !== undefined) idleWindow.cancelIdleCallback?.(idleId);
+    };
+  }, [props.reducedMotion]);
 
   return (
     <div className="absolute inset-0">
-      {mounted && (
+      {mounted ? (
         <WebGLBoundary fallback={<FlatTerminal {...props} />}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<FlatTerminal {...props} />}>
             <HiveScene {...props} />
           </Suspense>
         </WebGLBoundary>
+      ) : (
+        <FlatTerminal {...props} />
       )}
     </div>
   );

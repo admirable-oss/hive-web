@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /_actions/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /_actions/
 
 Sitemap: https://hive.admir-saheta.com/sitemap-index.xml

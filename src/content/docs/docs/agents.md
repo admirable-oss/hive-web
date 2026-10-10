@@ -1,6 +1,11 @@
 ---
 title: Agents
 description: "Meet the residents. Learn how Hive detects coding agents, handles integrations, supports custom labels, and attaches directly to running sessions."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Bring Claude Code, Codex, OpenCode or your own CLI agent.

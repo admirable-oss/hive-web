@@ -1,6 +1,11 @@
 ---
 title: Copy mode
 description: "Vim keys over history: / to search, v to select, y to copy."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Press <kbd>ctrl+b</kbd> <kbd>[</kbd> to enter copy mode.

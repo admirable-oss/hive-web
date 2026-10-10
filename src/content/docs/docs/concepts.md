@@ -1,6 +1,11 @@
 ---
 title: Core concepts
 description: "Shims, the daemon and clients. Environments and processes."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 :::note[being written]

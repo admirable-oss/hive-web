@@ -1,6 +1,11 @@
 ---
 title: Configuration
 description: "Make yourself at home. Customize keybindings, themes, the sidebar, mouse and clipboard, scrollback, and advanced settings until Hive feels like yours."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Hive reads `~/.config/hive/config.toml`. Every key is optional.

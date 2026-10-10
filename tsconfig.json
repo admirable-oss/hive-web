@@ -5,7 +5,8 @@
     "**/*"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "wireframes"
   ],
   "compilerOptions": {
     "jsx": "react-jsx",

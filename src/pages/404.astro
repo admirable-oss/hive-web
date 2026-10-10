@@ -1,0 +1,22 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import { buttonVariants } from "../components/ui/button";
+---
+
+<Layout title="Page not found — Hive" description="The page you requested could not be found." noindex>
+  <div class="min-h-dvh bg-background font-sans text-bone">
+    <PageHeader />
+    <main class="mx-auto flex min-h-[70vh] max-w-5xl flex-col justify-center px-6 py-20 sm:px-12">
+      <p class="font-mono text-xs tracking-[.24em] text-honey">404 · LOST IN THE HIVE</p>
+      <h1 class="mt-5 font-display text-6xl font-normal tracking-[-.06em] sm:text-8xl">This page flew off.</h1>
+      <p class="mt-5 max-w-xl text-lg leading-relaxed text-stone">
+        The address may have changed. Head back to the docs or return to the Hive homepage.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/docs/" class={buttonVariants({ variant: "primary", size: "md" })}>Browse the docs</a>
+        <a href="/" class={buttonVariants({ variant: "secondary", size: "md" })}>Hive home</a>
+      </div>
+    </main>
+  </div>
+</Layout>

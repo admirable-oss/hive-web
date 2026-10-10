@@ -1,5 +1,6 @@
 ---
 import PostHog from '../components/posthog.astro';
+import GoogleAnalytics from '../components/GoogleAnalytics.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -25,6 +26,52 @@ const {
 const siteUrl = (Astro.site ?? new URL('https://hive.admir-saheta.com')).origin;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).href;
 const imageUrl = new URL(image, siteUrl).href;
+const isHome = new URL(canonicalUrl).pathname === '/';
+const brandUrl = new URL('/brand/logo/hive-mark-dark.svg', siteUrl).href;
+const structuredData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'Organization',
+			'@id': `${siteUrl}/#organization`,
+			name: 'Hive',
+			url: `${siteUrl}/`,
+			logo: brandUrl,
+			sameAs: ['https://github.com/admirable-oss/hive'],
+		},
+		{
+			'@type': 'WebSite',
+			'@id': `${siteUrl}/#website`,
+			url: `${siteUrl}/`,
+			name: 'Hive',
+			publisher: { '@id': `${siteUrl}/#organization` },
+		},
+		{
+			'@type': 'WebPage',
+			'@id': `${canonicalUrl}#webpage`,
+			url: canonicalUrl,
+			name: title,
+			description,
+			isPartOf: { '@id': `${siteUrl}/#website` },
+		},
+		...(isHome
+			? [{
+				'@type': 'SoftwareApplication',
+				'@id': `${siteUrl}/#application`,
+				name: 'Hive',
+				applicationCategory: 'DeveloperApplication',
+				operatingSystem: 'macOS, Linux',
+				description,
+				url: `${siteUrl}/`,
+				image: imageUrl,
+				license: 'https://www.apache.org/licenses/LICENSE-2.0',
+				isAccessibleForFree: true,
+				offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+				author: { '@id': `${siteUrl}/#organization` },
+			}]
+			: []),
+	],
+};
 ---
 
 <!doctype html>
@@ -55,6 +102,7 @@ const imageUrl = new URL(image, siteUrl).href;
 		<link rel="sitemap" href="/sitemap-index.xml" />
 		<meta name="application-name" content="Hive" />
 		<meta name="apple-mobile-web-app-title" content="Hive" />
+		<GoogleAnalytics />
 
 		<!-- Fonts are self-hosted via @fontsource (see global.css). -->
 
@@ -95,24 +143,7 @@ const imageUrl = new URL(image, siteUrl).href;
 		/>
 
 		<!-- Structured data -->
-		<script type="application/ld+json" set:html={JSON.stringify({
-			'@context': 'https://schema.org',
-			'@type': 'SoftwareApplication',
-			name: 'Hive',
-			applicationCategory: 'DeveloperApplication',
-			operatingSystem: 'macOS, Linux',
-			description,
-			url: siteUrl,
-			image: imageUrl,
-			license: 'https://www.apache.org/licenses/LICENSE-2.0',
-			isAccessibleForFree: true,
-			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-			author: {
-				'@type': 'Organization',
-				name: 'Admirable',
-				url: 'https://admir-saheta.com',
-			},
-		})} />
+		<script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />
 	</head>
 
 	<body class:list={[lockScroll && 'overflow-hidden overscroll-none']}>

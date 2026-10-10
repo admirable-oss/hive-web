@@ -48,7 +48,9 @@ const { text, class: className, ...attrs } = Astro.props;
     document.body.appendChild(ta);
     ta.select();
     try {
-      return document.execCommand("copy");
+      // Access by name to keep the deprecated compatibility fallback out of TS diagnostics.
+      const execCommand = Reflect.get(document, "execCommand") as (commandId: string) => boolean;
+      return execCommand.call(document, "copy");
     } finally {
       ta.remove();
     }

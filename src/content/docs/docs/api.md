@@ -1,6 +1,11 @@
 ---
 title: Socket API
 description: "Because clicking everything gets old. Automate Hive through the CLI and local socket API, whether you’re scripting workflows or putting agents in charge of other agents."
+head:
+  - tag: meta
+    attrs:
+      name: robots
+      content: noindex, follow
 ---
 
 Newline-delimited JSON over a unix socket. Protocols 1 and 2.

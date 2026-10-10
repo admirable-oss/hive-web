@@ -9,7 +9,9 @@ function legacyCopy(text: string) {
   document.body.appendChild(ta);
   ta.select();
   try {
-    return document.execCommand("copy");
+    // Access by name to keep the deprecated compatibility fallback out of TS diagnostics.
+    const execCommand = Reflect.get(document, "execCommand") as (commandId: string) => boolean;
+    return execCommand.call(document, "copy");
   } catch {
     return false;
   } finally {
@@ -17,7 +19,7 @@ function legacyCopy(text: string) {
   }
 }
 
-/** Copy text with a transient `copied` flag (falls back to execCommand). */
+/** Copy text with a transient `copied` flag, falling back to execCommand. */
 export function useClipboard(resetMs = 1600) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);

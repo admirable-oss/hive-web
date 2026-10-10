@@ -1,4 +1,6 @@
 // @ts-check
+import { readdirSync, statSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
 import { defineConfig, envField } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -11,6 +13,37 @@ import vercel from '@astrojs/vercel';
 
 const REPO = 'https://github.com/admirable-oss/hive';
 const GA_MEASUREMENT_ID = 'G-579TFV1E9W';
+// Rolldown is imported by the Vercel adapter's generated Node entrypoint. Its
+// WASI fallback is loaded dynamically, so @vercel/nft doesn't discover these
+// files while tracing the function. Include the binding and its runtime deps.
+const rolldownWasiPackages = [
+  '@rolldown/binding-wasm32-wasi',
+  '@napi-rs/wasm-runtime',
+  '@emnapi/core',
+  '@emnapi/runtime',
+  '@emnapi/wasi-threads',
+  '@tybys/wasm-util',
+  'tslib',
+];
+const rolldownWasiFiles = rolldownWasiPackages.flatMap((packageName) => {
+  const packageRoot = resolve('node_modules', packageName);
+  /**
+   * @type {string[]}
+   */
+  const files = [];
+  // @ts-ignore
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name === 'node_modules') continue;
+      const path = resolve(directory, entry.name);
+      if (entry.isDirectory()) visit(path);
+      else if (entry.isSymbolicLink() && statSync(path).isDirectory()) visit(path);
+      else files.push(`./${relative(process.cwd(), path)}`);
+    }
+  };
+  visit(packageRoot);
+  return files;
+});
 const NOINDEX_DOCS = new Set([
   '/docs/agents/',
   '/docs/api/',
@@ -33,6 +66,7 @@ export default defineConfig({
   // Pages are static by default; on-demand ones (/roadmap) are ISR-cached for 8 hours,
   // so ROADMAP.md is re-read at most three times a day. Actions always run live.
   adapter: vercel({
+    includeFiles: rolldownWasiFiles,
     isr: { expiration: 60 * 60 * 8, exclude: [/^\/_actions\//] },
   }),
 

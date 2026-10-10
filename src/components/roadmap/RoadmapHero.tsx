@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { gsap } from "@/lib/gsap";
 import { ago, COLORS, destOf, fmt, progressOf, STATUS } from "@/lib/roadmap/derive";
 import { ROADMAP_URL } from "@/lib/roadmap/github";
@@ -20,25 +20,6 @@ const pixelClip =
 
 const label = "font-mono text-[11px] tracking-[.16em] text-[#8E8A80]";
 
-/** Counts the repo numbers up from zero once, when they first arrive. */
-function useCountUp(values: number[] | null, still: boolean) {
-  const [shown, setShown] = useState(values ?? []);
-  const done = useRef(false);
-  const key = values?.join() ?? "";
-  useEffect(() => {
-    if (!values) return;
-    if (done.current || still) {
-      setShown(values);
-      return;
-    }
-    done.current = true;
-    const o = values.map(() => 0);
-    const t = gsap.to(o, { ...Object.fromEntries(values.map((v, i) => [i, v])), duration: 1.6, ease: "power3.out", onUpdate: () => setShown([...o]) });
-    return () => void t.kill();
-  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  return shown;
-}
-
 export function RoadmapHero({ live, sel, onSelect, onOpenCurrent, reducedMotion }: Props) {
   const { rm, repo, release, contribs, commits, signals, now, notify } = live;
   const ms = rm.milestones;
@@ -46,12 +27,10 @@ export function RoadmapHero({ live, sel, onSelect, onOpenCurrent, reducedMotion 
   const cur = ms.find((m) => m.status === "current") ?? main.find((m) => m.status === "planned") ?? ms[0];
   const curP = cur ? progressOf(cur, signals, !!live.errors.signals) : null;
   const done = main.filter((m) => m.status === "done").length;
-  const counts = useCountUp(repo ? [repo.stars, repo.forks, repo.issues, repo.watchers] : null, reducedMotion);
-
   const beeCommits = (commits ?? []).map((c) => ({ sha: c.sha, short: c.sha.slice(0, 7), msg: c.msg, dest: destOf(c, ms).id }));
 
   const heroRef = useRef<HTMLElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (reducedMotion || !heroRef.current) return;
     const ctx = gsap.context(() => {
       gsap.from("[data-hero]", { y: 16, autoAlpha: 0, duration: 0.8, stagger: 0.07, ease: "power3.out", delay: 0.1 });
@@ -229,10 +208,10 @@ export function RoadmapHero({ live, sel, onSelect, onOpenCurrent, reducedMotion 
                 ADMIRABLE-OSS/HIVE <span>↗</span>
               </a>
               <dl className="m-0 grid grid-cols-4 gap-2">
-                {(["stars", "forks", "issues", "watchers"] as const).map((k, i) => (
+                {(["stars", "forks", "issues", "watchers"] as const).map((k) => (
                   <div key={k} className="flex flex-col-reverse gap-0.5">
                     <dt className="font-mono text-[10.5px] tracking-[.08em] text-[#8E8A80]">{k.toUpperCase()}</dt>
-                    <dd className="m-0 font-mono text-[19px] leading-none font-medium tracking-[-.02em] tabular-nums">{repo ? fmt(counts[i] ?? 0) : "—"}</dd>
+                    <dd className="m-0 font-mono text-[19px] leading-none font-medium tracking-[-.02em] tabular-nums">{repo ? fmt(repo[k]) : "—"}</dd>
                   </div>
                 ))}
               </dl>

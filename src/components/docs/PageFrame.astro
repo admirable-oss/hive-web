@@ -20,11 +20,15 @@ import DocsMotion from "./DocsMotion.astro";
       </div>
       <nav aria-label="Footer">
         {
-          DOCS_FOOTER_LINKS.map((l) => (
-            <a href={l.href} target="_blank" rel="noopener">
-              {l.label} ↗
-            </a>
-          ))
+          DOCS_FOOTER_LINKS.map((l) =>
+            l.href.startsWith("http") ? (
+              <a href={l.href} target="_blank" rel="noopener">
+                {l.label} ↗
+              </a>
+            ) : (
+              <a href={l.href}>{l.label}</a>
+            ),
+          )
         }
         <span>{LICENSE_LABEL}</span>
       </nav>

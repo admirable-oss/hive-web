@@ -11,14 +11,14 @@ const FACTS: [string, string][] = [
 const row = "border-b border-[#3a3934] py-[9px]";
 ---
 
-<section class="not-content home-section mx-auto max-w-[1200px] px-[clamp(20px,4vw,48px)]">
+<section class="not-content home-section mx-auto max-w-300 px-[clamp(20px,4vw,48px)]">
   <div data-hive-reveal class="community-panel grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-x-16 gap-y-8 border border-[#3a3934] bg-[#1a1a18] p-[clamp(24px,4vw,40px)] text-bone">
-    <div class="relative flex flex-col gap-[18px]">
+    <div class="relative flex flex-col gap-4.5">
       <div class="flex items-center gap-2 font-mono text-xs tracking-[.16em] text-stone"><span class="size-1.5 bg-honey"></span>BUILT IN THE OPEN</div>
       <h2 class="m-0 text-[clamp(26px,2.8vw,34px)] leading-[1.1] font-medium tracking-[-.03em]">
         Good tools are built in the open.
       </h2>
-      <p class="m-0 max-w-[500px] text-base leading-[1.6] text-pretty text-[#c9c5bb]">
+      <p class="m-0 max-w-125 text-base leading-[1.6] text-pretty text-[#c9c5bb]">
         Hive is built for developers who want their agents to keep working, even when they close the laptop. Follow the
         project, explore the source, and help make the hive better.
       </p>
@@ -27,7 +27,7 @@ const row = "border-b border-[#3a3934] py-[9px]";
           href={REPO}
           target="_blank"
           rel="noopener"
-          class="clip-pixel-4 flex h-11 items-center gap-2 bg-honey px-[18px] text-[15px] font-medium text-ink no-underline transition-colors hover:bg-[#ffc85a] hover:text-ink"
+          class="clip-pixel-4 flex h-11 items-center gap-2 bg-honey px-4.5 text-[15px] font-medium text-ink no-underline transition-colors hover:bg-[#ffc85a] hover:text-ink"
         >
           <span class="text-ink/70">☆</span> Star Hive on GitHub ↗
         </a>
@@ -42,7 +42,7 @@ const row = "border-b border-[#3a3934] py-[9px]";
       </div>
     </div>
     <div class="relative flex flex-wrap items-end gap-8">
-      <dl class="m-0 grid min-w-[240px] flex-1 grid-cols-[auto_1fr] font-mono text-[13px] text-bone">
+      <dl class="m-0 grid min-w-60 flex-1 grid-cols-[auto_1fr] font-mono text-[13px] text-bone">
         {
           FACTS.map(([k, v]) => (
             <>
@@ -51,8 +51,8 @@ const row = "border-b border-[#3a3934] py-[9px]";
             </>
           ))
         }
-        <dt class="py-[9px] pr-6 text-stone">status</dt>
-        <dd class="m-0 py-[9px] font-medium">v0 · built in public</dd>
+        <dt class="py-2.25 pr-6 text-stone">status</dt>
+        <dd class="m-0 py-2.25 font-medium">v0 · built in public</dd>
       </dl>
       <span class="clip-pixel-4 flex flex-none border border-[#45433d] bg-[#20201e] p-3">
         <img src={bee.src} alt="Hive agent, idle" width="56" height="40" class="pixelated" />

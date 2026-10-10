@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { gsap } from "@/lib/gsap";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
@@ -55,7 +55,7 @@ export default function RoadmapApp({ initial }: { initial: RoadmapInitial }) {
   };
 
   // Below-the-fold sections settle in as they arrive.
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (reducedMotion || !root.current) return;
     const items = [...root.current.querySelectorAll<HTMLElement>("main [data-reveal]")].filter((e) => e.getBoundingClientRect().top > innerHeight * 0.92);
     gsap.set(items, { autoAlpha: 0, y: 14 });

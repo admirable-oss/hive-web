@@ -23,6 +23,7 @@
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",
+    "@rolldown/binding-wasm32-wasi": "1.2.12",
     "@tabler/icons-react": "^3.49.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",

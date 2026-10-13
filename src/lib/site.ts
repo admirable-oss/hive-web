@@ -5,6 +5,7 @@ export const INSTALL_COMMAND = `curl -fsSL ${INSTALL_URL} | sh`;
 
 export const LINKS = {
   docs: `/docs`,
+  demo: "/demo",
   install: `${REPO}#install`,
   changelog: `${REPO}/releases`,
   roadmap: "/roadmap",

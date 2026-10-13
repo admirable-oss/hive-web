@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DemoPage from "../components/demo/DemoPage";
+---
+
+<Layout
+  title="Live demo — Hive"
+  description="Try Hive's terminal UI in your browser: split panes, an Overview of every agent, and agents that keep working while you're detached."
+  lockScroll
+>
+  <DemoPage client:load />
+</Layout>

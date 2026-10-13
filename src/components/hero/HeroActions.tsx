@@ -3,6 +3,8 @@ import { LinkButton } from "@/components/ui/button";
 import { logInstallationAction } from "@/lib/posthog-logger";
 import { LINKS, SUPPORTED_AGENTS } from "@/lib/site";
 
+const demoOpened = () => window.posthog?.capture("demo_opened");
+
 export function HeroActions() {
   return (
     <div
@@ -25,6 +27,9 @@ export function HeroActions() {
       >
         Read the docs <span aria-hidden>↗</span>
       </LinkButton>
+      <LinkButton variant="secondary" size="lg" href={LINKS.demo} onPress={demoOpened} className="w-full max-sm:hidden sm:w-auto">
+        Try it live <span aria-hidden className="font-mono text-honey">▸</span>
+      </LinkButton>
     </div>
   );
 }
@@ -43,19 +48,24 @@ export function HeroAgents() {
             {a}
           </span>
         ))}
-        <span className="max-[380px]:hidden">· any CLI agent</span>
+        <span className="max-sm:hidden">· any CLI agent</span>
       </span>
-      {/* Phones: docs is a quiet link here instead of a second big button. */}
-      <a
-        href={LINKS.docs}
-        onClick={() => {
-          window.posthog?.capture("documentation_opened");
-          logInstallationAction("documentation_opened");
-        }}
-        className="pointer-events-auto flex-none text-bone underline decoration-bone/25 underline-offset-4 sm:hidden"
-      >
-        Docs ↗
-      </a>
+      {/* Phones: the demo and docs are quiet links here instead of big buttons. */}
+      <span className="flex flex-none items-center gap-4 sm:hidden">
+        <a href={LINKS.demo} onClick={demoOpened} className="pointer-events-auto text-honey underline decoration-honey/30 underline-offset-4">
+          Try it ▸
+        </a>
+        <a
+          href={LINKS.docs}
+          onClick={() => {
+            window.posthog?.capture("documentation_opened");
+            logInstallationAction("documentation_opened");
+          }}
+          className="pointer-events-auto text-bone underline decoration-bone/25 underline-offset-4"
+        >
+          Docs ↗
+        </a>
+      </span>
     </p>
   );
 }

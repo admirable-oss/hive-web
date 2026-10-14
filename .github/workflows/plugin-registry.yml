@@ -1,0 +1,51 @@
+name: Plugin registry
+
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  detect-trusted-change:
+    runs-on: ubuntu-latest
+    outputs:
+      trusted: ${{ steps.detect.outputs.trusted }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: detect
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags origin "$BASE_REF"
+          if ! git diff --quiet "origin/$BASE_REF...HEAD" -- public/plugins/registry.json src/data/plugins-registry.json; then
+            trusted=false
+            for file in public/plugins/registry.json src/data/plugins-registry.json; do
+              if grep -Eq '"(official|verified)"[[:space:]]*:[[:space:]]*true([,[:space:]]|$)' "$file" 2>/dev/null || git show "origin/$BASE_REF:$file" 2>/dev/null | grep -Eq '"(official|verified)"[[:space:]]*:[[:space:]]*true([,[:space:]]|$)'; then
+                trusted=true
+              fi
+            done
+            echo "trusted=$trusted" >> "$GITHUB_OUTPUT"
+          else
+            echo 'trusted=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.12"
+      - name: Validate registry and source mirror
+        run: node --experimental-strip-types .github/scripts/validate-plugin-registry.mjs
+
+  trusted-listing-review:
+    if: needs.detect-trusted-change.outputs.trusted == 'true'
+    needs: [detect-trusted-change, validate]
+    runs-on: ubuntu-latest
+    environment: plugin-registry-trusted-review
+    steps:
+      - run: echo "Trusted listing change approved by configured environment reviewers."

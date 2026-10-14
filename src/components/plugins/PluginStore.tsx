@@ -255,7 +255,7 @@ function CatalogCard({ plugin }: { plugin: HivePlugin }) {
         <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-[#6F6C64]">
           <span>{(plugin.platforms ?? []).join(" · ") || "platforms n/a"}</span>
           <span>Hive ≥ {plugin.min_hive_version}</span>
-          <span>API {plugin.plugin_api}</span>
+          <span>API {plugin.plugin_api ?? "—"}</span>
           {plugin.official && <span className="text-honey">OFFICIAL</span>}
           {plugin.verified && <span className="text-emerald-300">VERIFIED</span>}
         </div>
@@ -312,13 +312,16 @@ export default function PluginStore({
   const [page, setPage] = useState(Number(params.get("page") ?? 1));
   const pageSize = 9;
 
-  const compatible = (minimum: string, current: string) => {
-    const a = minimum.split(/[.+-]/).map((part) => Number(part) || 0);
-    const b = current.split(/[.+-]/).map((part) => Number(part) || 0);
-    for (let i = 0; i < Math.max(a.length, b.length); i++) {
-      if ((b[i] ?? 0) !== (a[i] ?? 0)) return (b[i] ?? 0) > (a[i] ?? 0);
-    }
-    return true;
+  const compatible = (minimum: string | undefined, maximum: string | undefined, current: string) => {
+    const compare = (left: string, right: string) => {
+      const a = left.split(/[.+-]/).map((part) => Number(part) || 0);
+      const b = right.split(/[.+-]/).map((part) => Number(part) || 0);
+      for (let i = 0; i < Math.max(a.length, b.length); i++) {
+        if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) < (b[i] ?? 0) ? -1 : 1;
+      }
+      return 0;
+    };
+    return (!minimum || compare(current, minimum) >= 0) && (!maximum || compare(current, maximum) <= 0);
   };
 
   const filtered = useMemo(() => {
@@ -340,7 +343,7 @@ export default function PluginStore({
           (!q || haystack.includes(q)) &&
           (!category || p.categories?.includes(category)) &&
           (!platform || p.platforms?.includes(platform)) &&
-          (!hiveVersion || compatible(p.min_hive_version, hiveVersion)) &&
+          (!hiveVersion || compatible(p.min_hive_version, p.max_hive_version, hiveVersion)) &&
           (!apiVersion || p.plugin_api === apiVersion) &&
           (!status ||
             (status === "official"

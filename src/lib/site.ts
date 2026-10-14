@@ -10,6 +10,7 @@ export const LINKS = {
   changelog: `${REPO}/releases`,
   roadmap: "/roadmap",
   pricing: "/pricing",
+  plugins: "/plugins",
   github: REPO,
   brand: "/brand",
   author: "https://admir-saheta.com",
@@ -19,6 +20,7 @@ export const NAV_LINKS = [
   { label: "Docs", href: LINKS.docs },
   { label: "Changelog", href: LINKS.changelog },
   { label: "Roadmap", href: LINKS.roadmap },
+  { label: "Plugins", href: LINKS.plugins },
   { label: "Pricing", href: LINKS.pricing },
 ] as const;
 
@@ -26,6 +28,7 @@ export const MENU_LINKS = [
   { label: "Docs", detail: "Read the manual", href: LINKS.docs },
   { label: "Changelog", detail: "What shipped", href: LINKS.changelog },
   { label: "Roadmap", detail: "RFCs & what’s next", href: LINKS.roadmap },
+  { label: "Plugin Store", detail: "Discover Hive plugins", href: LINKS.plugins },
   { label: "Pricing", detail: "Free forever, self-hosted", href: LINKS.pricing },
   { label: "GitHub", detail: "admirable-oss/hive", href: LINKS.github },
   { label: "Brand", detail: "Book & assets", href: LINKS.brand },

@@ -1,0 +1,12 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PluginStore from "../components/plugins/PluginStore";
+import { getPluginRegistry } from "../lib/plugins.server";
+
+export const prerender = false;
+const { registry, error, fetchedAt } = await getPluginRegistry();
+---
+
+<Layout title="Plugin Store — Hive" description="Discover community-built extensions for Hive. Every installable plugin is published in Hive’s reviewed registry.">
+  <PluginStore client:load registry={registry} registryError={error} fetchedAt={fetchedAt} initialSearch={Astro.url.searchParams.toString()} />
+</Layout>

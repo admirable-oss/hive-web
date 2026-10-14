@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "plugins": [
+    {
+      "id": "hive-pulse",
+      "name": "Hive Pulse",
+      "description": "Real-time observability for coding agents: state, attention signals, notifications, and activity history.",
+      "installation": "Install with `hive plugin install hive-pulse`.",
+      "categories": ["developer-tools", "notifications", "terminal-enhancements"],
+      "maintainers": [
+        {"name": "Admirable OSS", "url": "https://github.com/admirable-oss"}
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/admirable-oss/hive-pulse",
+      "documentation": "https://github.com/admirable-oss/hive-pulse",
+      "issues": "https://github.com/admirable-oss/hive-pulse/issues",
+      "platforms": ["darwin", "linux"],
+      "min_hive_version": "0.10.0",
+      "plugin_api": "1",
+      "official": false,
+      "verified": false,
+      "releases": [
+        {
+          "version": "0.1.0",
+          "ref": "v0.1.0",
+          "commit": "cc20ef478311260f7cc0a0623f60e42aa1195d73",
+          "checksum": "sha256:67eee22fd2bb9b7996b30c6f547628aa81075c0e5be2062fa7300f4727d673a3",
+          "changelog": "Initial release with live agent state summaries, notifications, and activity history.",
+          "published_at": "2026-10-14T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}

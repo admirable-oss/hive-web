@@ -70,6 +70,11 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+      HIVE_PLUGIN_REGISTRY_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
     },
   },
 

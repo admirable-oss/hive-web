@@ -1,0 +1,15 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PluginDetail from "../../components/plugins/PluginDetail";
+import { getPluginRegistry } from "../../lib/plugins.server";
+
+export const prerender = false;
+const { registry, error } = await getPluginRegistry();
+const id = Astro.params.id ?? "";
+const plugin = registry?.plugins.find((candidate) => candidate.id === id);
+if (!plugin && !error) Astro.response.status = 404;
+---
+
+<Layout title={plugin ? `${plugin.name} — Hive Plugin Store` : "Plugin unavailable — Hive"} description={plugin?.description ?? "This plugin is not currently available in Hive’s published registry."}>
+  {plugin ? <PluginDetail client:load plugin={plugin} /> : <main class="grid min-h-screen place-items-center bg-[#0F0F0E] px-6 text-center text-bone"><div><div class="font-mono text-[10px] tracking-[.14em] text-[#89857B]">{error ? "REGISTRY UNAVAILABLE" : "PLUGIN NOT FOUND"}</div><h1 class="mt-4 text-3xl font-medium">{error ? "Couldn’t load this plugin." : "This plugin isn’t in the published catalog."}</h1><p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#A9A59B]">Installable listings come only from Hive’s published registry. Community discovery does not make a plugin installable.</p><a class="mt-6 inline-flex font-mono text-[11px] text-honey" href="/plugins">← Return to the plugin store</a></div></main>}
+</Layout>

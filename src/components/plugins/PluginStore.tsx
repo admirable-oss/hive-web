@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { HivePlugin, PluginRegistry } from "@/lib/plugins";
 import { categoryLabel, latestRelease } from "@/lib/plugins";
 import { CopyCommand } from "@/components/shared/CopyCommand";
-import { SectionHead } from "@/components/roadmap/SectionHead";
 import { PluginStage } from "./PluginStage";
 
 const CATEGORIES = [
@@ -22,164 +21,252 @@ function formatRelativeDate(isoDate: string) {
   if (diffDays <= 0) return "today";
   if (diffDays === 1) return "yesterday";
   if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(isoDate).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+  return new Date(isoDate).toLocaleDateString("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
+function getRepoName(repoUrl?: string) {
+  if (!repoUrl) return null;
+  try {
+    const url = new URL(repoUrl);
+    return url.pathname.replace(/^\//, "").replace(/\.git$/, "");
+  } catch {
+    return repoUrl.replace(/^https?:\/\/[^/]+\//, "");
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CARD 1: Trending Card (Inspired by Herdr style in Image 3)
+   ───────────────────────────────────────────────────────────────────────────── */
 function TrendingCard({ plugin, rank }: { plugin: HivePlugin; rank: number }) {
   const release = latestRelease(plugin);
   const owner = plugin.maintainers?.[0]?.name ?? "Community maintainer";
+  const repoName = getRepoName(plugin.repository) ?? plugin.id;
 
   return (
-    <article className="group relative flex flex-col border border-bone/[.09] bg-[#111110]/90 p-5 transition-all duration-300 hover:border-honey/40 hover:bg-[#141412] sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[.14em] text-[#807C72]">
-            <span className="text-honey font-bold">#0{rank}</span>
-            <span>·</span>
-            <span className="truncate">{plugin.id}</span>
+    <article className="group relative flex flex-col justify-between border border-bone/[.09] bg-[#121211] p-5 transition-all duration-300 hover:border-honey/50 hover:bg-[#161614] sm:p-6">
+      <div>
+        {/* Top line: repo identity + external link + rank */}
+        <div className="flex items-center justify-between gap-3 border-b border-bone/[.06] pb-3">
+          <div className="flex items-center gap-2 font-mono text-[11px] text-[#A9A59B]">
+            <span className="flex size-4 shrink-0 items-center justify-center rounded-sm bg-honey/15 text-[9px] font-bold text-honey">
+              H
+            </span>
+            <span className="truncate group-hover:text-bone">{repoName}</span>
           </div>
-          <h3 className="mt-2 text-[20px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
-            {plugin.name}
-          </h3>
+          <a
+            href={plugin.repository}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 text-[#6B685F] transition-colors hover:text-honey"
+            aria-label={`View ${repoName} on GitHub`}
+          >
+            ↗
+          </a>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className="border border-honey/30 bg-honey/[.07] px-2 py-0.5 font-mono text-[10.5px] text-honey">
+
+        {/* Signal badge line: rank + version + official pill */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 font-mono text-[10px]">
+          <span className="inline-flex items-center gap-1 border border-honey/35 bg-honey/[.08] px-2 py-0.5 text-honey font-medium">
+            ▲ #{rank < 10 ? `0${rank}` : rank} TRENDING
+          </span>
+          <span className="border border-bone/15 bg-bone/[.03] px-1.5 py-0.5 text-[#B9B5AB]">
             v{release.version}
           </span>
           {plugin.official && (
-            <span className="border border-honey/20 bg-honey/[.04] px-1.5 py-0.2 font-mono text-[9px] tracking-[.1em] text-honey">
+            <span className="border border-honey/20 bg-honey/[.04] px-1.5 py-0.5 text-honey">
               OFFICIAL
             </span>
           )}
+          {plugin.verified && (
+            <span className="border border-emerald-300/20 bg-emerald-300/[.04] px-1.5 py-0.5 text-emerald-300">
+              VERIFIED
+            </span>
+          )}
+        </div>
+
+        {/* Name and description */}
+        <h3 className="mt-3 text-[19px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
+          {plugin.name}
+        </h3>
+        <p className="mt-2 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">
+          {plugin.description}
+        </p>
+
+        {/* Category tags */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {(plugin.categories ?? []).map((c) => (
+            <span className={tagClass} key={c}>
+              {categoryLabel(c)}
+            </span>
+          ))}
         </div>
       </div>
 
-      <p className="mt-3 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">{plugin.description}</p>
+      {/* Bottom: Copy snippet & details */}
+      <div className="mt-6 border-t border-bone/[.07] pt-4">
+        <CopyCommand
+          command={`hive plugin install ${plugin.id}`}
+          display={`hive plugin install ${plugin.id}`}
+          size="md"
+        />
 
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {(plugin.categories ?? []).slice(0, 3).map((c) => (
-          <span className={tagClass} key={c}>
-            {categoryLabel(c)}
+        <div className="mt-4 flex items-center justify-between gap-3 font-mono text-[10.5px] text-[#7A766D]">
+          <span className="truncate">
+            {owner} <span className="text-[#4E4B43]">·</span> {plugin.license}
           </span>
-        ))}
-      </div>
-
-      <div className="mt-5">
-        <CopyCommand command={`hive plugin install ${plugin.id}`} display={`hive plugin install ${plugin.id}`} size="md" />
-      </div>
-
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-bone/[.07] pt-4 text-[11px] text-[#8E8A80]">
-        <span className="truncate">
-          {owner} <span className="text-[#5F5D56]">·</span> {plugin.license}
-        </span>
-        <a
-          className="shrink-0 font-mono text-[10.5px] tracking-[.08em] text-honey hover:text-[#FFE1A0]"
-          href={`/plugins/${encodeURIComponent(plugin.id)}`}
-        >
-          DETAILS ↗
-        </a>
+          <a
+            className="shrink-0 tracking-[.08em] text-honey hover:text-[#FFE1A0]"
+            href={`/plugins/${encodeURIComponent(plugin.id)}`}
+          >
+            DETAILS ↗
+          </a>
+        </div>
       </div>
     </article>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   CARD 2: Recent / Just Joined Card (Fresh Arrivals)
+   ───────────────────────────────────────────────────────────────────────────── */
 function RecentCard({ plugin }: { plugin: HivePlugin }) {
   const release = latestRelease(plugin);
   const owner = plugin.maintainers?.[0]?.name ?? "Community maintainer";
   const relativeDate = formatRelativeDate(release.published_at);
+  const repoName = getRepoName(plugin.repository) ?? plugin.id;
 
   return (
-    <article className="group relative flex flex-col border border-bone/[.09] bg-[#111110]/90 p-5 transition-all duration-300 hover:border-honey/40 hover:bg-[#141412] sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <article className="group relative flex flex-col justify-between border border-bone/[.09] bg-[#141413] p-5 transition-all duration-300 hover:border-emerald-400/40 hover:bg-[#181816] sm:p-6">
+      <div>
+        {/* Top line: status chip + version */}
+        <div className="flex items-center justify-between gap-3 border-b border-bone/[.06] pb-3">
           <div className="flex items-center gap-2 font-mono text-[10px] tracking-[.12em] text-[#807C72]">
-            <span className="inline-block size-1.5 rounded-full bg-emerald-400" />
-            <span className="text-emerald-300">PUBLISHED {relativeDate.toUpperCase()}</span>
+            <span className="inline-block size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-emerald-300 font-medium">PUBLISHED {relativeDate.toUpperCase()}</span>
           </div>
-          <h3 className="mt-2 text-[19px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
+          <span className="border border-bone/15 bg-bone/[.04] px-2 py-0.5 font-mono text-[10.5px] text-[#D0CCC2]">
+            v{release.version}
+          </span>
+        </div>
+
+        {/* Title & repo */}
+        <div className="mt-4">
+          <div className="font-mono text-[10.5px] text-[#77746B]">{repoName}</div>
+          <h3 className="mt-1 text-[19px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
             {plugin.name}
           </h3>
         </div>
-        <span className="shrink-0 border border-bone/15 bg-bone/[.03] px-2 py-0.5 font-mono text-[10.5px] text-[#D0CCC2]">
-          v{release.version}
-        </span>
+
+        <p className="mt-2 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">
+          {plugin.description}
+        </p>
+
+        {/* Changelog callout box */}
+        {release.changelog && (
+          <div className="mt-4 rounded border border-bone/[.07] bg-black/50 p-3 font-mono text-[11px] leading-relaxed text-[#9A968C]">
+            <span className="text-honey font-medium">release note:</span> {release.changelog}
+          </div>
+        )}
       </div>
 
-      <p className="mt-3 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">{plugin.description}</p>
+      {/* Bottom: Copy command & details */}
+      <div className="mt-6 border-t border-bone/[.07] pt-4">
+        <CopyCommand
+          command={`hive plugin install ${plugin.id}`}
+          display={`hive plugin install ${plugin.id}`}
+          size="md"
+        />
 
-      {release.changelog && (
-        <div className="mt-3 rounded border border-bone/[.06] bg-black/40 px-3 py-2 font-mono text-[10.5px] text-[#8E8A80]">
-          <span className="text-honey">release:</span> {release.changelog}
+        <div className="mt-4 flex items-center justify-between gap-3 font-mono text-[10.5px] text-[#7A766D]">
+          <span className="truncate">
+            {owner} <span className="text-[#4E4B43]">·</span> {plugin.id}
+          </span>
+          <a
+            className="shrink-0 tracking-[.08em] text-honey hover:text-[#FFE1A0]"
+            href={`/plugins/${encodeURIComponent(plugin.id)}`}
+          >
+            DETAILS ↗
+          </a>
         </div>
-      )}
-
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-bone/[.07] pt-4 mt-5 text-[11px] text-[#8E8A80]">
-        <span className="truncate">
-          {owner} <span className="text-[#5F5D56]">·</span> {plugin.id}
-        </span>
-        <a
-          className="shrink-0 font-mono text-[10.5px] tracking-[.08em] text-honey hover:text-[#FFE1A0]"
-          href={`/plugins/${encodeURIComponent(plugin.id)}`}
-        >
-          DETAILS ↗
-        </a>
       </div>
     </article>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   CARD 3: Catalog Card (Full Directory)
+   ───────────────────────────────────────────────────────────────────────────── */
 function CatalogCard({ plugin }: { plugin: HivePlugin }) {
   const release = latestRelease(plugin);
   const owner = plugin.maintainers?.[0]?.name ?? "Community maintainer";
 
   return (
-    <article className="group flex min-h-[280px] flex-col border border-bone/[.09] bg-[#111110]/90 p-5 transition-all duration-300 hover:border-honey/40 hover:bg-[#141412] sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-mono text-[10px] tracking-[.12em] text-[#77746B]">{plugin.id}</div>
-          <h3 className="mt-2 text-[19px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
-            {plugin.name}
-          </h3>
-        </div>
-        <span className="shrink-0 border border-honey/25 bg-honey/[.06] px-2 py-1 font-mono text-[10px] text-honey">
-          v{release.version}
-        </span>
-      </div>
-
-      <p className="mt-3 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">{plugin.description}</p>
-
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {(plugin.categories ?? []).slice(0, 3).map((c) => (
-          <span className={tagClass} key={c}>
-            {categoryLabel(c)}
+    <article className="group flex min-h-[290px] flex-col justify-between border border-bone/[.09] bg-[#111110] p-5 transition-all duration-300 hover:border-honey/40 hover:bg-[#141412] sm:p-6">
+      <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] tracking-[.12em] text-[#77746B]">{plugin.id}</div>
+            <h3 className="mt-1.5 text-[19px] font-medium tracking-[-.025em] text-bone group-hover:text-white">
+              {plugin.name}
+            </h3>
+          </div>
+          <span className="shrink-0 border border-honey/25 bg-honey/[.06] px-2 py-0.5 font-mono text-[10px] text-honey">
+            v{release.version}
           </span>
-        ))}
+        </div>
+
+        <p className="mt-3 line-clamp-3 text-[13.5px] leading-[1.65] text-[#A9A59B]">
+          {plugin.description}
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {(plugin.categories ?? []).map((c) => (
+            <span className={tagClass} key={c}>
+              {categoryLabel(c)}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-bone/[.07] pt-4 mt-5 text-[11px] text-[#8E8A80]">
-        <span className="truncate">
-          {owner} <span className="text-[#5F5D56]">·</span> {plugin.license}
-        </span>
-        <a
-          className="shrink-0 font-mono text-[10px] tracking-[.08em] text-honey hover:text-[#FFE1A0]"
-          href={`/plugins/${encodeURIComponent(plugin.id)}`}
-        >
-          DETAILS ↗
-        </a>
-      </div>
+      <div className="mt-6 border-t border-bone/[.07] pt-4">
+        <CopyCommand
+          command={`hive plugin install ${plugin.id}`}
+          display={`hive plugin install ${plugin.id}`}
+          size="md"
+        />
 
-      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-[#6F6C64]">
-        <span>{(plugin.platforms ?? []).join(" · ") || "platforms n/a"}</span>
-        <span>Hive ≥ {plugin.min_hive_version}</span>
-        <span>API {plugin.plugin_api}</span>
-        {plugin.official && <span className="text-honey">OFFICIAL</span>}
-        {plugin.verified && <span className="text-emerald-300">VERIFIED</span>}
-        {(plugin as HivePlugin & { deprecated?: boolean }).deprecated && <span className="text-orange-300">DEPRECATED</span>}
+        <div className="mt-4 flex items-center justify-between gap-3 text-[11px] text-[#8E8A80]">
+          <span className="truncate">
+            {owner} <span className="text-[#5F5D56]">·</span> {plugin.license}
+          </span>
+          <a
+            className="shrink-0 font-mono text-[10px] tracking-[.08em] text-honey hover:text-[#FFE1A0]"
+            href={`/plugins/${encodeURIComponent(plugin.id)}`}
+          >
+            DETAILS ↗
+          </a>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-[#6F6C64]">
+          <span>{(plugin.platforms ?? []).join(" · ") || "platforms n/a"}</span>
+          <span>Hive ≥ {plugin.min_hive_version}</span>
+          <span>API {plugin.plugin_api}</span>
+          {plugin.official && <span className="text-honey">OFFICIAL</span>}
+          {plugin.verified && <span className="text-emerald-300">VERIFIED</span>}
+        </div>
       </div>
     </article>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN COMPONENT: PluginStore
+   ───────────────────────────────────────────────────────────────────────────── */
 export default function PluginStore({
   registry,
   registryError,
@@ -201,18 +288,17 @@ export default function PluginStore({
           (p.featured ? 6 : 0) +
           (p.official ? 4 : 0) +
           (p.verified ? 2 : 0) +
-          (p.categories?.length ?? 0) * 0.4 +
-          Math.min(3, Math.max(0, (Date.now() - Date.parse(latestRelease(p).published_at)) / -86400000 + 4));
+          (p.categories?.length ?? 0) * 0.4;
         return score(b) - score(a);
       })
-      .slice(0, 3);
+      .slice(0, 6);
   }, [all]);
 
   // Just joined the hive (sorted by newest publication timestamp)
   const justJoined = useMemo(() => {
     return [...all]
       .sort((a, b) => Date.parse(latestRelease(b).published_at) - Date.parse(latestRelease(a).published_at))
-      .slice(0, 3);
+      .slice(0, 6);
   }, [all]);
 
   const params = useMemo(() => new URLSearchParams(initialSearch), [initialSearch]);
@@ -316,29 +402,34 @@ export default function PluginStore({
 
   return (
     <main className="min-h-screen overflow-x-clip bg-[#0F0F0E] font-sans text-bone">
-      {/* Sticky Top Navigation */}
-      <header className="sticky top-0 z-40 h-14 border-b border-bone/[.07] bg-[#0f0f0e]/90 backdrop-blur-md">
+      {/* ── Sticky Top Navigation ────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 h-14 border-b border-bone/[.08] bg-[#0f0f0e]/95 backdrop-blur-md">
         <div className="mx-auto flex h-full max-w-[1440px] items-center gap-4 px-[clamp(18px,4vw,56px)]">
           <a href="/" className="flex items-center gap-2.5" aria-label="Hive home">
             <img src="/brand/logo/hive-mark-dark.svg" alt="" className="pixelated h-5 w-auto" />
             <img src="/brand/logo/hive-wordmark-dark.svg" alt="Hive" className="pixelated h-4 w-auto" />
           </a>
           <span className="font-mono text-[12px] text-[#68655D]">/</span>
-          <span className="font-mono text-[12px]">plugins</span>
+          <span className="font-mono text-[12px] text-bone">plugins</span>
           <span className="flex-1" />
-          <nav aria-label="Primary" className="hidden items-center gap-5 font-mono text-[11px] text-[#A9A59B] sm:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-6 font-mono text-[11px] text-[#A9A59B] sm:flex">
             <a href="/docs/" className="hover:text-bone">docs</a>
             <a href="/roadmap" className="hover:text-bone">roadmap</a>
             <a href="/pricing" className="hover:text-bone">pricing</a>
-            <a href="https://github.com/admirable-oss/hive" target="_blank" rel="noopener noreferrer" className="hover:text-bone">
+            <a
+              href="https://github.com/admirable-oss/hive"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-bone"
+            >
               github ↗
             </a>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section with Upgraded 3D PluginScene */}
-      <section className="relative isolate overflow-hidden border-b border-bone/[.06] bg-[radial-gradient(ellipse_90%_100%_at_70%_45%,#211d15_0%,#141413_42%,#0f0f0e_78%)]">
+      {/* ── Hero Section with 3D PluginScene ─────────────────────────────── */}
+      <section className="relative isolate overflow-hidden border-b border-bone/[.09] bg-[radial-gradient(ellipse_90%_100%_at_70%_45%,#211d15_0%,#141413_42%,#0f0f0e_78%)]">
         <PluginStage />
         <div className="relative mx-auto grid min-h-[560px] max-w-[1440px] items-center px-[clamp(20px,5vw,72px)] py-20 md:min-h-[660px] md:grid-cols-[1.1fr_.9fr] md:py-24">
           <div className="relative z-10 max-w-[670px]">
@@ -355,7 +446,10 @@ export default function PluginStore({
               Hive’s published registry.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <a href="#catalog" className="inline-flex h-11 items-center bg-honey px-5 font-mono text-[11px] font-medium tracking-[.1em] text-[#14120d] hover:bg-[#ffc85a]">
+              <a
+                href="#trending-section"
+                className="inline-flex h-11 items-center bg-honey px-5 font-mono text-[11px] font-medium tracking-[.1em] text-[#14120d] hover:bg-[#ffc85a]"
+              >
                 BROWSE PLUGINS ↓
               </a>
               <a
@@ -369,76 +463,136 @@ export default function PluginStore({
         </div>
       </section>
 
-      {/* Main Content Sections */}
-      <section className="mx-auto max-w-[1440px] px-[clamp(20px,4vw,56px)] py-14 md:py-20" id="catalog">
-        {/* Section 01: Trending Plugins */}
-        {trending.length > 0 && (
-          <section aria-labelledby="trending-heading" className="mb-20">
-            <SectionHead
-              index="01"
-              eyebrow="SIGNALS · TRUSTED DISCOVERY"
-              title="Trending plugins."
-              id="trending-heading"
-              aside={
-                <span className="font-mono text-[10.5px] text-[#716E66]">
-                  Signal-led selection from the published registry
-                </span>
-              }
-            >
-              High-signal extensions catching momentum across the hive. Reviewed and published for one-command installation.
-            </SectionHead>
-            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ───────────────────────────────────────────────────────────────────
+          SECTION 1: Trending this week (Prominent Header + Segregated Box)
+          ─────────────────────────────────────────────────────────────────── */}
+      {trending.length > 0 && (
+        <section
+          id="trending-section"
+          aria-labelledby="trending-heading"
+          className="border-b border-bone/[.09] bg-[#0E0E0D] py-14 md:py-20"
+        >
+          <div className="mx-auto max-w-[1440px] px-[clamp(20px,4vw,56px)]">
+            {/* Header: Title, subtitle, see all link */}
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bone/[.08] pb-6 mb-8">
+              <div>
+                <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[.18em] text-honey">
+                  <span className="size-1.5 rounded-full bg-honey shadow-[0_0_8px_rgba(245,185,66,.6)]" />
+                  <span>01 · SIGNALS & MOMENTUM</span>
+                </div>
+                <h2
+                  id="trending-heading"
+                  className="mt-2 text-[28px] sm:text-[34px] font-medium tracking-[-.035em] text-bone"
+                >
+                  Trending this week
+                </h2>
+                <p className="mt-1 text-[14px] text-[#8E8A80]">
+                  Fastest-growing extensions and high-signal tools, relative to their own size.
+                </p>
+              </div>
+
+              <a
+                href="#catalog"
+                className="group flex items-center gap-1.5 font-mono text-[11px] text-[#A9A59B] transition-colors hover:text-honey"
+              >
+                <span>see all</span>
+                <span className="transition-transform group-hover:translate-x-0.5">→</span>
+              </a>
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {trending.map((plugin, idx) => (
                 <TrendingCard plugin={plugin} rank={idx + 1} key={`trending-${plugin.id}`} />
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {/* Section 02: Just Joined the Hive */}
-        {justJoined.length > 0 && (
-          <section aria-labelledby="recent-heading" className="mb-20">
-            <SectionHead
-              index="02"
-              eyebrow="REGISTRY PULSE · FRESH ARRIVALS"
-              title="Just joined the hive."
-              id="recent-heading"
-              aside={
-                <span className="font-mono text-[10.5px] text-[#716E66]">
-                  Newest published releases
-                </span>
-              }
-            >
-              The freshest additions to the public catalog, verified against pinned commit checksums.
-            </SectionHead>
-            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ───────────────────────────────────────────────────────────────────
+          SECTION 2: Just joined the hive (Distinct Tone + Segregated Box)
+          ─────────────────────────────────────────────────────────────────── */}
+      {justJoined.length > 0 && (
+        <section
+          id="recent-section"
+          aria-labelledby="recent-heading"
+          className="border-b border-bone/[.09] bg-[#121211] py-14 md:py-20"
+        >
+          <div className="mx-auto max-w-[1440px] px-[clamp(20px,4vw,56px)]">
+            {/* Header: Title, subtitle, see all link */}
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bone/[.08] pb-6 mb-8">
+              <div>
+                <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[.18em] text-emerald-400">
+                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.6)]" />
+                  <span>02 · REGISTRY PULSE</span>
+                </div>
+                <h2
+                  id="recent-heading"
+                  className="mt-2 text-[28px] sm:text-[34px] font-medium tracking-[-.035em] text-bone"
+                >
+                  Just joined the hive
+                </h2>
+                <p className="mt-1 text-[14px] text-[#8E8A80]">
+                  Fresh projects and releases that joined the catalog recently.
+                </p>
+              </div>
+
+              <a
+                href="#catalog"
+                className="group flex items-center gap-1.5 font-mono text-[11px] text-[#A9A59B] transition-colors hover:text-emerald-400"
+              >
+                <span>see all</span>
+                <span className="transition-transform group-hover:translate-x-0.5">→</span>
+              </a>
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {justJoined.map((plugin) => (
                 <RecentCard plugin={plugin} key={`recent-${plugin.id}`} />
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
-        {/* Section 03: Browse Everything / Full Catalog */}
-        <section aria-labelledby="catalog-heading" className="mb-12">
-          <SectionHead
-            index="03"
-            eyebrow="DISCOVERY · REGISTRY V1"
-            title="Browse everything."
-            id="catalog-heading"
-            aside={
-              <a
-                href="https://github.com/admirable-oss/hive/blob/main/PLUGIN_STORE_FRONTEND.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-[11px] tracking-[.08em] text-honey hover:underline"
+      {/* ───────────────────────────────────────────────────────────────────
+          SECTION 3: Browse everything / Complete Catalog
+          ─────────────────────────────────────────────────────────────────── */}
+      <section
+        id="catalog"
+        aria-labelledby="catalog-heading"
+        className="bg-[#0F0F0E] py-16 md:py-24"
+      >
+        <div className="mx-auto max-w-[1440px] px-[clamp(20px,4vw,56px)]">
+          {/* Header */}
+          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-bone/[.08] pb-6 mb-8">
+            <div>
+              <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[.18em] text-[#8E8A80]">
+                <span className="size-1.5 rounded-full bg-[#8E8A80]" />
+                <span>03 · COMPLETE DIRECTORY</span>
+              </div>
+              <h2
+                id="catalog-heading"
+                className="mt-2 text-[28px] sm:text-[34px] font-medium tracking-[-.035em] text-bone"
               >
-                PUBLISH A PLUGIN ↗
-              </a>
-            }
-          >
-            Search the full registry by keyword, category, supported platform, and Hive compatibility.
-          </SectionHead>
+                Browse everything
+              </h2>
+              <p className="mt-1 text-[14px] text-[#8E8A80]">
+                Search and filter the complete reviewed registry by platform, category, and Hive compatibility.
+              </p>
+            </div>
+
+            <a
+              href="https://github.com/admirable-oss/hive/blob/main/PLUGIN_STORE_FRONTEND.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[11px] tracking-[.08em] text-honey hover:underline"
+            >
+              PUBLISH A PLUGIN ↗
+            </a>
+          </div>
 
           {/* Category Filter Pills */}
           <div className="mb-6 flex flex-wrap gap-2" aria-label="Browse categories">
@@ -471,7 +625,7 @@ export default function PluginStore({
             ))}
           </div>
 
-          {/* Filter Bar */}
+          {/* Filter Inputs Grid */}
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.4fr)_repeat(4,minmax(130px,.7fr))]">
             <label className="sm:col-span-2 lg:col-span-1">
               <span className="sr-only">Search plugins</span>
@@ -522,8 +676,8 @@ export default function PluginStore({
             </label>
           </div>
 
-          {/* Filter Status Line */}
-          <div className="mt-5 flex items-center justify-between gap-3 border-y border-bone/[.07] py-3 font-mono text-[10.5px] text-[#878379]">
+          {/* Filter Status Bar */}
+          <div className="mt-5 flex items-center justify-between gap-3 border-y border-bone/[.08] py-3.5 font-mono text-[11px] text-[#878379]">
             <span>
               {filtered.length} {filtered.length === 1 ? "plugin" : "plugins"}
               {registry ? " in published registry" : " · registry unavailable"}
@@ -545,17 +699,17 @@ export default function PluginStore({
             </div>
           )}
 
-          {/* Cards Grid */}
+          {/* Catalog Grid */}
           {filtered.length ? (
             <>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {visible.map((plugin) => (
                   <CatalogCard plugin={plugin} key={plugin.id} />
                 ))}
               </div>
 
               {pages > 1 && (
-                <nav aria-label="Plugin catalog pages" className="mt-8 flex items-center justify-center gap-4 font-mono text-[11px]">
+                <nav aria-label="Plugin catalog pages" className="mt-10 flex items-center justify-center gap-4 font-mono text-[11px]">
                   <button
                     type="button"
                     disabled={currentPage === 1}
@@ -563,7 +717,7 @@ export default function PluginStore({
                       setPage(currentPage - 1);
                       document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="border border-bone/15 px-3 py-2 text-[#C5C0B5] disabled:opacity-40"
+                    className="border border-bone/15 px-4 py-2 text-[#C5C0B5] transition-colors disabled:opacity-40"
                   >
                     ← PREVIOUS
                   </button>
@@ -577,7 +731,7 @@ export default function PluginStore({
                       setPage(currentPage + 1);
                       document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="border border-bone/15 px-3 py-2 text-[#C5C0B5] disabled:opacity-40"
+                    className="border border-bone/15 px-4 py-2 text-[#C5C0B5] transition-colors disabled:opacity-40"
                   >
                     NEXT →
                   </button>
@@ -585,7 +739,7 @@ export default function PluginStore({
               )}
             </>
           ) : (
-            <div className="mt-6 border border-bone/[.08] bg-[#111110] px-6 py-12 text-center">
+            <div className="mt-8 border border-bone/[.08] bg-[#111110] px-6 py-14 text-center">
               <div className="font-mono text-[10px] tracking-[.14em] text-[#817D73]">NO MATCHES</div>
               <p className="mx-auto mt-3 max-w-lg text-[14px] leading-relaxed text-[#AAA69C]">
                 No registry entries match these filters. Try clearing a filter or searching for something else.
@@ -597,16 +751,16 @@ export default function PluginStore({
           )}
 
           {registry && (
-            <div className="mt-5 text-right font-mono text-[9px] text-[#66635B]">
+            <div className="mt-6 text-right font-mono text-[9px] text-[#66635B]">
               Registry checked {new Date(fetchedAt).toLocaleString("en", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} UTC
             </div>
           )}
-        </section>
+        </div>
       </section>
 
-      {/* Contribution Callout */}
-      <section className="border-y border-bone/[.07] bg-[#111110]">
-        <div className="mx-auto grid max-w-[1440px] gap-8 px-[clamp(20px,4vw,56px)] py-12 md:grid-cols-[1fr_auto] md:items-center">
+      {/* ── Contribution Callout ─────────────────────────────────────────── */}
+      <section className="border-t border-bone/[.09] bg-[#131210]">
+        <div className="mx-auto grid max-w-[1440px] gap-8 px-[clamp(20px,4vw,56px)] py-14 md:grid-cols-[1fr_auto] md:items-center">
           <div>
             <div className="font-mono text-[10px] tracking-[.14em] text-honey">BUILT SOMETHING USEFUL?</div>
             <h2 className="mt-2 text-[26px] font-medium tracking-[-.035em]">Bring it to the hive.</h2>
@@ -626,12 +780,14 @@ export default function PluginStore({
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-[clamp(20px,4vw,56px)] py-6 font-mono text-[10px] text-[#77746B]">
-        <span>HIVE PLUGIN STORE · EXECUTABLE CODE, REVIEW BEFORE INSTALL</span>
-        <a href="/docs/config/plugins/" className="hover:text-honey">
-          Plugin security guide →
-        </a>
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer className="border-t border-bone/[.07] bg-[#0E0E0D]">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-[clamp(20px,4vw,56px)] py-6 font-mono text-[10px] text-[#77746B]">
+          <span>HIVE PLUGIN STORE · EXECUTABLE CODE, REVIEW BEFORE INSTALL</span>
+          <a href="/docs/config/plugins/" className="hover:text-honey">
+            Plugin security guide →
+          </a>
+        </div>
       </footer>
     </main>
   );

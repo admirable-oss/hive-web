@@ -100,20 +100,49 @@ async function githubJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+async function resolveTagCommitFromGit(repository: string, ref: string) {
+  const response = await fetch(`https://github.com/${repository}.git/info/refs?service=git-upload-pack`, {
+    headers: { "user-agent": "hive-plugin-store" },
+    signal: AbortSignal.timeout(7000),
+  });
+  if (!response.ok) {
+    throw new Error(`GitHub returned HTTP ${response.status} for Git ref advertisement`);
+  }
+
+  const body = await response.text();
+  const tag = escapeRegExp(ref);
+  const peeled = body.match(new RegExp(`([\\da-f]{40})\\srefs/tags/${tag}\\^\\{\\}`));
+  if (peeled) return peeled[1];
+
+  const lightweight = body.match(new RegExp(`([\\da-f]{40})\\srefs/tags/${tag}(?:\\0|\\r?\\n)`));
+  if (lightweight) return lightweight[1];
+
+  throw new Error(`GitHub tag ${ref} was not advertised`);
+}
+
 async function resolveTagCommit(repository: string, ref: string) {
-  let object: GitHubGitObject = (
-    await githubJson<GitHubReference>(`/repos/${repository}/git/ref/tags/${encodeURIComponent(ref)}`)
-  ).object;
+  try {
+    let object: GitHubGitObject = (
+      await githubJson<GitHubReference>(`/repos/${repository}/git/ref/tags/${encodeURIComponent(ref)}`)
+    ).object;
 
-  for (let depth = 0; depth < 3 && object.type === "tag"; depth += 1) {
-    object = (await githubJson<GitHubReference>(`/repos/${repository}/git/tags/${object.sha}`)).object;
+    for (let depth = 0; depth < 3 && object.type === "tag"; depth += 1) {
+      object = (await githubJson<GitHubReference>(`/repos/${repository}/git/tags/${object.sha}`)).object;
+    }
+
+    if (object.type !== "commit" || !/^[\da-f]{40}$/i.test(object.sha)) {
+      throw new Error(`GitHub tag ${ref} does not resolve to a commit`);
+    }
+
+    return object.sha;
+  } catch (error) {
+    console.warn(`GitHub API tag verification unavailable for ${repository}@${ref}; using public Git refs`, error);
+    return resolveTagCommitFromGit(repository, ref);
   }
-
-  if (object.type !== "commit" || !/^[\da-f]{40}$/i.test(object.sha)) {
-    throw new Error(`GitHub tag ${ref} does not resolve to a commit`);
-  }
-
-  return object.sha;
 }
 
 async function verifyRelease(repository: string, release: PluginRelease) {

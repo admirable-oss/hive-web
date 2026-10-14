@@ -15,6 +15,8 @@ export const DOCS_FOOTER_LINKS = [
   { label: "Roadmap", href: LINKS.roadmap },
   { label: "Contributing", href: `${REPO}/blob/main/CONTRIBUTING.md` },
   { label: "Security", href: `${REPO}/blob/main/SECURITY.md` },
+  { label: "Privacy", href: LINKS.privacy },
+  { label: "Terms", href: LINKS.terms },
 ] as const;
 
 /** Hand the docs to your own coding agent. */

@@ -6,6 +6,7 @@ import { useHiveAudio } from "@/hooks/use-hive-audio";
 import { gsap, useGSAP } from "@/lib/gsap";
 import type { RepoStats } from "@/lib/github";
 import { hiveActions, introElapsed, useHive } from "@/lib/hive-store";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { Navbar } from "./Navbar";
 
 /** Header island: navbar + full-screen menu + the pixel wipe between them. */
@@ -33,10 +34,10 @@ export default function SiteHeader({ stats = null }: { stats?: RepoStats | null 
   const closeMenu = useCallback(() => swap(() => hiveActions.setMenuOpen(false)), [swap]);
 
   return (
-    <>
+    <QueryProvider>
       <Navbar ref={headerRef} onOpenMenu={openMenu} menuOpen={menuOpen} stats={stats} />
       <FullscreenMenu isOpen={menuOpen} onRequestClose={closeMenu} reducedMotion={reducedMotion} />
       <canvas ref={canvasRef} aria-hidden className="pixelated pointer-events-none fixed inset-0 z-120 hidden h-screen w-screen" />
-    </>
+    </QueryProvider>
   );
 }

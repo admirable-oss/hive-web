@@ -58,8 +58,8 @@ export function useRuntimeDemo(
       };
       const setAuthDone = (done: boolean) => {
         if (auth && "then" in auth) write(n.authDetail, done ? auth.then : auth.detail);
-        n.authDetail?.classList.toggle("text-violet", done);
-        n.authGlyph?.classList.toggle("text-violet", done);
+        n.authDetail?.classList.toggle("text-honey", done);
+        n.authGlyph?.classList.toggle("text-honey", done);
       };
       const reset = () => {
         [n.prompt, n.prompt2, n.reply, n.reply2].forEach((e) => write(e, ""));

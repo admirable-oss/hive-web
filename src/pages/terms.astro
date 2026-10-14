@@ -1,0 +1,91 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+
+const sectionLabel = "font-mono text-[11px] tracking-[.24em] text-ash";
+---
+
+<Layout
+  title="Terms of Service — Hive"
+  description="Hive terms of service: open-source licensing and terms for the persistent coding agent runtime."
+>
+  <div class="min-h-dvh bg-background font-sans text-bone">
+    <PageHeader />
+
+    <main class="mx-auto flex max-w-[840px] flex-col gap-12 px-[clamp(16px,4vw,64px)] pt-12 pb-24 sm:pt-20">
+      <header class="flex flex-col gap-4">
+        <p class={`${sectionLabel} m-0 flex items-center gap-3`}>
+          <span aria-hidden="true" class="size-2 bg-honey"></span>
+          LEGAL · TERMS OF SERVICE
+        </p>
+        <h1 class="m-0 font-display text-[length:min(8vw,56px)] leading-[1.08] font-normal tracking-[-.05em]">
+          Open-source,<br />
+          <span class="text-stone">plain terms<span class="text-honey">.</span></span>
+        </h1>
+        <p class="m-0 text-sm font-mono text-ash">Effective Date: October 2026</p>
+      </header>
+
+      <article class="flex flex-col gap-10 text-[15px] leading-relaxed text-stone">
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">1. Acceptance of Terms</h2>
+          <p class="m-0">
+            By visiting <code class="font-mono text-xs text-fog">hive.admir-saheta.com</code> or installing and using Hive, you agree to these Terms of Service. If you do not agree with these terms, do not use the website or software.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">2. Open-Source License</h2>
+          <p class="m-0">
+            The core Hive codebase is released under the permissive <strong class="text-bone">Apache License, Version 2.0</strong>. You are free to inspect, run, modify, fork, and distribute Hive in accordance with the terms of the Apache-2.0 license.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">3. Use of AI Coding Agents & Safety</h2>
+          <p class="m-0">
+            Hive provides an orchestration runtime that executes commands, scripts, and file modifications directed by autonomous coding agents. You acknowledge that:
+          </p>
+          <ul class="m-0 flex flex-col gap-2 pl-5 list-disc text-stone">
+            <li>
+              You are responsible for supervising agent actions, file alterations, command executions, and third-party API costs incurred by agent activities in your workspaces.
+            </li>
+            <li>
+              Hive is not liable for data loss, accidental file deletion, or unintended server operations executed by autonomous agents configured within your environment.
+            </li>
+          </ul>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">4. Disclaimer of Warranty</h2>
+          <p class="m-0">
+            HIVE AND ACCOMPANYING SERVICES ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">5. Trademarks & Brand Usage</h2>
+          <p class="m-0">
+            The Hive logo, wordmark, pixel art mascot, and name are protected assets. You are welcome to use them when referencing the project or integrating with the Hive ecosystem, as outlined in our <a href="/brand" class="text-honey hover:underline">Brand Guidelines</a>.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">6. Modifications to Terms</h2>
+          <p class="m-0">
+            We reserve the right to revise these Terms at any time. Continued use of the website following any modifications constitutes acceptance of the updated terms.
+          </p>
+        </section>
+      </article>
+
+      <footer class="mt-8 border-t border-bone/8 pt-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-ash">
+          <span>apache-2.0 · built in the open</span>
+          <div class="flex items-center gap-4">
+            <a href="/privacy" class="text-fog hover:text-honey">Privacy Policy →</a>
+            <a href="/" class="text-fog hover:text-honey">← Back to Hive</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+</Layout>

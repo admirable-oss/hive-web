@@ -53,22 +53,32 @@ function MenuContent({ onRequestClose, reducedMotion }: Omit<FullscreenMenuProps
       <div className="relative min-h-0 flex-1 overflow-auto">
         <div className="mx-auto box-border flex min-h-full max-w-[1680px] flex-wrap content-center gap-x-24 gap-y-16 px-[clamp(20px,4vw,64px)] py-8">
           <nav aria-label="Menu" className="flex min-w-0 flex-[1_1_640px] flex-col border-t border-bone/8">
-            {MENU_LINKS.map((m, i) => (
-              <a
-                key={m.label}
-                href={m.href}
-                onClick={onRequestClose}
-                data-menu-item
-                className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3.5 border-b border-bone/8 py-3.5 text-bone transition-[color,padding] duration-150 ease-[steps(2)] hover:pl-3 hover:text-honey focus-visible:pl-3 focus-visible:text-honey focus-visible:outline-none sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:gap-6 sm:py-4.5"
-              >
-                <span className="font-mono text-xs text-ash">{i}:</span>
-                <span className="font-sans text-[clamp(36px,4.6vw,68px)] leading-none font-medium tracking-[-.045em]">{m.label}</span>
-                <span className="flex items-center gap-4 font-mono text-xs whitespace-nowrap text-ash">
-                  <span className="hidden min-[1000px]:inline">{m.detail}</span>
-                  <span aria-hidden className="font-sans text-[22px] text-current">↗</span>
-                </span>
-              </a>
-            ))}
+            {MENU_LINKS.map((m, i) => {
+              const prev = MENU_LINKS[i - 1];
+              const showSection = !prev || prev.section !== m.section;
+              return (
+                <div key={m.label}>
+                  {showSection ? (
+                    <div data-menu-item className="border-b border-bone/8 py-3 font-mono text-[11px] tracking-[.2em] text-ash">
+                      {m.section}
+                    </div>
+                  ) : null}
+                  <a
+                    href={m.href}
+                    onClick={onRequestClose}
+                    data-menu-item
+                    className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-3.5 border-b border-bone/8 py-3.5 text-bone transition-[color,padding] duration-150 ease-[steps(2)] hover:pl-3 hover:text-honey focus-visible:pl-3 focus-visible:text-honey focus-visible:outline-none sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:gap-6 sm:py-4.5"
+                  >
+                    <span className="font-mono text-xs text-ash">{i}:</span>
+                    <span className="font-sans text-[clamp(36px,4.6vw,68px)] leading-none font-medium tracking-[-.045em]">{m.label}</span>
+                    <span className="flex items-center gap-4 font-mono text-xs whitespace-nowrap text-ash">
+                      <span className="hidden min-[1000px]:inline">{m.detail}</span>
+                      <span aria-hidden className="font-sans text-[22px] text-current">↗</span>
+                    </span>
+                  </a>
+                </div>
+              );
+            })}
           </nav>
 
           <aside data-menu-aside className="flex min-w-0 flex-[0_1_400px] flex-col gap-10">
@@ -88,7 +98,7 @@ function MenuContent({ onRequestClose, reducedMotion }: Omit<FullscreenMenuProps
                 </div>
                 <div className="flex flex-col-reverse gap-1.5 border-l border-bone/8 py-4 pl-5">
                   <dt className="flex items-center gap-2 font-mono text-xs text-stone">
-                    <span aria-hidden className="size-1.5 bg-violet" />
+                    <span aria-hidden className="size-1.5 bg-honey-deep" />
                     awaiting you
                   </dt>
                   <dd className="text-[40px] font-medium tracking-[-.04em]">1</dd>

@@ -2,10 +2,12 @@ import type { Ref } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { LinkButton } from "@/components/ui/button";
 import { GridMenuButton } from "@/components/ui/grid-menu-button";
-import { formatStars, type RepoStats } from "@/lib/github";
+import type { RepoStats } from "@/lib/github";
+import { useRepoStatsQuery } from "@/hooks/use-repo-stats-query";
+import { GithubSourceLink } from "./GithubSourceLink";
 import { logInstallationAction } from "@/lib/posthog-logger";
-import { LANGUAGE_LABEL, LICENSE_LABEL, LINKS, STAR_THRESHOLD, VERSION_LABEL } from "@/lib/site";
-import { NavLinks } from "./NavLinks";
+import { LANGUAGE_LABEL, LICENSE_LABEL, LINKS, VERSION_LABEL } from "@/lib/site";
+import { NavMegaMenu } from "./NavMegaMenu";
 import { SoundToggle } from "./SoundToggle";
 
 interface NavbarProps {
@@ -18,14 +20,14 @@ interface NavbarProps {
 const mono = "font-mono text-xs tracking-[.12em] uppercase";
 
 /**
- * Quiet header. Desktop (≥1180): logo · version │ Docs Changelog Roadmap │
- * sound · GitHub · Install. Below that the links live in the full-screen menu.
+ * Quiet header. Desktop (≥1180): logo · version │ Product Resources Pricing │
+ * sound · GitHub · Get Started. Below that, links live in the full-screen menu.
  */
 export function Navbar({ onOpenMenu, menuOpen, stats, ref }: NavbarProps) {
-  const showStars = stats !== null && stats.stars >= STAR_THRESHOLD;
-  const version = stats?.version ?? VERSION_LABEL;
-  const license = stats?.license ?? LICENSE_LABEL;
-  const language = stats?.language ?? LANGUAGE_LABEL;
+  const live = useRepoStatsQuery(stats);
+  const version = live?.version ?? VERSION_LABEL;
+  const license = live?.license ?? LICENSE_LABEL;
+  const language = live?.language ?? LANGUAGE_LABEL;
 
   return (
     <header ref={ref} data-reveal className="absolute inset-x-0 top-0 z-30">
@@ -46,39 +48,23 @@ export function Navbar({ onOpenMenu, menuOpen, stats, ref }: NavbarProps) {
           </a>
         </div>
 
-        <NavLinks className="hidden min-[1180px]:flex" />
+        <NavMegaMenu stats={live} className="hidden min-[1180px]:flex" />
 
         <div className="flex flex-1 basis-0 items-center justify-end gap-2.5">
           <SoundToggle compact className="hidden min-[1180px]:flex" />
-          <LinkButton
-            variant="secondary"
-            size="sm"
-            href={LINKS.github}
-            className={`hidden gap-2.5 px-3.5 min-[560px]:inline-flex ${mono}`}
-            aria-label={showStars ? `GitHub, ${stats!.stars} stars` : "Hive on GitHub"}
-          >
-            GitHub
-            {showStars ? (
-              <span className="flex items-center gap-1 text-fog">
-                <span aria-hidden className="text-honey">★</span>
-                {formatStars(stats!.stars)}
-              </span>
-            ) : (
-              <span aria-hidden>↗</span>
-            )}
-          </LinkButton>
+          <GithubSourceLink stats={live} />
           <LinkButton
             variant="primary"
             size="sm"
-            href={LINKS.install}
+            href={LINKS.getStarted}
             data-mascot-target="install"
-            className={mono}
+            className={`gap-2 ${mono}`}
             onPress={() => {
-              window.posthog?.capture("installation_opened");
-              logInstallationAction("installation_opened");
+              window.posthog?.capture("get_started_opened");
+              logInstallationAction("get_started_opened");
             }}
           >
-            Install
+            Get Started <span aria-hidden>→</span>
           </LinkButton>
           <GridMenuButton
             aria-label="Open menu"

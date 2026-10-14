@@ -125,7 +125,7 @@ export class Shell extends Program {
 
   constructor(
     host: Host,
-    private readonly cwd: string,
+    private cwd: string,
     private readonly branch: string,
     motd: Line[] = [],
   ) {
@@ -136,9 +136,14 @@ export class Shell extends Program {
   prompt(): Line {
     return [
       { t: this.cwd, c: "cyan" },
-      { t: ` ${this.branch}`, c: "magenta" },
+      { t: ` ${this.branch}`, c: "orange" },
       { t: " ❯ ", c: "green" },
     ];
+  }
+
+  /** Empty prompt, no running job — demo page may treat ^C as “exit”. */
+  atEmptyPrompt() {
+    return this.status === "running" && !this.busy && this.input === "";
   }
 
   print(l: Line) {
@@ -253,7 +258,7 @@ export class Shell extends Program {
           [{ t: "  codex ", c: "cyan" }, { t: "<task>", c: "dim" }, { t: "      or another one" }],
           [{ t: "  hive agent list", c: "yellow" }, { t: "  every agent, every environment" }],
           [{ t: "  npm test", c: "green" }, { t: "         run the tests" }],
-          [{ t: "  ls  git status  clear  exit", c: "dim" }],
+          [{ t: "  cd  ls  git status  clear  exit", c: "dim" }],
           [{ t: "Then ctrl+b d to detach: everything keeps running.", c: "dim" }],
         );
         return;
@@ -270,6 +275,28 @@ export class Shell extends Program {
         return;
       case "pwd":
         say(this.cwd.replace("~", "/home/you"));
+        return;
+      case "cd": {
+        const target = rest.trim() || "~";
+        if (target === "~" || target === "~/") {
+          this.cwd = this.cwd.includes("web") ? "~/acme/web" : "~/acme/api";
+        } else if (target === "..") {
+          this.cwd = this.cwd.endsWith("web") ? "~/acme" : "~";
+        } else if (target.startsWith("~/")) {
+          this.cwd = target;
+        } else if (target === "web" || target === "api") {
+          this.cwd = target === "web" ? "~/acme/web" : "~/acme/api";
+        } else {
+          say(`cd: no such file or directory: ${target}`);
+          return;
+        }
+        this.touch();
+        return;
+      }
+      case "bash":
+      case "zsh":
+        if (!rest) return;
+        this.exec(rest);
         return;
       case "whoami":
         say("you");
@@ -541,6 +568,10 @@ export class Agent extends Program {
 
   private get L() {
     return look[this.kind];
+  }
+
+  hasInput() {
+    return this.input.length > 0 || this.pending !== null;
   }
 
   /** Gives the agent a task: typed (shows in the transcript) or from a script. */

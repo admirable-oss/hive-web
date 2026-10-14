@@ -1,0 +1,90 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageHeader from "../components/layout/PageHeader.astro";
+import { LINKS } from "../lib/site";
+
+const sectionLabel = "font-mono text-[11px] tracking-[.24em] text-ash";
+---
+
+<Layout
+  title="Privacy Policy — Hive"
+  description="Hive privacy policy: transparent data practices for an open-source coding agent runtime."
+>
+  <div class="min-h-dvh bg-background font-sans text-bone">
+    <PageHeader />
+
+    <main class="mx-auto flex max-w-[840px] flex-col gap-12 px-[clamp(16px,4vw,64px)] pt-12 pb-24 sm:pt-20">
+      <header class="flex flex-col gap-4">
+        <p class={`${sectionLabel} m-0 flex items-center gap-3`}>
+          <span aria-hidden="true" class="size-2 bg-honey"></span>
+          LEGAL · PRIVACY POLICY
+        </p>
+        <h1 class="m-0 font-display text-[length:min(8vw,56px)] leading-[1.08] font-normal tracking-[-.05em]">
+          Privacy is local<br />
+          <span class="text-stone">by design<span class="text-honey">.</span></span>
+        </h1>
+        <p class="m-0 text-sm font-mono text-ash">Effective Date: October 2026</p>
+      </header>
+
+      <article class="flex flex-col gap-10 text-[15px] leading-relaxed text-stone">
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">1. Overview</h2>
+          <p class="m-0">
+            Hive is an open-source runtime for AI coding agents. When you self-host and run Hive locally or on your own servers, your code, terminal sessions, model context, and workspaces remain entirely on your own infrastructure. We do not sell, rent, or monetize your private developer data.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">2. Information We Collect on This Website</h2>
+          <p class="m-0">When you browse our public website (<code class="font-mono text-xs text-fog">hive.admir-saheta.com</code>):</p>
+          <ul class="m-0 flex flex-col gap-2 pl-5 list-disc text-stone">
+            <li>
+              <strong class="text-bone">Aggregated Usage Analytics:</strong> We use privacy-friendly analytics (such as PostHog and Google Analytics) to measure visitor counts, page performance, and referring domains. IP addresses are anonymized.
+            </li>
+            <li>
+              <strong class="text-bone">Local Preferences:</strong> We use browser storage (<code class="font-mono text-xs text-fog">sessionStorage</code>) strictly for functional UI preferences such as audio mute state and preloader view flags.
+            </li>
+          </ul>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">3. Open-Source Runtime Telemetry</h2>
+          <p class="m-0">
+            The Hive binary CLI and server (<code class="font-mono text-xs text-fog">hive</code>) do not phone home with your code, terminal logs, commands, or agent inputs. Any optional telemetry for crash reporting or build updates is opt-in or strictly configurable via your <code class="font-mono text-xs text-fog">hive.json</code> settings.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">4. Third-Party Services & LLM Providers</h2>
+          <p class="m-0">
+            When you configure Hive to communicate with agent models (e.g. Anthropic Claude, OpenAI, Google Gemini, Ollama), your interactions with those providers are governed by the respective provider's terms and privacy policies. Hive acts solely as your client-side orchestration environment.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">5. Data Retention & Deletion</h2>
+          <p class="m-0">
+            Because Hive runtimes store state locally in your machine's session daemon, you have total control over all persistence. Purging your local Hive storage directory immediately erases all agent logs, sockets, and history.
+          </p>
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="m-0 font-sans text-xl font-medium tracking-tight text-bone">6. Contact & Updates</h2>
+          <p class="m-0">
+            As Hive develops, we may update this policy to reflect new capabilities or Cloud offerings. Inquiries regarding data privacy can be directed via GitHub issues or directly to <a href={LINKS.author} class="text-honey hover:underline">admir-saheta.com</a>.
+          </p>
+        </section>
+      </article>
+
+      <footer class="mt-8 border-t border-bone/8 pt-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-ash">
+          <span>apache-2.0 · built in the open</span>
+          <div class="flex items-center gap-4">
+            <a href="/terms" class="text-fog hover:text-honey">Terms of Service →</a>
+            <a href="/" class="text-fog hover:text-honey">← Back to Hive</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+</Layout>

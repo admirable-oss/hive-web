@@ -1,5 +1,6 @@
 import { defineAction } from "astro:actions";
 import { z } from "astro/zod";
+import { fetchRepoStats } from "@/lib/github";
 import { getRoadmapData } from "@/lib/roadmap/server";
 
 export const server = {
@@ -7,5 +8,9 @@ export const server = {
   roadmap: defineAction({
     input: z.object({ force: z.boolean().optional() }).optional(),
     handler: (input) => getRoadmapData({ force: input?.force }),
+  }),
+  /** Public repo metadata for the header GitHub chip (stars, forks, latest tag). */
+  repoStats: defineAction({
+    handler: () => fetchRepoStats(),
   }),
 };

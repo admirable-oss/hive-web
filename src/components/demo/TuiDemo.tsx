@@ -4,7 +4,7 @@ import { FAMILY, measure, paint, type Metrics } from "@/lib/tui/canvas";
 import type { Grid } from "@/lib/tui/grid";
 import { MOBILE_WIDTH, render } from "@/lib/tui/render";
 import { Session } from "@/lib/tui/session";
-import { THEMES } from "@/lib/tui/theme";
+import { HIVE_THEME } from "@/lib/tui/theme";
 
 /** Browser key → hive's key names ("ctrl+b", "enter", "%"); null leaves it to the browser. */
 function keyName(e: KeyboardEvent): string | null {
@@ -35,24 +35,45 @@ const CHIPS: { keys: string[]; label: string; hint: string }[] = [
   { keys: ["ctrl+b", "c"], label: "C-b c", hint: "new tab" },
   { keys: ["ctrl+b", "O"], label: "C-b O", hint: "overview" },
   { keys: ["ctrl+b", "a"], label: "C-b a", hint: "next agent" },
-  { keys: ["ctrl+b", "z"], label: "C-b z", hint: "zoom" },
   { keys: ["ctrl+b", "?"], label: "C-b ?", hint: "keys" },
 ];
 
 const fontSize = (w: number) => (w >= 1100 ? 13 : w >= 760 ? 12 : 11);
 
+interface TuiDemoProps {
+  className?: string;
+  /** Edge-to-edge terminal chrome (no site header/footer). */
+  fullscreen?: boolean;
+}
+
 /**
- * Hive's multiplexer, running in the page: a simulated session (lib/tui)
- * drawn on a canvas cell grid, driven by the real key bindings.
+ * Hive's multiplexer in the page: simulated session on a canvas cell grid,
+ * driven by the real key bindings.
  */
-export default function TuiDemo({ className }: { className?: string }) {
+export default function TuiDemo({ className, fullscreen = false }: TuiDemoProps) {
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const typer = useRef<HTMLTextAreaElement>(null);
   const [session] = useState(() => new Session());
-  const [theme, setTheme] = useState(0);
   const [detached, setDetached] = useState(false);
-  const view = useRef({ cols: 0, rows: 0, m: null as Metrics | null, grid: null as Grid | null, blink: true, typedAt: 0, theme: THEMES[0], sized: false });
+  const view = useRef({
+    cols: 0,
+    rows: 0,
+    m: null as Metrics | null,
+    grid: null as Grid | null,
+    blink: true,
+    typedAt: 0,
+    theme: HIVE_THEME,
+    sized: false,
+  });
+
+  const exitDemo = useCallback(() => {
+    window.location.assign("/");
+  }, []);
+
+  useEffect(() => {
+    session.toast("Interactive demo · Ctrl+C at an empty prompt exits", "info");
+  }, [session]);
 
   const draw = useCallback(() => {
     const v = view.current;
@@ -64,7 +85,6 @@ export default function TuiDemo({ className }: { className?: string }) {
     session.dirty = false;
   }, [session]);
 
-  // Fit the grid to the box, once the font is in.
   useEffect(() => {
     const el = box.current;
     const cv = canvas.current;
@@ -85,7 +105,6 @@ export default function TuiDemo({ className }: { className?: string }) {
       cv.style.width = `${v.cols * m.cw}px`;
       cv.style.height = `${v.rows * m.ch}px`;
       if (!v.sized) {
-        // Small screens start without the sidebar (it would fill the screen).
         if (v.cols < 96) session.sidebar = false;
         v.sized = true;
       }
@@ -103,7 +122,6 @@ export default function TuiDemo({ className }: { className?: string }) {
     };
   }, [draw, session]);
 
-  // The clock: programs run, the cursor blinks, the screen redraws on change.
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
@@ -124,16 +142,10 @@ export default function TuiDemo({ className }: { className?: string }) {
     return () => cancelAnimationFrame(raf);
   }, [draw, session]);
 
-  // Typing works as soon as the demo opens (after the dialog takes focus).
   useEffect(() => {
     const id = window.setTimeout(() => box.current?.focus({ preventScroll: true }), 50);
     return () => window.clearTimeout(id);
   }, []);
-
-  useEffect(() => {
-    view.current.theme = THEMES[theme];
-    session.dirty = true;
-  }, [theme, session]);
 
   const press = (keys: string[]) => {
     keys.forEach((k) => session.key(k));
@@ -145,6 +157,11 @@ export default function TuiDemo({ className }: { className?: string }) {
     if (!k) return;
     e.preventDefault();
     e.stopPropagation();
+    if (k === "ctrl+c" && session.pageExitOnCtrlC()) {
+      session.toast("Leaving demo…", "info");
+      window.setTimeout(exitDemo, 120);
+      return;
+    }
     press([k]);
   };
 
@@ -158,24 +175,31 @@ export default function TuiDemo({ className }: { className?: string }) {
     if (e.pointerType === "mouse") box.current?.focus({ preventScroll: true });
     if (!hit) return;
     session.click(hit.kind, hit.id);
-    // Full-screen sidebar (narrow screens): picking something shows it.
     if ((hit.kind === "env" || hit.kind === "agent") && v.cols <= MOBILE_WIDTH) session.sidebar = false;
   };
 
   return (
-    <div className={cn("flex min-h-0 flex-col", className)}>
+    <div
+      className={cn(
+        "relative flex min-h-0 flex-col",
+        fullscreen ? "bg-graphite font-mono text-bone" : "",
+        className,
+      )}
+    >
       <div
         ref={box}
         tabIndex={0}
         role="application"
         aria-roledescription="terminal"
-        aria-label="Interactive Hive demo. Type into the focused pane. Press Control B, then question mark, for every key."
+        aria-label="Interactive Hive demo. Type into the focused pane. Press Control B, then question mark, for every key. Control C at an empty prompt exits."
         onKeyDown={onKeyDown}
-        className="relative min-h-0 flex-1 cursor-text overflow-hidden outline-none"
-        style={{ background: THEMES[theme].term }}
+        className={cn(
+          "relative min-h-0 flex-1 cursor-text overflow-hidden outline-none",
+          fullscreen && "h-full w-full",
+        )}
+        style={{ background: HIVE_THEME.term }}
       >
         <canvas ref={canvas} onPointerDown={onPointerDown} className="block touch-manipulation select-none" />
-        {/* Phones: a real text field brings up the keyboard. */}
         <textarea
           ref={typer}
           aria-label="Type into the demo"
@@ -193,7 +217,14 @@ export default function TuiDemo({ className }: { className?: string }) {
         />
       </div>
 
-      <div className="flex flex-none flex-wrap items-center gap-1.5 border-t border-bone/8 bg-panel px-3 py-2.5 font-mono text-[11px] sm:px-4">
+      <div
+        className={cn(
+          "flex flex-none flex-wrap items-center gap-1.5 border-t border-bone/8 font-mono text-[11px]",
+          fullscreen
+            ? "absolute inset-x-0 bottom-0 border-t border-graphite-hi/90 bg-shell/92 px-3 py-2 backdrop-blur-sm sm:px-4"
+            : "bg-panel px-3 py-2.5 sm:px-4",
+        )}
+      >
         {detached ? (
           <Chip label="hive" hint="come back" onPress={() => press(["h", "i", "v", "e", "enter"])} highlight />
         ) : (
@@ -202,6 +233,9 @@ export default function TuiDemo({ className }: { className?: string }) {
               <Chip key={c.label} label={c.label} hint={c.hint} onPress={() => press(c.keys)} />
             ))}
             <Chip label="C-b d" hint="detach" onPress={() => press(["ctrl+b", "d"])} highlight />
+            {fullscreen ? (
+              <Chip label="^C" hint="exit demo" onPress={exitDemo} />
+            ) : null}
           </>
         )}
         <span className="ml-auto flex items-center gap-1.5">
@@ -211,14 +245,6 @@ export default function TuiDemo({ className }: { className?: string }) {
             className="h-7 cursor-pointer border border-bone/10 px-2.5 text-fog transition-colors hover:border-bone/30 hover:text-bone sm:hidden"
           >
             ⌨ type
-          </button>
-          <button
-            type="button"
-            onClick={() => setTheme((t) => (t + 1) % THEMES.length)}
-            className="h-7 cursor-pointer border border-bone/10 px-2.5 text-fog transition-colors hover:border-bone/30 hover:text-bone"
-            title="hive config: [theme] name"
-          >
-            theme <span className="text-bone">{THEMES[theme].name}</span>
           </button>
         </span>
       </div>
@@ -230,7 +256,6 @@ function Chip({ label, hint, onPress, highlight = false }: { label: string; hint
   return (
     <button
       type="button"
-      // Keep focus on the terminal: a chip is a shortcut, not a stop.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onPress}
       className={cn(

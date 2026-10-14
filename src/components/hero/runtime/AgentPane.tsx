@@ -19,7 +19,7 @@ const Prompt = ({ k, hidden = false }: { k: string; hidden?: boolean }) => (
  */
 export function AgentPane() {
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-w-0 flex-1 flex-col bg-graphite/85">
       <ColumnHead>{agent.name}</ColumnHead>
       <div className="flex min-h-0 flex-1 flex-col justify-end gap-3 overflow-hidden px-5 pb-6 leading-[1.6] @max-xl:gap-2.5 @max-xl:px-4 @max-xl:pb-4">
         <Prompt k="prompt" />

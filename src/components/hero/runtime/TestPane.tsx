@@ -7,7 +7,7 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60))
 /** A watcher in the same cell: tests keep ticking while the agent works. */
 export function TestPane() {
   return (
-    <div className="flex w-[36%] flex-none flex-col border-l border-bone/8 @max-4xl:hidden">
+    <div className="flex w-[36%] flex-none flex-col border-l border-[#2A2926]/80 bg-[#1C1C1A]/70 @max-4xl:hidden">
       <ColumnHead>bun</ColumnHead>
       <div className="flex flex-col gap-3 px-5 leading-[1.6]">
         <span>

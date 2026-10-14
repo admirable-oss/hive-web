@@ -195,6 +195,7 @@
     [role="button"]:not(:disabled) {
         cursor: pointer;
     }
+
 }
 
 /* Intro choreography: elements start hidden and are revealed by GSAP. */

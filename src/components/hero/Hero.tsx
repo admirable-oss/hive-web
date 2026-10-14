@@ -61,15 +61,17 @@ export default function Hero({ intensity = 1 }: { intensity?: number }) {
       <canvas ref={backRef} aria-hidden className="pixelated pointer-events-none absolute inset-0 size-full" />
       <div ref={htmlLayerRef} className="pointer-events-none absolute inset-0 z-2" />
 
-      <div className="pointer-events-none relative z-3 mx-auto box-border flex w-full max-w-300 flex-col items-start gap-0 px-4 pt-19 text-left sm:items-center sm:gap-[clamp(12px,2.2vh,20px)] sm:px-[clamp(16px,4vw,64px)] sm:pt-[clamp(88px,11.5vh,116px)] sm:text-center">
-        <HeroEyebrow />
-        <HeroHeadline />
-        <p
-          data-reveal="b"
-          className="m-0 mt-3 max-w-[38ch] text-sm leading-[1.55] text-pretty text-stone sm:mt-0 sm:max-w-140 sm:text-[clamp(14px,min(1.15vw,2vh),17px)]"
-        >
-          {SUBHEAD}
-        </p>
+      <div className="pointer-events-none relative z-3 mx-auto box-border flex w-full max-w-xl flex-col items-center gap-2.5 px-4 pt-[clamp(84px,12vh,116px)] text-center sm:max-w-2xl sm:gap-3 sm:px-6 sm:pt-[clamp(96px,13vh,128px)]">
+        <div className="flex flex-col items-center gap-2 sm:gap-2.5">
+          <HeroEyebrow />
+          <HeroHeadline />
+          <p
+            data-reveal="b"
+            className="m-0 max-w-[36ch] text-[13px] leading-normal text-pretty text-stone/90 sm:max-w-[40ch] sm:text-sm"
+          >
+            {SUBHEAD}
+          </p>
+        </div>
         <HeroActions />
         <HeroAgents />
       </div>

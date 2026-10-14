@@ -1,55 +1,45 @@
-import { useSyncExternalStore } from "react";
+import { create } from "zustand";
 
 /**
- * Tiny cross-island store. Astro islands are separate React roots, so shared
- * UI state (sound, menu, intro clock) lives in a module singleton that every
- * island subscribes to. Animation loops read it via `hiveStore.get()` without
- * re-rendering.
+ * Cross-island UI state. Astro islands are separate React roots; zustand keeps
+ * sound, menu, intro timing, and demo mode in one module singleton.
  */
 export interface HiveState {
   sound: boolean;
   menuOpen: boolean;
-  /** `performance.now()` at which the intro choreography started. */
+  /** `performance.now()` when the intro choreography started. */
   introAt: number | null;
-  /** Whether the intro was preceded by the preloader (mascot arrives from above). */
+  /** Intro was preceded by the preloader (mascot from above). */
   preloaded: boolean;
+  /** Full-screen TUI demo is active. */
+  demoOpen: boolean;
 }
 
-type Listener = () => void;
-
-function createStore<T extends object>(initial: T) {
-  let state = initial;
-  const listeners = new Set<Listener>();
-  return {
-    get: () => state,
-    set(patch: Partial<T> | ((s: T) => Partial<T>)) {
-      const next = typeof patch === "function" ? patch(state) : patch;
-      if (Object.entries(next).every(([k, v]) => Object.is(state[k as keyof T], v))) return;
-      state = { ...state, ...next };
-      listeners.forEach((l) => l());
-    },
-    subscribe(l: Listener) {
-      listeners.add(l);
-      return () => listeners.delete(l);
-    },
-  };
-}
-
-export const hiveStore = createStore<HiveState>({
+export const useHiveStore = create<HiveState>()(() => ({
   sound: true,
   menuOpen: false,
   introAt: null,
   preloaded: false,
-});
+  demoOpen: false,
+}));
+
+/** Imperative reads (animation loops, audio) without subscribing. */
+export const hiveStore = {
+  get: () => useHiveStore.getState(),
+  set: (partial: Partial<HiveState> | ((s: HiveState) => Partial<HiveState>)) => {
+    useHiveStore.setState(typeof partial === "function" ? partial(useHiveStore.getState()) : partial);
+  },
+  subscribe: (listener: () => void) => useHiveStore.subscribe(listener),
+};
 
 export function useHive<S>(selector: (s: HiveState) => S): S {
-  const read = () => selector(hiveStore.get());
-  return useSyncExternalStore(hiveStore.subscribe, read, read);
+  return useHiveStore(selector);
 }
 
 export const hiveActions = {
   toggleSound: () => hiveStore.set((s) => ({ sound: !s.sound })),
   setMenuOpen: (menuOpen: boolean) => hiveStore.set({ menuOpen }),
+  setDemoOpen: (demoOpen: boolean) => hiveStore.set({ demoOpen }),
   /** Idempotent — the first caller wins. */
   beginIntro(preloaded: boolean) {
     if (hiveStore.get().introAt !== null) return;

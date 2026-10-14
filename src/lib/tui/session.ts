@@ -204,9 +204,18 @@ export class Session implements Host {
   private seq = 0;
   private away = 0;
   private versions = 0;
-
   constructor() {
     this.build();
+  }
+
+  /** ^C at an empty shell prompt (or idle agent) exits the full-screen demo. */
+  pageExitOnCtrlC(): boolean {
+    if (this.detached || this.overlay || this.mode !== "terminal") return false;
+    const prog = this.procOf(this.focusedPane())?.prog;
+    if (!prog) return true;
+    if (prog instanceof Shell) return prog.atEmptyPrompt();
+    if (prog instanceof Agent) return prog.state === "idle" && !prog.hasInput();
+    return prog.kind === "logs";
   }
 
   // --- building ---
@@ -247,7 +256,7 @@ export class Session implements Host {
       [{ t: "# This is Hive, simulated in your browser. Type here, or:", c: "dim" }],
       [{ t: "#   ctrl+b ?  every key   ctrl+b %  split   ctrl+b O  overview", c: "dim" }],
       [{ t: "#   ctrl+b d  detach (the agents keep working)", c: "dim" }],
-      [{ t: "#   try: ", c: "dim" }, { t: "claude fix the login bug", c: "yellow" }, { t: "  or  ", c: "dim" }, { t: "hive agent list", c: "yellow" }],
+      [{ t: "#   try: ", c: "dim" }, { t: "cd ~/acme/web", c: "yellow" }, { t: "  ", c: "dim" }, { t: "claude fix the login bug", c: "yellow" }],
     ]);
     const a = this.spawn("api", claude);
     const b = this.spawn("api", codex);

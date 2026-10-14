@@ -43,16 +43,25 @@ export function HeroAgents() {
       className="m-0 mt-3.5 flex w-full items-center justify-between gap-4 font-mono text-[11px] text-ash sm:mt-0 sm:w-auto sm:justify-center sm:text-xs"
     >
       <span className="flex flex-wrap items-center gap-x-3.5 gap-y-1 sm:gap-x-5">
-        {SUPPORTED_AGENTS.map((a) => (
-          <span key={a} className="text-fog">
-            {a}
-          </span>
-        ))}
-        <span className="max-sm:hidden">· any CLI agent</span>
+        <a
+          href="https://startupfa.me/s/hive?utm_source=hive.admir-saheta.com"
+          target="_blank"
+        >
+          <img
+            src="https://startupfa.me/badge?t=small&theme=dark&r=square"
+            alt="Hive - Featured on Startup Fame"
+            width="240"
+            height="36"
+          />
+        </a>
       </span>
       {/* Phones: the demo and docs are quiet links here instead of big buttons. */}
       <span className="flex flex-none items-center gap-4 sm:hidden">
-        <a href={LINKS.demo} onClick={demoOpened} className="pointer-events-auto text-honey underline decoration-honey/30 underline-offset-4">
+        <a
+          href={LINKS.demo}
+          onClick={demoOpened}
+          className="pointer-events-auto text-honey underline decoration-honey/30 underline-offset-4"
+        >
           Try it ▸
         </a>
         <a

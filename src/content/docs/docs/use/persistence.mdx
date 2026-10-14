@@ -1,7 +1,7 @@
 ---
 title: Persistence and Restore
 description: How Hive keeps agents running, saves workspace state, and restores work after a reboot.
-source: https://github.com/admirable-oss/hive/blob/main/docs/persistence.md
+source: https://github.com/admirable-oss/hive/blob/main/README.md
 ---
 
 Hive separates the terminal client, daemon, and agent shims. Closing the UI or restarting the daemon does not stop an agent; each shim owns its agent's terminal and can be reattached by a later daemon.

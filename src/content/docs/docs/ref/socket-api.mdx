@@ -1,7 +1,7 @@
 ---
 title: Socket API
 description: Connect to Hive's local daemon protocol or use the Go SDK and MCP server.
-source: https://github.com/admirable-oss/hive/blob/main/docs/api.md
+source: https://github.com/admirable-oss/hive/blob/main/internal/runtime/tests/testdata/api-reference.md
 ---
 
 Hive exposes the same runtime operations used by its CLI and multiplexer through a local Unix-domain socket. The socket is private to your user; Hive restricts its permissions and checks the connecting process's user identity.
@@ -17,7 +17,7 @@ hive api schema
 hive api snapshot
 ```
 
-The checked-in [API reference](https://github.com/admirable-oss/hive/blob/main/docs/api.md) lists methods, parameters, and result types. The API level and wire methods are covered by the [compatibility policy](https://github.com/admirable-oss/hive/blob/main/docs/compatibility.md).
+The checked-in [API reference](/docs/ref/api-reference/) lists methods, parameters, and result types. The API level and wire methods are covered by the [compatibility policy](/docs/ref/compatibility/).
 
 ## Protocol overview
 

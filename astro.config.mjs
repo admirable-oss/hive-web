@@ -206,6 +206,7 @@ export default defineConfig({
             docLink('Quick Start', 'getting-started/quick-start'),
             docLink('Core Concepts', 'getting-started/core-concepts'),
             docLink('Keystrokes', 'getting-started/keystrokes'),
+            docLink('Migrating from herdr', 'getting-started/migrating-from-herdr'),
           ],
         },
 
@@ -237,9 +238,16 @@ export default defineConfig({
           items: [
             docLink('CLI Reference', 'ref/cli-reference'),
             docLink('Socket API', 'ref/socket-api'),
+            docLink('API Reference', 'ref/api-reference'),
+            docLink('Compatibility', 'ref/compatibility'),
             docLink('Integrations', 'ref/integrations'),
             docLink('Agent Skill', 'ref/agent-skill'),
           ],
+        },
+
+        {
+          label: 'Architecture',
+          items: [docLink('Architecture Decisions', 'ref/architecture')],
         },
 
         {

@@ -7,7 +7,7 @@ source: https://github.com/admirable-oss/hive#readme
 Hive is a terminal workspace for running persistent agent sessions. Install a release for the quickest setup, or build the CLI from source if you want to work on Hive itself.
 
 :::tip[◇ v1.0 release candidates]
-Hive is built in public. The CLI, configuration, wire API, and Go SDK are frozen for the 1.x release series; see the [compatibility policy](https://github.com/admirable-oss/hive/blob/main/docs/compatibility.md).
+Hive is built in public. The CLI, configuration, wire API, and Go SDK are frozen for the 1.x release series; see the [compatibility policy](/docs/ref/compatibility/).
 :::
 
 ## Requirements

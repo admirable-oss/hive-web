@@ -4,10 +4,21 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
+import { readFileSync } from 'node:fs';
 
 const REPO = 'https://github.com/admirable-oss/hive';
 const SITE = 'https://hive.admir-saheta.com';
 const GA_MEASUREMENT_ID = 'G-579TFV1E9W';
+
+const pluginPages = (() => {
+  try {
+    const raw = readFileSync(new URL('./src/data/plugins-registry.json', import.meta.url), 'utf-8');
+    const data = JSON.parse(raw);
+    return (data.plugins || []).map((p) => `${SITE}/plugins/${p.id}/`);
+  } catch {
+    return [];
+  }
+})();
 
 // Avoid loading Rolldown's build-only middleware bundler at request time.
 // The Vercel server entrypoint imports these constants from the adapter.
@@ -117,7 +128,30 @@ export default defineConfig({
   integrations: [
     react(),
 
-    sitemap(),
+    sitemap({
+      customPages: pluginPages,
+      serialize(item) {
+        item.lastmod = new Date();
+        const url = item.url.replace(/\/$/, '');
+        if (url === SITE) {
+          item.priority = 1.0;
+          item.changefreq = 'daily';
+        } else if (url.includes('/plugins')) {
+          item.priority = 0.9;
+          item.changefreq = 'daily';
+        } else if (url.includes('/pricing') || url.includes('/roadmap')) {
+          item.priority = 0.8;
+          item.changefreq = 'daily';
+        } else if (url.includes('/docs')) {
+          item.priority = 0.7;
+          item.changefreq = 'weekly';
+        } else {
+          item.priority = 0.5;
+          item.changefreq = 'monthly';
+        }
+        return item;
+      },
+    }),
 
     starlight({
       title: 'Hive',

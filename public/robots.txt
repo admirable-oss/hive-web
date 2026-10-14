@@ -7,3 +7,4 @@ Allow: /
 Disallow: /_actions/
 
 Sitemap: https://hive.admir-saheta.com/sitemap-index.xml
+Sitemap: https://hive.admir-saheta.com/sitemap.xml

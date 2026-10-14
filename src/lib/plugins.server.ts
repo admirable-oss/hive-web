@@ -79,14 +79,19 @@ function validateRegistry(data: unknown): PluginRegistry {
 }
 
 async function githubJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${GITHUB_API_URL}${path}`, {
+  const request = (authenticated: boolean) => fetch(`${GITHUB_API_URL}${path}`, {
     headers: {
       accept: "application/vnd.github+json",
-      ...(GITHUB_TOKEN ? { authorization: `Bearer ${GITHUB_TOKEN}` } : {}),
+      ...(authenticated && GITHUB_TOKEN ? { authorization: `Bearer ${GITHUB_TOKEN}` } : {}),
       "user-agent": "hive-plugin-store",
     },
     signal: AbortSignal.timeout(7000),
   });
+
+  let response = await request(true);
+  if ((response.status === 401 || response.status === 403) && GITHUB_TOKEN) {
+    response = await request(false);
+  }
 
   if (!response.ok) {
     throw new Error(`GitHub returned HTTP ${response.status} for ${path}`);

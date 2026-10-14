@@ -1,0 +1,26 @@
+---
+title: Neural Networks and Model Providers
+description: Understand how Hive relates to coding agents, language models, and the providers you configure.
+source: https://github.com/admirable-oss/hive/blob/main/README.md
+---
+
+Hive is the runtime around your coding agents. It does not train, host, or choose a neural network for you. Your agent CLI—such as Claude Code, Codex, OpenCode, Gemini CLI, or another supported tool—connects to the model and provider you configure for that tool.
+
+```text
+Hive manages the terminal and agent process
+                ↓
+Agent CLI handles prompts, tools, and provider credentials
+                ↓
+Model provider runs inference
+```
+
+This separation means you can use different agents and providers side by side. Start each agent with Hive's `--kind` option, or run its command inside a pane. Configure API keys and model preferences through the agent's own supported setup; Hive does not store or proxy those provider credentials.
+
+For example:
+
+```sh
+hive agent start --kind claude --env app
+hive agent start --kind codex --env app --worktree review/change
+```
+
+Hive focuses on the operational layer: keeping terminal sessions alive, showing agent state, directing prompts, and restoring sessions. Read [Agents](/docs/use/ai-agents/) for supported CLIs and [Orchestration](/docs/use/ai-orchestration/) for coordinating agents.

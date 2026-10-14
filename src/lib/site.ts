@@ -28,7 +28,7 @@ export const MENU_LINKS = [
   { label: "Brand", detail: "Book & assets", href: LINKS.brand },
 ] as const;
 
-export const VERSION_LABEL = "v0.1 alpha";
+export const VERSION_LABEL = "v1.0.0-rc.1";
 export const LICENSE_LABEL = "Apache-2.0";
 export const LANGUAGE_LABEL = "Go";
 

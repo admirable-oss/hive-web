@@ -1,0 +1,54 @@
+---
+title: Keystrokes
+description: Learn Hive's Ctrl+B prefix, everyday shortcuts, and how to find the complete active keymap.
+source: https://github.com/admirable-oss/hive
+---
+
+Hive works with the mouse and keyboard. Click a pane to focus it, drag its border to resize it, or select text to copy. Keyboard shortcuts let you move between panes and tabs without leaving the keyboard.
+
+## How the prefix works
+
+Hive reserves a prefix so its shortcuts do not take over keys used by your shell or agent. The default prefix is <kbd>Ctrl</kbd>+<kbd>B</kbd>. Press and release it, then press the action key. For example, <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>c</kbd> creates a tab.
+
+When you are not entering a Hive shortcut, keystrokes go to the focused pane as usual. Press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>?</kbd> at any time to open the list of active bindings.
+
+## Start with these
+
+| Action | Keystrokes |
+| --- | --- |
+| Create a tab | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>c</kbd> |
+| Split right / down | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>%</kbd> / <kbd>"</kbd> |
+| Move to another pane | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then an arrow key or <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> |
+| Move between tabs | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>n</kbd> / <kbd>p</kbd> |
+| Find an agent or pane | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>w</kbd> |
+| Detach and leave agents running | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>d</kbd> |
+
+## Pane and tab controls
+
+| Action | Keystrokes |
+| --- | --- |
+| Zoom / unzoom the focused pane | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>z</kbd> |
+| Close the focused pane | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>x</kbd> |
+| Enter resize mode | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>r</kbd> |
+| Create a tab | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>c</kbd> |
+| Jump to tab 1–9 | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then the tab number |
+| Next / previous tab | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>n</kbd> / <kbd>p</kbd> |
+| Open the overview | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>O</kbd> |
+
+In resize mode, use <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, and <kbd>l</kbd> to adjust the focused pane. <kbd>Space</kbd> enters sticky navigation mode for moving between panes. Press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>?</kbd> for the bindings available in your running version.
+
+## Copy from pane history
+
+Press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>[</kbd> to enter copy mode. Use the vim-style movement keys to navigate the pane history, <kbd>/</kbd> to search, <kbd>v</kbd> to start selecting, and <kbd>y</kbd> to copy. Mouse drag-selection is also available without entering copy mode.
+
+Copy-mode navigation and selection work on the focused pane's history without stopping the process. The `?` keymap inside Hive shows the exact bindings for your version.
+
+## Change the bindings
+
+Hive reads optional settings from `~/.config/hive/config.toml`. Keybindings can be customized there; see [Configuration](/docs/config/configuration/) for the config file and available options. The in-app list (<kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>?</kbd>) reflects the bindings active in your version and configuration.
+
+## Where next
+
+- [Quick Start](/docs/getting-started/quick-start/) — launch a demo and practice in a live workspace.
+- [Core Concepts](/docs/getting-started/core-concepts/) — see how the client, daemon, and agent processes fit together.
+- [Configuration](/docs/config/configuration/) — customize Hive for your workflow.

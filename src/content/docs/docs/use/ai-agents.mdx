@@ -1,0 +1,86 @@
+---
+title: Bees (Agents)
+description: Run coding agents in Hive, read their state, prompt them, and restore their conversations.
+source: https://github.com/admirable-oss/hive/blob/main/docs/agents.md
+---
+
+Hive does not replace your coding agent. It runs the CLI you choose in a persistent terminal, recognizes common agents, and gives you a single place to see and reach their sessions.
+
+## Supported agent CLIs
+
+Hive includes detection manifests for these agents:
+
+| Agent | Kind | State detection | Conversation resume |
+| --- | --- | --- | --- |
+| Claude Code | `claude` | Screen and hooks | Exact session ID with hooks; otherwise continue the latest conversation in the directory |
+| Codex | `codex` | Screen and hooks | Exact session ID with hooks; otherwise resume the latest conversation |
+| OpenCode | `opencode` | Screen | Resume by session ID or continue |
+| Gemini CLI | `gemini` | Screen | Resume by session ID or latest |
+| Cursor Agent | `cursor-agent` | Screen | Resume by session ID or latest |
+| GitHub Copilot CLI | `copilot` | Screen | Resume by session ID or continue |
+| Amp | `amp` | Screen | Continue a thread by ID or the latest thread |
+| Aider | `aider` | Screen activity | Restore chat history |
+
+Install and authenticate the agent CLI separately. To see the manifests loaded by your Hive installation, run `hive agent manifests`.
+
+## Start an agent
+
+Create an environment for the repository, then start an agent in its own tab:
+
+```sh
+cd ~/src/app
+hive env create app --cwd .
+hive agent start --kind claude --env app
+```
+
+To let agents work on the same repository concurrently without editing the same checkout, give each a Git worktree:
+
+```sh
+hive agent start --kind codex --env app --worktree fix/login
+```
+
+`hive agent start` prints the new agent's pane ID. Use that ID with other agent commands; process IDs also work for relevant commands.
+
+## Read agent state
+
+Hive tracks agents as `working`, `blocked`, `done`, `idle`, or `exited`. `done` means an agent finished a turn you have not yet reviewed. `blocked` means it needs a decision, such as an approval. State is detected from the terminal screen; Claude Code and Codex can report more exact state and session IDs through hooks.
+
+```sh
+hive agent list
+hive agent explain <agent>
+hive agent read <agent> --source recent-unwrapped -n 80
+```
+
+`explain` shows what Hive matched on the screen and why it assigned that state. The multiplexer sidebar and Overview also show agent activity.
+
+## Prompt, wait, and respond
+
+Send a prompt and optionally wait for the agent to finish:
+
+```sh
+hive agent prompt <agent> "Add a test for the login redirect" --wait --read 60
+hive agent wait <agent> --until done --timeout 30m
+```
+
+Hive will not send a new prompt while an agent is blocked. Read the terminal, answer the prompt or approval yourself, then continue. For direct terminal access:
+
+```sh
+hive terminal attach <agent>
+```
+
+Press <kbd>Ctrl</kbd>+<kbd>]</kbd> to detach from that agent terminal without stopping the process.
+
+## Install agent hooks
+
+Hooks provide precise state updates and conversation IDs for restoration. Install them with Hive's integration command:
+
+```sh
+hive integration install claude
+hive integration install codex
+```
+
+The installer updates the agent's settings and keeps a backup. To undo an installation, use `hive integration uninstall <kind>`. See [Integrations](/docs/ref/integrations/) for details.
+
+## Add a custom agent
+
+For a CLI that Hive does not recognize, add a manifest under `~/.config/hive/agent-detection/`. Define its process, start command, resume behavior, and screen rules. See [Custom Agent Support](/docs/optimize/custom-agent-hive-support/).

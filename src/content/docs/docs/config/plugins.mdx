@@ -1,0 +1,95 @@
+---
+title: Plugins and Key Commands
+description: Extend Hive with startup programs, event handlers, actions, custom shortcuts, and sidebar metadata.
+source: https://github.com/admirable-oss/hive/blob/main/docs/plugins.md
+---
+
+Hive plugins are programs it can run at daemon startup, in response to events, or when you invoke an action. Key commands let you launch your own shell commands or plugin actions from the multiplexer.
+
+## Install a plugin
+
+Install from a Git repository or a local directory. Hive shows the plugin's commands and when they will run, then asks for confirmation:
+
+```sh
+hive plugin install https://github.com/example/hive-pr-status
+hive plugin install ./pr-status --ref v0.1.0
+```
+
+Plugins run as your user and can access your files, Hive sessions, and network just like any program you run. Review the trust preview. For automation, `--yes` accepts the install prompt.
+
+Use `link` for local development without copying the plugin:
+
+```sh
+hive plugin link ./my-plugin
+```
+
+## Plugin manifest
+
+Each plugin directory contains `hive-plugin.toml`. A minimal example:
+
+```toml
+id = "pr-status"
+name = "PR status"
+version = "0.1.0"
+description = "Shows pull request information in the sidebar."
+
+[[startup]]
+command = ["./pr-status.sh", "watch"]
+restart = true
+
+[[actions]]
+id = "refresh"
+title = "Refresh PR status"
+command = ["./pr-status.sh", "once"]
+timeout = "2m"
+
+[[events]]
+on = "worktree.created"
+command = ["./on-worktree.sh"]
+```
+
+Startup entries run while the daemon is running. Actions run when selected from Hive or invoked with `hive plugin run`. Events can match an event name such as `worktree.created` or a prefix such as `agent.`. A plugin handles up to four event commands at once; additional events wait.
+
+Commands run in the plugin directory. Executables prefixed with `./` are resolved there; other commands use `PATH`. Hive passes plugin context as JSON on stdin and through `HIVE_PLUGIN_CONTEXT`. Other variables include `HIVE_PLUGIN_ID`, `HIVE_PLUGIN_DIR`, `HIVE_PLUGIN_DATA`, `HIVE_BIN`, `HIVE_SOCKET_PATH`, `HIVE_SESSION`, and `HIVE_HOME`.
+
+## Manage and inspect plugins
+
+```sh
+hive plugin list
+hive plugin info pr-status
+hive plugin run pr-status refresh
+hive plugin logs pr-status -f
+hive plugin disable pr-status
+hive plugin enable pr-status
+hive plugin uninstall pr-status
+```
+
+Installed plugins live under `~/.hive/plugins/` and are shared across local Hive sessions. Plugin output is written to `~/.hive/logs/plugins/<id>.log`. To install a specific revision, use `--ref` and review the recorded commit.
+
+## Bind a key to a command
+
+Add a `[[keys.command]]` block to Hive's configuration:
+
+```toml
+[[keys.command]]
+keys = "g"
+type = "popup"
+command = "lazygit"
+title = "lazygit"
+```
+
+Supported types are `popup` (temporary overlay), `pane` (new split), `shell` (background command with its last line shown), and `plugin_action`. Set `mode = "terminal"` to bind a command without the prefix; the default is prefix mode. Commands run on the machine whose workspace is currently shown.
+
+`hive config reset-keys` restores built-in bindings but keeps custom key commands.
+
+## Sidebar tokens and status bar
+
+Commands and plugins can add temporary labels to an environment or pane:
+
+```sh
+hive pane report-metadata --token tests=40/40 --title reviewer
+hive env report-metadata app --token pr="#12 open ✓" --ttl 10m
+hive metadata
+```
+
+Tokens expire after their TTL (30 minutes by default, up to 7 days) and are not kept across daemon restarts. The status bar can display text, the time, host name, or a command's first line; configure `[[ui.status_right]]` in `config.toml`.

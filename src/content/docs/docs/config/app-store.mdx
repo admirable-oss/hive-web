@@ -1,0 +1,18 @@
+---
+title: App Store
+description: How to add Hive extensions today and the status of a central plugin catalog.
+source: https://github.com/admirable-oss/hive/blob/main/docs/plugins.md
+---
+
+Hive does not currently ship a hosted app store or searchable plugin marketplace. You can install extensions directly from a Git repository or a local directory using Hive's plugin system.
+
+```sh
+hive plugin install https://github.com/example/hive-plugin
+hive plugin install ./my-plugin
+```
+
+Before installing, Hive displays the plugin's declared commands and when they will run. Plugins run with your user permissions, so review the source and trust prompt as you would any program. Pin a tag or revision with `--ref` when you want to control which version is installed.
+
+To develop a plugin in place, use `hive plugin link ./my-plugin`. See [Plugins and Key Commands](/docs/config/plugins/) for manifests, lifecycle events, actions, key commands, and management commands. Example plugins are in the [Hive repository](https://github.com/admirable-oss/hive/tree/main/examples/plugins).
+
+A central marketplace index is on the project roadmap; availability may change in a future release. Until then, Git URLs and local plugin directories are the supported installation sources.

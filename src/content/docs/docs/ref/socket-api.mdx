@@ -1,0 +1,45 @@
+---
+title: Socket API
+description: Connect to Hive's local daemon protocol or use the Go SDK and MCP server.
+source: https://github.com/admirable-oss/hive/blob/main/docs/api.md
+---
+
+Hive exposes the same runtime operations used by its CLI and multiplexer through a local Unix-domain socket. The socket is private to your user; Hive restricts its permissions and checks the connecting process's user identity.
+
+For most scripts, prefer the CLI with `--json` or `--template`. For Go programs, use `github.com/admirable-oss/hive/pkg/hiveapi`. The socket protocol is useful when building another client or integrating a different runtime.
+
+## Discover the API
+
+The installed binary can print the methods and JSON schemas supported by its API:
+
+```sh
+hive api schema
+hive api snapshot
+```
+
+The checked-in [API reference](https://github.com/admirable-oss/hive/blob/main/docs/api.md) lists methods, parameters, and result types. The API level and wire methods are covered by the [compatibility policy](https://github.com/admirable-oss/hive/blob/main/docs/compatibility.md).
+
+## Protocol overview
+
+Requests and responses use newline-delimited JSON. A protocol 1 request is one JSON object with a method and parameters; its response includes the same request ID and either a result or an error. Protocol 2 begins with a version handshake, then allows multiple requests and streaming pipes on one connection. Hive's CLI and UI use protocol 2 and can fall back to protocol 1 when speaking to an older compatible daemon.
+
+Long-lived terminal and event streams use pipe methods. A response opens a stream, and subsequent data frames carry bytes or events until the stream closes. Use the Go SDK or the canonical protocol reference rather than relying on UI output formats.
+
+## API areas
+
+| Namespace | Examples |
+| --- | --- |
+| `agent` | List, start, prompt, wait for, read, and explain agents. |
+| `environment` | Create, inspect, update, and remove environments. |
+| `pane`, `tab`, `layout` | Manage terminal panes, tabs, and layouts. |
+| `process`, `terminal` | Start and stop processes; attach, read, resize, or snapshot terminals. |
+| `worktree` | Create, list, open, and remove Git worktrees. |
+| `events` | Subscribe to runtime changes. |
+| `plugin`, `metadata` | Run plugins and report sidebar metadata. |
+| `runtime`, `session`, `api` | Check status, save or restore sessions, and inspect the API. |
+
+Errors include a machine-readable code and message. Clients should handle unknown methods and fields gracefully so they can work across compatible 1.x releases.
+
+## Local socket location
+
+Hive's socket is under its runtime data directory (`~/.hive` by default). Use `hive status`, `hive ping`, and `hive config path` for ordinary diagnostics instead of opening the socket directly. `HIVE_HOME` can move the data root; `HIVE_SOCKET_PATH` is used by Hive-launched child processes and integrations.

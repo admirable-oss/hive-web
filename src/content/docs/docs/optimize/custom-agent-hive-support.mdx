@@ -1,0 +1,71 @@
+---
+title: Custom Agent Support
+description: Teach Hive to detect, launch, track, and restore a command-line agent that has no built-in manifest.
+source: https://github.com/admirable-oss/hive/blob/main/docs/agents.md
+---
+
+Hive can run any command in a terminal. To have it identify a custom coding agent, show its state, and restore it after a reboot, add an agent-detection manifest.
+
+## Add a manifest
+
+Create `~/.config/hive/agent-detection/my-agent.toml`:
+
+```toml
+id = "my-agent"
+name = "My Agent"
+
+[detect]
+process = ["my-agent"]
+
+[start]
+command = ["my-agent"]
+
+[resume]
+last = ["--continue"]
+
+[[rules]]
+state = "working"
+region = "bottom:3"
+[rules.match]
+contains = "thinking"
+```
+
+The `id` becomes the `--kind` value. `[detect]` describes the running process, `[start]` is the command Hive launches, and `[resume]` describes how to continue the agent's latest conversation. Add screen rules for the agent's visible `working`, `blocked`, `done`, or `idle` indicators.
+
+## Load and inspect it
+
+Ask Hive to reload agent manifests, or restart the daemon:
+
+```sh
+hive server reload-agent-manifests
+hive agent manifests
+```
+
+Start the custom agent in an environment and inspect what Hive detects:
+
+```sh
+hive agent start --kind my-agent --env app
+hive agent explain <agent>
+```
+
+`explain` includes the matched rule and terminal screen so you can tune detection against what the agent actually displays. A custom manifest can replace or extend built-in detection definitions.
+
+## Report state directly
+
+If the agent has a reliable hook or wrapper, it can report state directly instead of relying on screen rules. From inside an agent pane:
+
+```sh
+hive pane report-agent --state working
+```
+
+Direct reports are useful for agents whose screen output changes often or is difficult to classify. Keep the report aligned with the same states Hive uses: `working`, `blocked`, `done`, and `idle`.
+
+## Give the agent Hive tools
+
+If the agent should also operate other agents, connect it to Hive's MCP server or provide the [Hive Agent Skill](/docs/ref/agent-skill/). For example, Claude Code can register the server with:
+
+```sh
+claude mcp add hive -- hive mcp
+```
+
+See [Integrations](/docs/ref/integrations/) for the supported hooks and [Orchestration](/docs/use/ai-orchestration/) for agent-to-agent workflows.

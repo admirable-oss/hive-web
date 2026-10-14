@@ -1,0 +1,81 @@
+---
+title: Orchestration
+description: Start, prompt, monitor, and collect results from multiple agents with Hive.
+source: https://github.com/admirable-oss/hive/blob/main/docs/quickstart.md
+---
+
+Hive makes its agent controls available in the terminal UI, the CLI, a Go SDK, and an MCP server. You can coordinate agents yourself or let one agent delegate and check work through Hive.
+
+## A safe parallel-work loop
+
+Give each agent its own worktree when multiple agents are changing the same repository. Start them, send independent tasks, wait for a result, then review their output:
+
+```sh
+cd ~/src/app
+hive env create app --cwd .
+
+REVIEWER=$(hive agent start --kind codex --env app --worktree review/auth)
+FIXER=$(hive agent start --kind claude --env app --worktree fix/retries)
+
+hive agent prompt "$REVIEWER" "Review the auth flow for security bugs. Save findings to REVIEW.md."
+hive agent prompt "$FIXER" "Make the retry test reliable and add a regression test."
+
+hive agent wait "$REVIEWER" --until done --timeout 30m
+hive agent read "$REVIEWER" --source recent-unwrapped -n 80
+```
+
+`hive agent start` returns a pane ID. Use it to identify the agent for later prompts, reads, waits, and status checks. Review each worktree before merging its changes.
+
+## Prompt and wait in one command
+
+Use `--wait` to hold the prompt command until the agent reaches a result, and `--read` to print its latest output:
+
+```sh
+hive agent prompt <agent> "Add tests for the new behavior" --wait --read 60
+```
+
+Or separate prompting from waiting when you are coordinating several agents:
+
+```sh
+hive agent prompt <agent> "Implement the parser change"
+hive agent wait <agent> --until done --timeout 30m
+```
+
+Waits can end because an agent blocks, exits, stalls, or times out. Check its state and terminal before deciding what to do next:
+
+```sh
+hive agent get <agent>
+hive agent explain <agent>
+hive agent read <agent>
+```
+
+Hive refuses to prompt an agent that is blocked. Read its screen, answer the request yourself, and then resume coordination.
+
+## Let an agent use Hive
+
+`hive mcp` serves Hive tools over the Model Context Protocol. For Claude Code, register it with:
+
+```sh
+claude mcp add hive -- hive mcp
+```
+
+The Hive MCP tools let an agent list environments and agents, start other agents, send prompts, wait for completion, read output, and operate panes. The MCP server uses the same local Hive session and permissions as the CLI.
+
+Hive also ships an agent skill describing this workflow. Print it with:
+
+```sh
+hive --skill
+```
+
+See [Agent Skill](/docs/ref/agent-skill/) for how to provide that guidance to your agents.
+
+## Script against the CLI
+
+Add `--json` for machine-readable output. Use `--template` when a script needs only selected fields:
+
+```sh
+hive --json agent list
+hive env list --template '{{range .}}{{.id}} {{.path}}{{"\n"}}{{end}}'
+```
+
+For a typed Go interface, use the `pkg/hiveapi` SDK. For direct protocol clients, see the [Socket API](/docs/ref/socket-api/).

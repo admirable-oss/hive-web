@@ -1,0 +1,63 @@
+---
+title: Persistence and Restore
+description: How Hive keeps agents running, saves workspace state, and restores work after a reboot.
+source: https://github.com/admirable-oss/hive/blob/main/docs/persistence.md
+---
+
+Hive separates the terminal client, daemon, and agent shims. Closing the UI or restarting the daemon does not stop an agent; each shim owns its agent's terminal and can be reattached by a later daemon.
+
+## What survives
+
+| Event | What happens |
+| --- | --- |
+| Detach with <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>D</kbd> | The UI disconnects; the daemon and agents keep running. |
+| Daemon restart or update | Shims keep agent processes alive; the new daemon reconnects to them. |
+| Daemon crash | Agent processes remain under their shims and can be adopted by the next daemon. |
+| Host reboot or power loss | Processes stop with the host. Hive restores the saved layout and starts lost panes again when the daemon next starts. |
+| `hive stop` | The runtime and its agents are stopped intentionally. |
+
+## Restore after a reboot
+
+The daemon saves a snapshot when the workspace changes, periodically, and when it stops. By default, Hive restores environments, tabs, pane layout, and processes that were lost because the host rebooted. Restored agents can continue their previous conversations when their integration supplies a session ID.
+
+Install hooks for supported agents to make resume exact:
+
+```sh
+hive integration install claude
+hive integration install codex
+```
+
+Without hooks, Hive uses the agent manifest's “resume latest” command. That can select the wrong conversation if multiple agents of the same kind share one directory; use a worktree or separate working directory for each agent in that case.
+
+You can save or restore a session manually:
+
+```sh
+hive session save
+hive session restore
+hive session restore --fresh
+```
+
+`--fresh` starts restored agents without continuing their previous conversation. Closed panes and agents stopped with `hive agent stop` or `hive stop` are not automatically restarted.
+
+## Optional pane-history replay
+
+Pane scrollback is available while Hive is running. To show recent terminal text again after restore, enable `session.replay_history` and choose how many lines to keep:
+
+```toml
+[session]
+replay_history = true
+replay_lines = 500
+```
+
+The text is exactly what programs printed, so it may contain credentials or other secrets. When enabled, Hive stores it under `~/.hive/history/`. Keep it off unless you need replay, and protect the Hive data directory accordingly. Process output logs are stored separately under each environment and should also be treated as private.
+
+## Retention and cleanup
+
+Hive rotates process logs and removes old exited-process records on a schedule. Preview cleanup before running it:
+
+```sh
+hive gc --dry-run
+hive gc
+```
+
+Change retention limits in `config.toml`; see [Configuration Reference](/docs/config/config-reference/).

@@ -1,0 +1,126 @@
+---
+title: Configuration Reference
+description: Hive's TOML configuration path, environment overrides, settings, and defaults.
+source: https://github.com/admirable-oss/hive/blob/main/docs/config.md
+---
+
+Hive reads `~/.config/hive/config.toml`, or `$XDG_CONFIG_HOME/hive/config.toml`, or the explicit file in `$HIVE_CONFIG`. All settings are optional. Run `hive config default` to print the defaults, `hive config init` to write a commented file, and `hive config validate` to check the current config.
+
+Invalid values and unknown keys produce warnings and use defaults. Invalid TOML prevents the daemon from starting. Runtime data lives under `~/.hive` by default; set `HIVE_HOME` to use another root.
+
+## Daemon and logs
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[daemon].autostart` | `true` | Start the daemon when a command needs it. |
+| `[daemon].shutdown_timeout` | `"15s"` | How long stopping waits for agents to exit. |
+| `[log].level` | `"info"` | `debug`, `info`, `warn`, or `error`; `HIVE_LOG` overrides this. |
+| `[log].format` | `"text"` | `text` or `json`. |
+| `[log].max_size_mb` | `10` | Daemon log rotation size. |
+| `[log].max_backups` | `3` | Number of old daemon logs to keep. |
+| `[process].stop_grace` | `"3s"` | Time an agent gets to exit after `SIGTERM` before Hive kills it. |
+
+## Terminals and Git
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[terminal].default_width` | `220` | Width of a new agent terminal when unspecified. |
+| `[terminal].default_height` | `50` | Height of a new agent terminal when unspecified. |
+| `[terminal].scrollback_mb` | `10` | Scrollback retained per agent terminal, in MiB. |
+| `[terminal].shell` | `""` | Shell for a new pane; empty uses `$SHELL -l`. |
+| `[git].refresh_interval` | `"5s"` | How often Hive refreshes environment branch and dirty state. |
+| `[worktrees].directory` | `""` | Worktree base directory; empty uses `~/.hive/worktrees` (or `$HIVE_HOME/worktrees`). |
+
+## Sessions and retention
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[session].restore` | `true` | Restore lost panes, layout, and focus after a host reboot or shim loss. |
+| `[session].resume_agents_on_restore` | `true` | Resume supported agents' conversations; when false, restored agents start fresh. |
+| `[session].restore_stagger` | `"1s"` | Pause between restarting agents. |
+| `[session].snapshot_interval` | `"30s"` | Periodic workspace snapshot interval. Changes are also saved as they occur. |
+| `[session].keep_snapshots` | `48` | Number of previous snapshots to retain. |
+| `[session].replay_history` | `false` | Save recent pane text and show it after restore. This can include secrets printed by a program. |
+| `[session].replay_lines` | `500` | Number of recent lines to keep when replay is enabled. |
+| `[retention].exited_processes` | `"168h0m0s"` | How long to keep records/logs of exited processes not shown in a pane. |
+| `[retention].process_log_mb` | `50` | Per-agent output log size before rotation; one older log is kept. `0` disables the limit. |
+| `[retention].gc_interval` | `"6h0m0s"` | Automatic cleanup interval; `"0s"` disables scheduled cleanup. |
+
+## Updates and remote machines
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[update].channel` | `"stable"` | Update channel: `stable` or `preview` (release candidates). |
+| `[remote].ssh` | `"ssh"` | SSH command used for remote Hive; `HIVE_SSH` overrides it. OpenSSH config applies. |
+| `[remote].frame_budget_kb` | `48` | Approximate screen data limit per remote client, in KiB/s; `0` means unlimited. |
+
+## Notifications
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[notify].on` | `["blocked", "done"]` | Agent states that produce notifications. |
+| `[notify].toast` | `true` | Show a toast in the Hive UI. |
+| `[notify].terminal` | `"auto"` | Terminal notification mode: `auto`, `osc9`, `osc777`, or `off`. |
+| `[notify].system` | `false` | Use desktop notifications; these do not work over SSH. |
+| `[notify].sound` | `false` | Play a sound with notifications. |
+
+Choose notification states per agent manifest ID:
+
+```toml
+[notify.agents]
+codex = ["blocked"]
+aider = []
+```
+
+Notifications are suppressed for the pane you are currently viewing.
+
+## User interface and theme
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[ui].sidebar` | `true` | Show the environment/agent sidebar. Very narrow terminals open without it. |
+| `[ui].sidebar_width` | `28` | Sidebar width in terminal columns. |
+| `[ui].mouse` | `true` | Enable mouse focus, resize, selection, and scrollback. Hold Shift to pass selection to the outer terminal. |
+| `[ui].clipboard` | `"auto"` | Copy destination: `auto`, `osc52`, `local`, or `off`. |
+| `[theme].name` | `"auto"` | Theme: `auto`, `catppuccin`, `catppuccin-latte`, `tokyo-night`, `gruvbox`, `nord`, `terminal`, or `custom`. |
+
+`auto` selects a dark or light theme based on the terminal background. With `name = "custom"`, override individual colors:
+
+```toml
+[theme.custom]
+base = "nord"
+accent = "#ff79c6"
+```
+
+Custom colors can be `#rrggbb`, an ANSI index from `0` to `255`, or `"default"`.
+
+The tab bar can show text, a date/time, the host name, or a command's first line:
+
+```toml
+[[ui.status_right]]
+type = "command"
+command = "git -C ~/src/app branch --show-current"
+interval = "30s"
+
+[[ui.status_right]]
+type = "datetime"
+format = "%a %H:%M"
+```
+
+## Keys
+
+`[keys].prefix_keys` defaults to `["ctrl+b"]`. Multiple prefix keys are allowed. Bind actions in `[keys.prefix]`, `[keys.terminal]`, `[keys.navigate]`, `[keys.resize]`, and `[keys.copy]`. Terminal bindings run without a prefix. Each action accepts one key or a list; an empty list unbinds it.
+
+```toml
+[keys]
+prefix_keys = ["ctrl+b", "ctrl+a"]
+
+[keys.prefix]
+split_right = ["|", "%"]
+zoom = []
+
+[keys.terminal]
+focus_left = "alt+h"
+```
+
+Keys can also run custom commands. See [Plugins and Key Commands](/docs/config/plugins/) for the command types and examples. Run `hive config reset-keys` to restore built-in keybindings without replacing other configuration.

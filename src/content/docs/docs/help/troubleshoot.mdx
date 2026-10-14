@@ -1,0 +1,120 @@
+---
+title: Troubleshooting
+description: Diagnose Hive installation, daemon, agent detection, restore, SSH, and keybinding problems.
+source: https://github.com/admirable-oss/hive
+---
+
+Start by recording your Hive version and checking whether the daemon is reachable:
+
+```sh
+hive version
+hive status
+hive config path
+```
+
+When reporting a problem, include your operating system, terminal emulator and version, whether Hive is local or remote, the command you ran, and the exact error text. Review logs before sharing them; process output can contain secrets printed by agents.
+
+## The `hive` command is not found
+
+Open a new terminal so it reloads your shell environment, then confirm the install directory is on `PATH`. The release installer uses `~/.local/bin` by default. If you installed with a package manager, update the binary through that same manager.
+
+```sh
+command -v hive
+echo "$PATH"
+```
+
+## The daemon does not start or respond
+
+Check daemon status and recent logs:
+
+```sh
+hive daemon status
+hive daemon logs
+```
+
+The daemon log is under `~/.hive/logs/daemon.log`; startup errors may be in `daemon.stderr`. Validate the config, especially after editing TOML:
+
+```sh
+hive config validate
+```
+
+If `daemon.autostart = false`, start the daemon explicitly with `hive daemon start`. Otherwise, a command that needs the daemon starts it on demand. `hive stop` stops the daemon and every agent it manages; use `hive daemon restart` to restart the daemon while preserving agents.
+
+## An agent is missing or has the wrong state
+
+List loaded agent definitions and ask Hive to explain a detected agent:
+
+```sh
+hive agent manifests
+hive agent list
+hive agent explain <agent>
+```
+
+Hive detects most agents from process and screen output. If the tool is not recognized, or its interface changed, add or update a manifest under `~/.config/hive/agent-detection/`. Claude Code and Codex hooks provide more exact status updates; install them with `hive integration install claude` or `hive integration install codex`.
+
+## A prompt is rejected or an agent appears stuck
+
+Hive will not send another prompt while an agent is `blocked`. Read its screen and answer its approval or question directly:
+
+```sh
+hive agent read <agent>
+hive terminal attach <agent>
+```
+
+Press <kbd>Ctrl</kbd>+<kbd>]</kbd> to detach from the individual terminal. Use `hive agent explain <agent>` to see whether Hive matched a blocked-state rule or whether the screen has stopped changing.
+
+## An agent does not resume its conversation
+
+After a host reboot, Hive restores the workspace and restarts lost panes. Exact conversation restoration requires agent hooks that report the session ID:
+
+```sh
+hive integration install claude
+hive integration install codex
+```
+
+Without hooks Hive uses the agent's resume-latest command in the working directory. If several agents of the same kind share that directory, separate their work with worktrees. Check that `[session].restore` and `[session].resume_agents_on_restore` are enabled in your config.
+
+## Remote command fails
+
+First verify ordinary SSH from the same terminal:
+
+```sh
+ssh <host>
+hive --remote <host> status
+```
+
+Hive uses your OpenSSH configuration, keys, and agent. For a saved machine, check reachability and recreate a stuck connection with:
+
+```sh
+hive machine status <name>
+hive machine reconnect <name>
+```
+
+The first connection to a host without Hive may ask to install or update it. Paths passed to remote commands must exist on that host.
+
+## A keybinding does nothing
+
+Check the active binding list inside Hive with <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>?</kbd>. The operating system or outer terminal may consume a key combination before Hive sees it. Choose a different shortcut or free the combination in the terminal's settings.
+
+To return to built-in shortcuts, run:
+
+```sh
+hive config reset-keys
+```
+
+See [Keystrokes](/docs/getting-started/keystrokes/) and [Configuration](/docs/config/configuration/).
+
+## Find diagnostic logs
+
+Hive stores runtime data under `~/.hive` unless `HIVE_HOME` changes it. Useful files include:
+
+| File | Contents |
+| --- | --- |
+| `~/.hive/logs/daemon.log` | Rotating daemon log. |
+| `~/.hive/logs/daemon.stderr` | Standard error from the latest daemon start. |
+| `~/.hive/environments/<env>/processes/<id>/stdout.log` | Output printed by an agent or process. |
+| `~/.hive/environments/<env>/processes/<id>/stderr.log` | Standard error for a non-terminal process. |
+
+Use `hive ps logs <id> -n 100` to inspect recent output and `hive debug stats` for daemon runtime information. For deeper profiling, see `hive debug pprof --help`.
+
+Treat logs as private: a program may have printed credentials, tokens, or other sensitive content.

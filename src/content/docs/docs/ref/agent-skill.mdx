@@ -1,0 +1,26 @@
+---
+title: Agent Skill
+description: Give coding agents instructions for safely operating other agents through Hive.
+source: https://github.com/admirable-oss/hive/blob/main/skills/hive/SKILL.md
+---
+
+Hive includes a skill that teaches coding agents how to start, prompt, wait for, read, and coordinate other agents. Print the installed version with:
+
+```sh
+hive --skill
+```
+
+Use the output as an agent skill or project instruction in the format supported by your coding agent. The canonical skill source lives at [`skills/hive/SKILL.md`](https://github.com/admirable-oss/hive/blob/main/skills/hive/SKILL.md).
+
+## What the skill teaches
+
+- Start each concurrent task in its own environment or Git worktree.
+- Prompt agents without interleaving prompts to the same process.
+- Wait for a requested state and distinguish `done`, `blocked`, `stalled`, `exited`, and `timeout` outcomes.
+- Read an agent's terminal before answering approval or permission requests.
+- Collect results from output or files and leave unmerged worktrees intact.
+- Use the CLI, JSON output, Hive MCP tools, or the Go SDK to coordinate work.
+
+The skill is intended for an agent with access to this Hive session, such as an agent running inside a Hive pane or one connected to the Hive MCP server. It does not install or authenticate the underlying coding agent.
+
+See [Orchestration](/docs/use/ai-orchestration/) for a human-readable workflow and [Socket API](/docs/ref/socket-api/) for programmatic interfaces.

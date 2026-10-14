@@ -1,0 +1,58 @@
+---
+title: Core Concepts
+description: Understand Hive's daemon, terminal client, panes, agents, and persistent sessions.
+source: https://github.com/admirable-oss/hive
+---
+
+Hive is a terminal workspace for coding agents. It provides the panes and runtime that keep agent processes available while you disconnect from the interface. Hive can run Claude Code, Codex, OpenCode, and other command-line agents; it does not replace the agent or its model provider.
+
+## How the pieces fit
+
+```text
+You → hive CLI / terminal client → daemon → agent shim → agent process
+                                      ↕
+                               tabs and panes
+```
+
+The CLI and the terminal interface are ways to control Hive. The daemon coordinates the runtime, and agent processes run in managed terminal panes. Detaching closes your client connection; it does not stop the agents.
+
+## Hive CLI
+
+The `hive` command is the entry point for both the interactive workspace and commands that manage Hive. Running `hive` opens the terminal interface. Commands such as `hive ps list` manage or inspect agent sessions from a regular shell.
+
+Commands that need the daemon start it on demand. You do not need to start the daemon manually before opening Hive.
+
+## Daemon
+
+The daemon is Hive's background runtime. It remains available when you leave the terminal interface and coordinates the managed agent processes. Hive starts it when needed; you can optionally install it as a login service with `hive daemon install` so it starts with your user session.
+
+Stopping the runtime with `hive stop` ends the agents it manages. This is different from detaching, which leaves the runtime and agents running.
+
+## Terminal client, tabs, and panes
+
+The terminal client is the interactive interface you see when you run `hive`. It arranges work into tabs and panes:
+
+- A **tab** is a workspace layout. Use different tabs to separate tasks or views.
+- A **pane** is a terminal inside a tab. It runs a shell or an agent command and displays that process's output.
+- The **client** is the interface attached to the runtime. You can detach from it and reconnect later.
+
+Click panes to focus them, drag their borders to resize, select text to copy, or use the [keyboard controls](/docs/getting-started/keystrokes/).
+
+## Agents and shims
+
+An **agent** is the coding tool you run in a terminal, such as Claude Code, Codex, or OpenCode. Hive gives those tools persistent panes and tracks their sessions so you can find and return to them.
+
+Each managed agent runs under a **shim**. The shim keeps the agent process independent of the terminal client and Hive daemon, allowing the work to continue through a detach or daemon restart. Reconnect to Hive to return to the running workspace, or attach directly to an agent terminal:
+
+```sh
+hive ps list
+hive terminal attach <id>
+```
+
+Press <kbd>Ctrl</kbd>+<kbd>]</kbd> to detach from an individual agent terminal.
+
+## A session that keeps running
+
+Use the detach command <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>D</kbd>, when you want to leave the interface and keep working agents alive. Run `hive` again to return. Close the terminal or disconnect from SSH if needed; the managed agent processes continue in the background.
+
+Use `hive stop` when you want to stop the runtime and its agents. For the first walkthrough, see [Quick Start](/docs/getting-started/quick-start/). For process recovery and scrollback details, see [Persistence](/docs/use/persistence/).

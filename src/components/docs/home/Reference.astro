@@ -3,15 +3,15 @@ import { REPO } from "@/lib/site";
 import SectionHead from "./SectionHead.astro";
 
 const CELLS = [
-  { x: "0%", y: "0%", href: "/docs/agents/", eyebrow: "01 · CONCEPTS", title: "Agents", body: "How Hive finds agents, labels sessions, and attaches to existing work.", cta: "Meet the agents" },
-  { x: "18.75%", y: "0%", href: "/docs/machines/", eyebrow: "02 · CONCEPTS", title: "Machines", body: "Connect locally or over SSH and manage remote sessions in one view.", cta: "Connect machines", tag: "SSH · ROADMAP" },
-  { x: "37.5%", y: "0%", href: "/docs/session-state/", eyebrow: "03 · CONCEPTS", title: "Session state", body: "Persistence, restart recovery, pane history, and safe disconnects.", cta: "Understand sessions" },
-  { x: "56.25%", y: "0%", href: "/docs/configuration/", eyebrow: "04 · GUIDES", title: "Configuration", body: "Tune keybindings, themes, mouse, clipboard, and your workspace.", cta: "Make it yours" },
-  { x: "75%", y: "0%", href: "/docs/api/", eyebrow: "05 · DEVELOPMENT", title: "API", body: "Automate Hive through the CLI and local socket API.", cta: "Explore the API", tag: "AGENT-FACING · PLANNED" },
-  { x: "9.375%", y: "50%", href: "/docs/plugins/", eyebrow: "06 · DEVELOPMENT", title: "Plugins", body: "Extend Hive with local plugins, custom actions, and event hooks.", cta: "Build a plugin", tag: "ROADMAP" },
-  { x: "28.125%", y: "50%", href: "/docs/keybindings/", eyebrow: "07 · REFERENCE", title: "Keybindings", body: "Learn the defaults and shape shortcuts around your workflow.", cta: "Browse keybindings" },
-  { x: "46.875%", y: "50%", href: "/docs/cli/", eyebrow: "08 · REFERENCE", title: "CLI & protocol", body: "Script Hive from the command line or talk to its local socket.", cta: "Read the references" },
-  { x: "65.625%", y: "50%", href: "/docs/marketplace/", eyebrow: "09 · COMMUNITY", title: "Marketplace", body: "Find and share plugins; browse design notes and project decisions.", cta: "Explore the marketplace", external: false },
+  { x: "0%", y: "0%", href: "/docs/use/ai-agents/", eyebrow: "01 · CONCEPTS", title: "Agents", body: "How Hive finds agents, labels sessions, and attaches to existing work.", cta: "Meet the agents" },
+  { x: "18.75%", y: "0%", href: "/docs/use/rc-ra/", eyebrow: "02 · CONCEPTS", title: "Remote machines", body: "Control Hive on another computer over SSH and manage remote agents.", cta: "Connect machines" },
+  { x: "37.5%", y: "0%", href: "/docs/use/persistence/", eyebrow: "03 · CONCEPTS", title: "Persistence", body: "Restart recovery, pane history, and safe disconnects.", cta: "Understand sessions" },
+  { x: "56.25%", y: "0%", href: "/docs/config/configuration/", eyebrow: "04 · GUIDES", title: "Configuration", body: "Tune keybindings, themes, mouse, clipboard, and your workspace.", cta: "Make it yours" },
+  { x: "75%", y: "0%", href: "/docs/ref/socket-api/", eyebrow: "05 · DEVELOPMENT", title: "Socket API", body: "Automate Hive through the local daemon API, Go SDK, or MCP.", cta: "Explore the API" },
+  { x: "9.375%", y: "50%", href: "/docs/config/plugins/", eyebrow: "06 · DEVELOPMENT", title: "Plugins", body: "Extend Hive with startup programs, custom actions, and event hooks.", cta: "Build a plugin" },
+  { x: "28.125%", y: "50%", href: "/docs/getting-started/keystrokes/", eyebrow: "07 · REFERENCE", title: "Keystrokes", body: "Learn the prefix, common controls, and active keymap.", cta: "Browse keystrokes" },
+  { x: "46.875%", y: "50%", href: "/docs/ref/cli-reference/", eyebrow: "08 · REFERENCE", title: "CLI reference", body: "Run Hive from your shell or script it with JSON and templates.", cta: "Read the reference" },
+  { x: "65.625%", y: "50%", href: "/docs/config/app-store/", eyebrow: "09 · COMMUNITY", title: "App Store", body: "Install plugins from Git or a local directory; learn about the catalog status.", cta: "Browse plugin options", tag: "DIRECT INSTALLS" },
 ];
 ---
 

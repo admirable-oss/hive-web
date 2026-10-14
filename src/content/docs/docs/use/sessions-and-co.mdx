@@ -1,0 +1,47 @@
+---
+title: Sessions, Environments, Tabs, and Panes
+description: Learn how Hive groups machines, sessions, environments, layouts, processes, and agents.
+source: https://github.com/admirable-oss/hive/blob/main/docs/concepts.md
+---
+
+Hive has several layers. Knowing which one you mean makes it easier to organize work and choose the right command.
+
+```text
+machine → session → daemon → environment → tab → pane → process → shim → agent
+```
+
+## Machine
+
+A machine is a computer running Hive. Your current machine can also connect to remote Hive machines over SSH. See [Remote Control](/docs/use/rc-ra/).
+
+## Session
+
+A session is a separate Hive instance with its own daemon, socket, and workspace state. Most people use the default session. Use `--session <name>` or `HIVE_SESSION=<name>` when you need a separate runtime namespace.
+
+## Environment
+
+An environment is a named working directory, usually an existing repository, a managed workspace, or a Git worktree. It holds tabs and agents, and tracks project context such as the current branch and whether the checkout is dirty.
+
+Create an environment for the current directory with:
+
+```sh
+hive env create app --cwd .
+```
+
+Agents started in an environment use its workspace and environment variables. Use a worktree when an agent needs an isolated checkout of a repository.
+
+## Tab and pane
+
+A tab is a layout inside an environment. It contains a tiling arrangement of panes. A pane is a terminal view for one process; it can be split, resized, zoomed, moved, or shown as a popup.
+
+The multiplexer lets you focus a pane and type into its process, while the CLI can read output or send input without attaching to its terminal.
+
+## Process and agent
+
+A process is a command Hive starts and supervises. It can be a plain command or a terminal-backed process. An agent is a process Hive recognizes as a coding agent from its manifest and terminal state. Agent states roll up into the UI so you can spot work that needs attention.
+
+Each managed agent has a shim that owns its terminal and keeps the process alive through daemon restarts. The process lifecycle is separate from the UI client: detaching or closing the UI does not stop a managed agent, and the daemon can reconnect to its terminal later.
+
+## Plugins and snapshots
+
+Plugins extend a session with startup commands, event handlers, and on-demand actions. Snapshots save the workspace layout so Hive can restore it after a host reboot. See [Plugins](/docs/config/plugins/) and [Persistence](/docs/use/persistence/).

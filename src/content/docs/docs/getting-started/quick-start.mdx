@@ -1,0 +1,80 @@
+---
+title: Quick Start
+description: Start Hive, explore a demo workspace, run your coding agent, and learn how to return to work that keeps running.
+source: https://github.com/admirable-oss/hive/blob/main/README.md#quick-start
+---
+
+import LinkList from '@/components/docs/LinkList.astro';
+
+If Hive is not installed yet, follow the [installation guide](/docs/getting-started/installation/). This walkthrough assumes the `hive` command is available in your terminal. If you built Hive from source, run `./hive` from the repository instead.
+
+:::tip[◇ v1.0 release candidates]
+Hive is built in public. The CLI, configuration, wire API, and Go SDK are frozen for the 1.x release series; see the [compatibility policy](https://github.com/admirable-oss/hive/blob/main/docs/compatibility.md).
+:::
+
+## Start a demo workspace
+
+Run the demo command to start Hive's daemon and launch four demo agents. Then open the multiplexer:
+
+```sh
+hive demo
+hive
+```
+
+For a source build, use `./hive demo` and `./hive`. Hive starts its daemon on demand whenever a command needs it, so a separate daemon setup is not required.
+
+## Explore the workspace
+
+Hive works like a terminal multiplexer. You can use the mouse to focus panes, drag their borders to resize them, select text to copy, and scroll through pane history.
+
+For keyboard controls, press the prefix <kbd>Ctrl</kbd>+<kbd>B</kbd>, then press an action key:
+
+| After <kbd>Ctrl</kbd>+<kbd>B</kbd> | Action |
+| --- | --- |
+| <kbd>%</kbd> / <kbd>"</kbd> | Split the pane right / down |
+| <kbd>←</kbd> <kbd>↓</kbd> <kbd>↑</kbd> <kbd>→</kbd> or <kbd>h</kbd> <kbd>j</kbd> <kbd>k</kbd> <kbd>l</kbd> | Move between panes; <kbd>Space</kbd> enters sticky navigation and <kbd>r</kbd> enters resize mode |
+| <kbd>z</kbd> / <kbd>x</kbd> | Zoom the pane / close it |
+| <kbd>c</kbd> | Create a tab |
+| <kbd>1</kbd>–<kbd>9</kbd> | Switch to a tab |
+| <kbd>n</kbd> / <kbd>p</kbd> | Next / previous tab |
+| <kbd>w</kbd> | Find an agent or pane |
+| <kbd>O</kbd> | Open the overview of agents and panes |
+| <kbd>[</kbd> | Enter copy mode; use `/` to search, `v` to select, and `y` to copy |
+| <kbd>?</kbd> | Show and filter the keybinding list |
+| <kbd>d</kbd> | Detach from the workspace |
+
+The full list is available in [Keystrokes](/docs/getting-started/keystrokes/), or press <kbd>Ctrl</kbd>+<kbd>B</kbd> then <kbd>?</kbd> inside Hive.
+
+## Run your coding agent
+
+Start an agent in a pane as you would in a regular terminal. For example, if Claude Code is installed and authenticated on your machine, run:
+
+```sh
+claude
+```
+
+Hive also works with Codex, OpenCode, and other CLI agents. Install and sign in to your chosen agent separately; Hive provides the persistent panes and workspace around it. See [Agents](/docs/use/ai-agents/) for the current integration details.
+
+## Detach and return
+
+Detach with <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>D</kbd>. Your agents continue running after you leave the multiplexer. Run `hive` again to return to the workspace.
+
+You can list running agent sessions and attach directly to one from another terminal:
+
+```sh
+hive ps list
+hive terminal attach <id>
+```
+
+Press <kbd>Ctrl</kbd>+<kbd>]</kbd> to detach from an individual agent terminal. To stop the Hive runtime and all agents it manages, use `hive stop`; this is different from detaching.
+
+## Where next
+
+<LinkList
+  items={[
+    { href: '/docs/getting-started/installation/', title: 'Installation', detail: 'Install a release or build Hive from source' },
+    { href: '/docs/getting-started/core-concepts/', title: 'Core concepts', detail: 'Understand the daemon, clients, and agent shims' },
+    { href: '/docs/getting-started/keystrokes/', title: 'Keystrokes', detail: 'Browse the complete keyboard reference' },
+    { href: '/docs/config/configuration/', title: 'Configuration', detail: 'Customize your workspace and keybindings' },
+  ]}
+/>

@@ -1,0 +1,72 @@
+---
+title: Configuration
+description: Find Hive's config file, validate changes, and tune the runtime, interface, notifications, and keybindings.
+source: https://github.com/admirable-oss/hive/blob/main/docs/config.md
+---
+
+Hive reads optional settings from a TOML file. You can use the defaults without creating one; create a commented file when you want to customize Hive.
+
+## Locate and initialize the file
+
+```sh
+hive config path
+hive config init
+```
+
+The default location is `~/.config/hive/config.toml`. Hive also checks `$XDG_CONFIG_HOME/hive/config.toml`; set `HIVE_CONFIG` to choose a specific config file. Runtime state such as logs, snapshots, and process records lives under `~/.hive`; set `HIVE_HOME` to change that data directory.
+
+Print the complete default config or inspect the current effective config with:
+
+```sh
+hive config default
+hive config show
+```
+
+## Validate changes
+
+After editing the file, ask Hive to check it:
+
+```sh
+hive config validate
+```
+
+Unknown keys and invalid values are reported as warnings and fall back to defaults. Invalid TOML prevents the daemon from starting, so fix syntax errors before launching Hive. Settings are read by the daemon; restart it to apply daemon-side changes. Agent processes keep running through a daemon restart:
+
+```sh
+hive daemon restart
+```
+
+## Common settings
+
+| Goal | Setting |
+| --- | --- |
+| Disable automatic daemon startup | `[daemon].autostart` |
+| Change the default shell or terminal size | `[terminal].shell`, `default_width`, `default_height` |
+| Keep more scrollback | `[terminal].scrollback_mb` |
+| Choose which agent states notify you | `[notify].on` and `[notify.agents]` |
+| Change theme or sidebar size | `[theme].name`, `[ui].sidebar_width` |
+| Set another prefix or rebind actions | `[keys]` and `[keys.<mode>]` |
+| Limit remote screen-update bandwidth | `[remote].frame_budget_kb` |
+| Keep or remove process logs sooner | `[retention]` |
+| Change where agent worktrees are created | `[worktrees].directory` |
+
+For example, change the prefix and enable system notifications for blocked agents:
+
+```toml
+[keys]
+prefix_keys = ["ctrl+a"]
+
+[notify]
+on = ["blocked", "done"]
+system = true
+```
+
+Hive's full settings, defaults, and key tables are in the [Configuration Reference](/docs/config/config-reference/). For shortcut syntax and modes, see [Keystrokes](/docs/getting-started/keystrokes/).
+
+## Restore the default keybindings
+
+If a custom keymap makes Hive hard to use, reset it without removing other settings:
+
+```sh
+hive config reset-keys
+```

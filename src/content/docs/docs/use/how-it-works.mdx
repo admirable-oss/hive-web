@@ -1,0 +1,58 @@
+---
+title: How Hive Works
+description: A practical overview of the Hive daemon, terminal client, environments, and persistent agent processes.
+source: https://github.com/admirable-oss/hive/blob/main/docs/concepts.md
+---
+
+Hive gives command-line agents a persistent place to work. You keep using the coding tools you already know; Hive organizes their terminals, shows what they are doing, and keeps them running when you detach.
+
+## The moving parts
+
+```text
+You → hive CLI / terminal UI → daemon → shim → agent process
+                                    └── environments, tabs, panes, snapshots
+```
+
+- **CLI and terminal UI:** The `hive` command opens the multiplexer or runs a management command. Both are clients of the daemon.
+- **Daemon:** Starts on demand and coordinates Hive's environments, processes, and saved workspace state.
+- **Environment:** A named working directory, usually a repository or worktree. Agents in an environment share its project context and environment variables.
+- **Tab and pane:** Tabs organize layouts; panes display terminal processes in those layouts.
+- **Shim:** A small supervisor attached to each agent process. It keeps the agent's terminal and output alive across daemon restarts.
+
+See [Core Concepts](/docs/getting-started/core-concepts/) for the system model and [Sessions](/docs/use/sessions-and-co/) for how the pieces are grouped.
+
+## Start with a project
+
+Open Hive from a repository directory. Create a named environment for it, then start an agent:
+
+```sh
+cd ~/src/app
+hive env create app --cwd .
+hive agent start --kind claude --env app
+```
+
+Hive opens the agent in a new tab. Its terminal remains available in the multiplexer, and the sidebar shows its detected state. Start more agents in the same environment or give concurrent changes separate worktrees:
+
+```sh
+hive agent start --kind codex --env app --worktree fix/login
+```
+
+## Keep work moving
+
+Detach with <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>D</kbd>. The UI closes while the agent continues. Run `hive` later to return, or use the CLI to inspect output and send work:
+
+```sh
+hive agent list
+hive agent prompt <agent> "Add a regression test for the login redirect" --wait --read 40
+```
+
+Hive can restore a saved workspace after a reboot and resume supported agents' conversations when their integration hooks are installed. See [Persistence](/docs/use/persistence/).
+
+## Choose how you work
+
+You can manage agents interactively in the multiplexer, script the CLI with JSON or templates, or let another agent call Hive through MCP. For work on another machine, Hive can drive a remote daemon over SSH while keeping the interface on your local machine.
+
+- [Agents](/docs/use/ai-agents/) — supported tools and agent states.
+- [Orchestration](/docs/use/ai-orchestration/) — give agents work and collect results.
+- [Remote Control](/docs/use/rc-ra/) — work with local and remote machines.
+- [CLI Reference](/docs/ref/cli-reference/) — commands and output formats.

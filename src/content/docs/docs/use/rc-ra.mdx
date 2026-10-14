@@ -1,0 +1,50 @@
+---
+title: Hive RC — Remote Control
+description: Control Hive on another computer over SSH, use saved machines, and switch between remote agents.
+source: https://github.com/admirable-oss/hive/blob/main/docs/remote.md
+---
+
+Hive can run agents on another computer while you use the CLI and multiplexer locally. The remote machine runs its own Hive daemon and agent processes; your local client displays and controls them over your existing SSH connection.
+
+## Run a one-off remote command
+
+Use `--remote <host>` before a command. The host is an SSH destination, so your normal `~/.ssh/config`, keys, and SSH agent apply:
+
+```sh
+hive --remote me@build-box agent list
+hive --remote me@build-box
+```
+
+The first connection may ask to install or update Hive on the remote machine. Review the prompt before accepting. Use `--yes` only when you intentionally want an automated install or update.
+
+Paths passed to a remote command, such as `--cwd`, refer to paths on the remote machine.
+
+## Save a machine
+
+For a machine you use often, give it a short name:
+
+```sh
+hive machine add build me@build-box
+hive machine status
+hive --machine build agent list
+```
+
+The multiplexer can list saved machines and their agents in the sidebar. Select a machine or agent to view its workspace. Useful machine commands include:
+
+```sh
+hive machine list
+hive machine status build
+hive machine reconnect build
+hive machine disable build
+hive machine remove build
+```
+
+Removing a machine forgets its local connection record; it does not stop the daemon or agents on the remote host.
+
+## Connection model
+
+Hive uses SSH to run `hive proxy` remotely and bridge the connection to that host's local daemon socket. It does not open a public network port. SSH authentication and host-key checking remain governed by your OpenSSH configuration.
+
+Screen updates are compressed and paced for remote links. Tune the per-client data limit with `remote.frame_budget_kb` in the [configuration](/docs/config/config-reference/). Lowering the budget reduces bandwidth and can make screen updates arrive less often.
+
+For connection errors, first verify that `ssh <host>` works in a regular terminal, then see [Troubleshooting](/docs/help/troubleshoot/).

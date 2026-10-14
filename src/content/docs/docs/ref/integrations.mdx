@@ -1,0 +1,41 @@
+---
+title: Integrations
+description: Install agent hooks, connect Claude Code to Hive's MCP tools, and add screen-detected agent CLIs.
+source: https://github.com/admirable-oss/hive/blob/main/docs/agents.md
+---
+
+Hive integrates with agent CLIs in two ways: terminal-screen detection works for the supported agents, while hooks give Claude Code and Codex precise state and conversation-ID reports.
+
+## Agent hooks
+
+Install or remove the supported hooks with:
+
+```sh
+hive integration install claude
+hive integration install codex
+hive integration uninstall claude
+```
+
+Hooks report state changes, including when an agent is waiting for approval, and let Hive resume the correct conversation after a restart. The installer is designed to be repeatable and preserves a backup of agent settings.
+
+Without hooks, Hive reads the agent's visible screen and uses the manifest's resume-latest command after a restore. That can choose the wrong conversation if multiple agents share a working directory; separate them with worktrees.
+
+## Screen-detected agents
+
+Hive includes manifests for Claude Code, Codex, OpenCode, Gemini CLI, Cursor Agent, GitHub Copilot CLI, Amp, and Aider. The latter six are detected from process and terminal-screen signals. You can inspect loaded definitions with `hive agent manifests` and investigate a state with `hive agent explain <agent>`.
+
+To add or tune a CLI, create an agent manifest under `~/.config/hive/agent-detection/`. See [Custom Agent Support](/docs/optimize/custom-agent-hive-support/).
+
+## MCP server
+
+Hive can provide agent-control tools over MCP's standard I/O transport. Register the server with Claude Code using:
+
+```sh
+claude mcp add hive -- hive mcp
+```
+
+The MCP tools let an agent list environments, start and prompt other agents, wait for results, read output, and operate panes. They act on the Hive session available to the `hive mcp` process.
+
+## Agent skill
+
+The `hive --skill` option prints a set of instructions for agents that coordinate work through Hive. See [Agent Skill](/docs/ref/agent-skill/) for the recommended use.

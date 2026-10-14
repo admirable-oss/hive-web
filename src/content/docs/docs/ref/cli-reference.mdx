@@ -1,0 +1,101 @@
+---
+title: CLI Reference
+description: Common Hive commands, global output options, and exit statuses.
+source: https://github.com/admirable-oss/hive/blob/main/README.md#cli
+---
+
+The `hive` command opens the multiplexer when run without a subcommand. Commands that need the runtime start the daemon automatically unless `daemon.autostart` is disabled.
+
+Run `hive --help` or `hive <command> --help` to see the options supported by your installed release.
+
+## Global options and output
+
+| Option | Purpose |
+| --- | --- |
+| `--json` | Print machine-readable JSON. |
+| `--template '<template>'` | Format command output with a Go template. |
+| `--session <name>` | Select a named local session. |
+| `--remote <host>` | Run the command against a Hive daemon reached over SSH. |
+| `--machine <name>` | Use a saved remote machine. |
+| `--yes` | Accept supported confirmation prompts in automation. |
+
+Examples:
+
+```sh
+hive --json agent list
+hive env list --template '{{range .}}{{.id}} {{.path}}{{"\n"}}{{end}}'
+hive --remote build-box agent list
+```
+
+## Environments and worktrees
+
+| Command | Purpose |
+| --- | --- |
+| `hive env list` | List environments. |
+| `hive env create <id> --cwd <path>` | Create an environment at an existing directory. |
+| `hive env get <id>` | Inspect an environment. |
+| `hive env rm <id>` | Remove an environment and stop its agents. |
+| `hive worktree create <branch>` | Create a worktree for isolated agent work. |
+| `hive worktree list` | List worktrees. |
+| `hive worktree open <branch>` | Open an existing worktree in Hive. |
+
+## Agents and processes
+
+| Command | Purpose |
+| --- | --- |
+| `hive agent list` | List recognized agents and their states. |
+| `hive agent get <agent>` | Inspect an agent. |
+| `hive agent explain <agent>` | Show why Hive assigned its current state. |
+| `hive agent start --kind <kind> --env <env>` | Start an agent in a new tab. Add `--worktree <branch>` for an isolated checkout. |
+| `hive agent prompt <agent> <text> [--wait] [--read N]` | Send a prompt; optionally wait and print recent output. |
+| `hive agent wait <agent> --until idle\|done` | Wait for an agent state. |
+| `hive agent read <agent>` | Read terminal output. |
+| `hive agent stop <agent>` | Stop an agent. |
+| `hive ps list` | List running and recorded processes. |
+| `hive ps logs <id> [-n N] [-f] [--stderr]` | Read or follow process output logs. |
+| `hive terminal attach <id>` | Attach directly to an agent terminal; <kbd>Ctrl</kbd>+<kbd>]</kbd> detaches. |
+| `hive terminal snapshot <id> [--scrollback N]` | Print a terminal's current screen and optional history. |
+
+## Runtime and session
+
+| Command | Purpose |
+| --- | --- |
+| `hive status`, `hive ping`, `hive version` | Check Hive and the daemon version/status. |
+| `hive daemon start\|stop\|status\|logs` | Manage the background daemon. |
+| `hive daemon restart` | Restart the daemon while agent shims keep running. |
+| `hive daemon install\|uninstall` | Install or remove the login service (launchd on macOS, systemd user service on Linux). |
+| `hive session save` | Save a workspace snapshot now. |
+| `hive session restore [--fresh]` | Restore panes that were lost. `--fresh` starts agents without resuming their prior conversation. |
+| `hive stop` | Stop the runtime and all agents it manages. |
+| `hive gc [--dry-run] [--older-than <duration>]` | Remove old records and leftover data; dry run previews cleanup. |
+| `hive update [--check] [--version <tag>] [--channel stable\|preview]` | Check for or install an update. |
+
+## Integrations and automation
+
+| Command | Purpose |
+| --- | --- |
+| `hive integration install <kind>` | Install supported agent hooks. |
+| `hive integration uninstall <kind>` | Remove installed hooks. |
+| `hive mcp` | Serve Hive agent and workspace tools over MCP. |
+| `hive --skill` | Print Hive's agent-operation skill. |
+| `hive events [type-prefix…]` | Stream daemon events as JSON lines. |
+| `hive api schema` | Print the API methods and schemas. |
+| `hive api snapshot` | Print a snapshot of current runtime state. |
+| `hive completion <shell>` | Generate shell completion. |
+
+## Configuration, plugins, and machines
+
+| Command | Purpose |
+| --- | --- |
+| `hive config path\|show\|default\|init\|validate` | Locate, inspect, create, or validate the config file. |
+| `hive config reset-keys` | Restore default built-in keybindings. |
+| `hive plugin install\|link\|list\|info\|enable\|disable\|uninstall\|run\|logs` | Manage plugins. |
+| `hive machine add\|list\|status\|reconnect\|remove` | Save and manage SSH destinations. |
+| `hive debug stats` | Print daemon runtime statistics. |
+| `hive debug pprof [--profile <name>] [--seconds N] [-o <file>]` | Capture a runtime profile for performance investigation. |
+
+## Exit statuses
+
+Hive uses `0` for success, `1` for a runtime error, `2` for invalid command-line usage, and `3` when a command requires a daemon that is not running. Agent wait commands also use `4` for timeout and `5` when an agent blocks, stalls, or exits before the requested state.
+
+For API calls outside the CLI, see [Socket API](/docs/ref/socket-api/). For task workflows, see [Orchestration](/docs/use/ai-orchestration/).

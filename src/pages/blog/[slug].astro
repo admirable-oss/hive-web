@@ -1,0 +1,139 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogFrame from '../../components/blog/BlogFrame.astro';
+import { publishedPosts, postUrl, readingTime, slugify, categoryUrl } from '../../lib/blog';
+export async function getStaticPaths() {
+  return publishedPosts(await getCollection('blog')).map((post) => ({ params: { slug: post.id.replace(/\.(md|mdx)$/, '') }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const posts = publishedPosts(await getCollection('blog'));
+const index = posts.findIndex((entry) => entry.id === post.id);
+const previous = posts[index + 1];
+const next = posts[index - 1];
+const related = posts.filter((entry) => entry.id !== post.id && (
+  entry.data.categories.some((category) => post.data.categories.some((own) => slugify(own) === slugify(category))) ||
+  entry.data.tags.some((tag) => post.data.tags.includes(tag))
+)).slice(0, 2);
+const canonical = post.data.seo?.canonical ?? new URL(`/blog/${post.id.replace(/\.(md|mdx)$/, '')}/`, Astro.site).href;
+const title = post.data.seo?.title ?? `${post.data.title} | Hive Blog`;
+const description = post.data.seo?.description ?? post.data.description;
+const image = post.data.cover ?? '/og-image.png';
+const imageAlt = post.data.cover ? (post.data.coverAlt ?? '') : 'Hive — Coding agents that don’t clock out.';
+const shareTitle = encodeURIComponent(post.data.title);
+const shareUrl = encodeURIComponent(canonical);
+const articleJsonLd = {
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  ...(post.data.cover ? { image: new URL(post.data.cover, Astro.site).href } : {}),
+  datePublished: post.data.pubDate.toISOString(),
+  dateModified: (post.data.updatedDate ?? post.data.pubDate).toISOString(),
+  author: { '@type': 'Person', name: post.data.author.name, ...(post.data.author.url ? { url: post.data.author.url } : {}) },
+  publisher: { '@type': 'Organization', name: 'Hive', url: new URL('/', Astro.site).href },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  inLanguage: 'en',
+};
+const jsonLd = post.data.faq.length || post.data.howTo.length ? {
+  '@context': 'https://schema.org',
+  '@graph': [
+    articleJsonLd,
+    ...(post.data.faq.length ? [{
+      '@type': 'FAQPage',
+      mainEntity: post.data.faq.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      })),
+    }] : []),
+    ...(post.data.howTo.length ? [{
+      '@type': 'HowTo',
+      name: post.data.title,
+      description: post.data.description,
+      step: post.data.howTo.map((item) => ({ '@type': 'HowToStep', name: item.name, text: item.text })),
+    }] : []),
+  ],
+} : { '@context': 'https://schema.org', ...articleJsonLd };
+---
+<BlogFrame title={title} description={description} canonical={canonical} image={image} imageAlt={imageAlt} noindex={post.data.seo?.noindex ?? false} ogType="article" jsonLd={jsonLd} publishedTime={post.data.pubDate.toISOString()} modifiedTime={(post.data.updatedDate ?? post.data.pubDate).toISOString()}>
+  <main class="article-wrap">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Hive</a><span>/</span><a href="/blog">Field notes</a><span>/</span><span aria-current="page">Article</span></nav>
+    <header class="article-header">
+      <div class="article-categories">{post.data.categories.map((category) => <a href={categoryUrl(slugify(category))}>{category}</a>)}</div>
+      <h1>{post.data.title}</h1>
+      <p class="article-lede">{post.data.description}</p>
+      <div class="article-byline">
+        {post.data.author.avatar && <img class="author-avatar" src={post.data.author.avatar} alt="" width="38" height="38" />}
+        <div><div class="author-name">{post.data.author.url ? <a href={post.data.author.url}>{post.data.author.name}</a> : post.data.author.name}</div>{post.data.author.role && <div class="author-role">{post.data.author.role}</div>}</div>
+        <div class="article-facts">
+          <span><b>Published</b><time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</time></span>
+          <span><b>Reading time</b>{readingTime(post.body)} min</span>
+          {post.data.updatedDate && post.data.updatedDate > post.data.pubDate && <span><b>Updated</b><time datetime={post.data.updatedDate.toISOString()}>{post.data.updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</time></span>}
+        </div>
+      </div>
+    </header>
+    {post.data.cover && <figure class="article-cover"><img src={post.data.cover} alt={post.data.coverAlt ?? ''} fetchpriority="high" /></figure>}
+    <div class="article-columns">
+      <article class="article-body">
+        <Content />
+        {post.data.faq.length > 0 && <section class="article-faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Frequently asked questions</h2>
+          {post.data.faq.map((item) => <details class="article-faq-item"><summary>{item.question}</summary><p>{item.answer}</p></details>)}
+        </section>}
+      </article>
+      {headings.length > 0 && <aside class="toc" aria-label="On this page"><p class="toc-title">On this page</p><details open><summary>On this page</summary><ul>{headings.filter((heading) => heading.depth === 2 || heading.depth === 3).map((heading) => <li><a href={`#${heading.slug}`}>{heading.text}</a></li>)}</ul></details></aside>}
+    </div>
+    <nav class="article-share" aria-label="Share this article">
+      <span class="article-share-label">SHARE THIS ARTICLE</span>
+      <a href={`https://x.com/intent/post?text=${shareTitle}&url=${shareUrl}`} target="_blank" rel="noopener noreferrer">X <span aria-hidden="true">↗</span></a>
+      <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`} target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+      <button type="button" data-copy-article data-url={canonical}>Copy link</button>
+      <span class="copy-status" aria-live="polite"></span>
+    </nav>
+    <section class="related-section" aria-labelledby="related-title">
+      <div class="related-heading"><div><p class="related-kicker">KEEP EXPLORING</p><h2 id="related-title">Similar field notes</h2></div><a href="/blog/">All articles <span aria-hidden="true">↗</span></a></div>
+      {related.length > 0 ? <div class="related-links">{related.map((entry) => <a href={postUrl(entry)}><span>{entry.data.categories[0]} · {readingTime(entry.body)} MIN READ</span>{entry.data.title}<small>{entry.data.description}</small></a>)}</div> : <p class="related-empty">More field notes are on the way. In the meantime, explore Hive’s <a href="/docs/getting-started/core-concepts/">core concepts</a> or browse the <a href="https://github.com/admirable-oss/hive">open-source project</a>.</p>}
+    </section>
+    {(previous || next) && <nav class:list={["article-neighbors", !(previous && next) && "single"]} aria-label="Other articles"><h2>Continue reading</h2>{previous && <a class="neighbor-link" href={postUrl(previous)}><span>← Newer article</span>{previous.data.title}</a>}{next && <a class="neighbor-link next" href={postUrl(next)}><span>Older article →</span>{next.data.title}</a>}</nav>}
+    <a class="back-to-blog" href="/blog">← All field notes</a>
+  </main>
+</BlogFrame>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-article]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const status = button.parentElement?.querySelector<HTMLElement>('.copy-status');
+      try {
+        await navigator.clipboard.writeText(button.dataset.url ?? window.location.href);
+        button.textContent = 'Copied';
+        if (status) status.textContent = 'Link copied to clipboard.';
+        window.setTimeout(() => { button.textContent = 'Copy link'; }, 1800);
+      } catch {
+        if (status) status.textContent = 'Copy unavailable. Select the page URL to share it.';
+      }
+    });
+  });
+</script>
+
+<script>
+  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('.toc a[href^="#"]')];
+  const articleHeadings = tocLinks
+    .map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+    .filter((heading): heading is HTMLElement => heading instanceof HTMLElement);
+
+  if ('IntersectionObserver' in window && articleHeadings.length) {
+    const linksById = new Map(tocLinks.map((link) => [decodeURIComponent(link.hash.slice(1)), link]));
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const active = visible[0]?.target as HTMLElement | undefined;
+      if (!active) return;
+      for (const [id, link] of linksById) {
+        if (id === active.id) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
+    }, { rootMargin: '-14% 0px -72% 0px', threshold: 0 });
+
+    articleHeadings.forEach((heading) => observer.observe(heading));
+  }
+</script>

@@ -1,14 +1,37 @@
 import { defineConfig, envField } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
+import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const REPO = 'https://github.com/admirable-oss/hive';
 const SITE = 'https://hive.admir-saheta.com';
 const GA_MEASUREMENT_ID = 'G-579TFV1E9W';
+
+const noindexBlogPaths = (() => {
+  const paths = new Set();
+  const root = new URL('./src/content/blog/', import.meta.url);
+  const visit = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const file = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, directory);
+      if (entry.isDirectory()) visit(file);
+      else if (/\.(md|mdx)$/.test(entry.name)) {
+        const source = readFileSync(file, 'utf8');
+        const frontmatter = source.match(/^---\s*\n([\s\S]*?)\n---/)?.[1] ?? '';
+        const seo = frontmatter.match(/^seo:\s*\n((?:[ \t].*\n?)*)/m)?.[1] ?? '';
+        if (/^[ \t]+noindex:\s*true\s*$/m.test(seo)) {
+          const relative = file.pathname.slice(root.pathname.length).replace(/\.(md|mdx)$/, '');
+          paths.add(`/blog/${relative}`);
+        }
+      }
+    }
+  };
+  try { visit(root); } catch { /* Blog content may not exist in an early checkout. */ }
+  return paths;
+})();
 
 const pluginPages = (() => {
   try {
@@ -130,6 +153,10 @@ export default defineConfig({
 
     sitemap({
       customPages: pluginPages,
+      filter(page) {
+        const pathname = new URL(page).pathname.replace(/\/+$/, '');
+        return !noindexBlogPaths.has(pathname) && !pathname.split('/').includes('sort');
+      },
       serialize(item) {
         item.lastmod = new Date();
         const url = item.url.replace(/\/$/, '');
@@ -304,5 +331,6 @@ export default defineConfig({
         },
       ],
     }),
+    mdx({ optimize: true }),
   ],
 });

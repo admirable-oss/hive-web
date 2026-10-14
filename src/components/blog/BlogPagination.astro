@@ -1,0 +1,9 @@
+---
+const { current, total, base } = Astro.props;
+const href = (page: number) => page === 1 ? `${base.replace(/\/$/, '')}/` : `${base.replace(/\/$/, '')}/page/${page}/`;
+---
+{total > 1 && <nav class="pagination" aria-label="Article pages">
+  <a href={current > 1 ? href(current - 1) : undefined} aria-disabled={current <= 1} class:list={{ disabled: current <= 1 }}>← <span>Previous</span></a>
+  <div class="page-numbers">{Array.from({ length: total }, (_, index) => index + 1).map((page) => <a href={href(page)} aria-current={current === page ? 'page' : undefined} class:list={{ selected: current === page }}>{page}</a>)}</div>
+  <a href={current < total ? href(current + 1) : undefined} aria-disabled={current >= total} class:list={{ disabled: current >= total }}><span>Next</span> →</a>
+</nav>}

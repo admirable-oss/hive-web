@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import BlogFrame from '../../../../../../components/blog/BlogFrame.astro';
+import BlogHero from '../../../../../../components/blog/BlogHero.astro';
+import BlogPostCard from '../../../../../../components/blog/BlogPostCard.astro';
+import BlogPagination from '../../../../../../components/blog/BlogPagination.astro';
+import BlogSortControl from '../../../../../../components/blog/BlogSortControl.astro';
+import { BLOG_PAGE_SIZE, categoriesFor, publishedPosts, sortModesFor, sortPosts, slugify, type BlogSortMode, categoryUrl } from '../../../../../../lib/blog';
+
+export async function getStaticPaths() {
+  const all = publishedPosts(await getCollection('blog'));
+  return categoriesFor(all).flatMap(({ slug, name }) => {
+    const categoryPosts = all.filter((post) => post.data.categories.some((category) => slugify(category) === slug));
+    return sortModesFor(categoryPosts).filter((mode) => mode !== 'latest').map((sort) => ({ params: { category: slug, sort }, props: { name } }));
+  });
+}
+
+const { name } = Astro.props;
+const sort = Astro.params.sort as BlogSortMode;
+const allPosts = publishedPosts(await getCollection('blog'));
+const categoryPosts = allPosts.filter((post) => post.data.categories.some((category) => slugify(category) === Astro.params.category));
+const posts = sortPosts(categoryPosts, sort);
+const pagePosts = posts.slice(0, BLOG_PAGE_SIZE);
+const categories = categoriesFor(allPosts);
+const totalPages = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+const base = `/blog/category/${Astro.params.category}/sort/${sort}`;
+const canonical = new URL(`${base}/`, Astro.site).href;
+const sortLabel: Record<BlogSortMode, string> = { latest: 'Latest', oldest: 'Oldest', shortest: 'Shortest read', longest: 'Longest read', title: 'Title A–Z', 'most-read': 'Most read' };
+---
+<BlogFrame title={`${name} — ${sortLabel[sort]} | Hive Blog`} description={`Articles about ${name.toLowerCase()}, sorted by ${sortLabel[sort].toLowerCase()}.`} canonical={canonical} noindex>
+  <BlogHero count={categoryPosts.length} eyebrow={`FIELD NOTES / ${name.toUpperCase()} / ${sortLabel[sort].toUpperCase()}`} />
+  <main class="blog-main"><div class="blog-layout">
+    <aside class="category-sidebar" aria-label="Article categories"><p class="browse-heading">BROWSE / {allPosts.length}</p><nav class="category-list"><a href="/blog"><span>All articles</span><span>{allPosts.length}</span></a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}><span>{category.name}</span><span>{category.count}</span></a>)}</nav></aside>
+    <section aria-label={`${name} articles sorted by ${sortLabel[sort]}`}>
+      <nav class="mobile-categories" aria-label="Filter articles by category"><a href="/blog">All / {allPosts.length}</a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}>{category.name} / {category.count}</a>)}</nav>
+      <BlogSortControl posts={categoryPosts} base={`/blog/category/${Astro.params.category}`} current={sort} />
+      {pagePosts.length ? <div class="post-grid">{pagePosts.map((post) => <BlogPostCard post={post} />)}</div> : <p class="empty-state">There are no published articles in this category yet.</p>}
+      <BlogPagination current={1} total={totalPages} base={base} />
+    </section>
+  </div></main>
+</BlogFrame>

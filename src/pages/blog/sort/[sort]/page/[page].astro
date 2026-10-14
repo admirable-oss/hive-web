@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import BlogFrame from '../../../../../components/blog/BlogFrame.astro';
+import BlogHero from '../../../../../components/blog/BlogHero.astro';
+import BlogPostCard from '../../../../../components/blog/BlogPostCard.astro';
+import BlogPagination from '../../../../../components/blog/BlogPagination.astro';
+import BlogSortControl from '../../../../../components/blog/BlogSortControl.astro';
+import { BLOG_PAGE_SIZE, categoriesFor, publishedPosts, sortModesFor, sortPosts, type BlogSortMode, categoryUrl } from '../../../../../lib/blog';
+
+export async function getStaticPaths() {
+  const posts = publishedPosts(await getCollection('blog'));
+  return sortModesFor(posts).filter((mode) => mode !== 'latest').flatMap((sort) => {
+    const total = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+    return Array.from({ length: Math.max(0, total - 1) }, (_, index) => ({ params: { sort, page: String(index + 2) } }));
+  });
+}
+
+const sort = Astro.params.sort as BlogSortMode;
+const page = Number(Astro.params.page);
+const allPosts = publishedPosts(await getCollection('blog'));
+const posts = sortPosts(allPosts, sort);
+const totalPages = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+if (!Number.isInteger(page) || page < 2 || page > totalPages) Astro.response.status = 404;
+const pagePosts = posts.slice((page - 1) * BLOG_PAGE_SIZE, page * BLOG_PAGE_SIZE);
+const categories = categoriesFor(allPosts);
+const base = `/blog/sort/${sort}`;
+const canonical = new URL(`${base}/page/${page}/`, Astro.site).href;
+const sortLabel: Record<BlogSortMode, string> = { latest: 'Latest', oldest: 'Oldest', shortest: 'Shortest read', longest: 'Longest read', title: 'Title A–Z', 'most-read': 'Most read' };
+---
+<BlogFrame title={`Hive Blog — ${sortLabel[sort]}, Page ${page}`} description={`Hive field notes sorted by ${sortLabel[sort].toLowerCase()}, page ${page}.`} canonical={canonical} noindex>
+  <BlogHero count={allPosts.length} eyebrow={`FIELD NOTES / ${sortLabel[sort].toUpperCase()} / ${String(page).padStart(2, '0')}`} />
+  <main class="blog-main"><div class="blog-layout">
+    <aside class="category-sidebar" aria-label="Article categories"><p class="browse-heading">BROWSE / {allPosts.length}</p><nav class="category-list"><a href="/blog"><span>All articles</span><span>{allPosts.length}</span></a>{categories.map((category) => <a href={categoryUrl(category.slug)}><span>{category.name}</span><span>{category.count}</span></a>)}</nav></aside>
+    <section aria-label={`Articles sorted by ${sortLabel[sort]}, page ${page}`}>
+      <nav class="mobile-categories" aria-label="Filter articles by category"><a href="/blog">All / {allPosts.length}</a>{categories.map((category) => <a href={categoryUrl(category.slug)}>{category.name} / {category.count}</a>)}</nav>
+      <BlogSortControl posts={allPosts} base="/blog" current={sort} />
+      <div class="post-grid">{pagePosts.map((post) => <BlogPostCard post={post} />)}</div>
+      <BlogPagination current={page} total={totalPages} base={base} />
+    </section>
+  </div></main>
+</BlogFrame>

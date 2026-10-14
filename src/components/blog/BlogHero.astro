@@ -1,0 +1,35 @@
+---
+const { count, eyebrow = 'FIELD NOTES / HIVE' } = Astro.props;
+---
+<section class="blog-hero" aria-labelledby="blog-title">
+  <div class="hero-atmosphere" aria-hidden="true">
+    <svg viewBox="0 0 1200 380" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="hero-glow"><stop stop-color="#F5B942" stop-opacity=".13"/><stop offset="1" stop-color="#F5B942" stop-opacity="0"/></radialGradient>
+        <linearGradient id="line-fade"><stop stop-color="#F5B942" stop-opacity="0"/><stop offset=".5" stop-color="#F5B942" stop-opacity=".28"/><stop offset="1" stop-color="#F5B942" stop-opacity="0"/></linearGradient>
+      </defs>
+      <ellipse cx="850" cy="90" rx="440" ry="280" fill="url(#hero-glow)" />
+      <g class="network-lines" fill="none" stroke="url(#line-fade)" stroke-width=".7">
+        <path d="M440 310 570 210 690 264 810 126 940 185 1090 60"/><path d="m570 210 31-125 209 41 87-116"/><path d="m690 264 55 98 195-177 94 115 160-82"/><path d="m810 126 130 59 71-119 151 16"/><path d="m440 310 118 48 132 4 55-98"/>
+      </g>
+      <g fill="#F5B942" class="network-nodes"><circle cx="570" cy="210" r="2"/><circle cx="690" cy="264" r="2.5"/><circle cx="810" cy="126" r="2"/><circle cx="940" cy="185" r="3"/><circle cx="1090" cy="60" r="2"/><circle cx="745" cy="362" r="1.5"/><circle cx="601" cy="85" r="1.5"/></g>
+      <path class="particle-path" d="M570 210 690 264 810 126 940 185 1090 60" fill="none" stroke="#F5B942" stroke-width="2" />
+    </svg>
+  </div>
+  <div class="blog-hero-content">
+    <p class="eyebrow"><span class="status-dot"></span>{eyebrow}</p>
+    <h1 id="blog-title">Ideas, experiments, and<br class="desktop-break" /> engineering behind Hive.</h1>
+    <p class="hero-description">Deep dives into persistent coding agents, developer infrastructure, agent orchestration, and the systems that keep software moving.</p>
+    <p class="hero-count"><span>{String(count).padStart(2, '0')}</span> {count === 1 ? 'ARTICLE' : 'ARTICLES'} <span class="count-divider">/</span> INDEPENDENTLY BUILT, OPEN SOURCE</p>
+  </div>
+</section>
+
+<script>
+  const hero = document.querySelector('.blog-hero');
+  if (hero && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(([entry]) => {
+      hero.classList.toggle('is-visible', entry.isIntersecting);
+    });
+    observer.observe(hero);
+  }
+</script>

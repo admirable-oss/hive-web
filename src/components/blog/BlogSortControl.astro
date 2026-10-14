@@ -1,0 +1,41 @@
+---
+import { BLOG_SORT_MODES, hasViewCounts, sortBasePath, type BlogPost, type BlogSortMode } from '../../lib/blog';
+
+const { posts, base = '/blog', current = 'latest' } = Astro.props as {
+  posts: BlogPost[];
+  base?: string;
+  current?: BlogSortMode;
+};
+const labels: Record<BlogSortMode, string> = {
+  latest: 'Latest',
+  oldest: 'Oldest',
+  shortest: 'Shortest read',
+  longest: 'Longest read',
+  title: 'Title A–Z',
+  'most-read': 'Most read',
+};
+const canSortByViews = hasViewCounts(posts);
+const modes = BLOG_SORT_MODES.filter((mode) => mode !== 'most-read' || canSortByViews);
+const options = modes.map((mode) => ({ mode, label: labels[mode], href: sortBasePath(base, mode) }));
+---
+<div class="blog-sort-control">
+  <label for="blog-sort">SORT BY</label>
+  <select id="blog-sort" data-blog-sort aria-label="Sort articles">
+    {options.map((option) => <option value={option.href} selected={current === option.mode}>{option.label}</option>)}
+    {!canSortByViews && <option value="" disabled>Most read · view data unavailable</option>}
+  </select>
+  {!canSortByViews && <span class="sort-note">Most-read sorting needs verified readership data.</span>}
+</div>
+<noscript>
+  <nav class="blog-sort-fallback" aria-label="Sort articles">
+    {options.map((option) => <a href={option.href} aria-current={current === option.mode ? 'page' : undefined}>{option.label}</a>)}
+  </nav>
+</noscript>
+
+<script>
+  document.querySelectorAll<HTMLSelectElement>('[data-blog-sort]').forEach((select) => {
+    select.addEventListener('change', () => {
+      if (select.value) window.location.assign(select.value);
+    });
+  });
+</script>

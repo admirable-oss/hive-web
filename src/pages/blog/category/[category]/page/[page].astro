@@ -1,0 +1,34 @@
+---
+import { getCollection } from 'astro:content';
+import BlogFrame from '../../../../../components/blog/BlogFrame.astro';
+import BlogHero from '../../../../../components/blog/BlogHero.astro';
+import BlogPostCard from '../../../../../components/blog/BlogPostCard.astro';
+import BlogPagination from '../../../../../components/blog/BlogPagination.astro';
+import BlogSortControl from '../../../../../components/blog/BlogSortControl.astro';
+import { BLOG_PAGE_SIZE, publishedPosts, categoriesFor, slugify, categoryUrl } from '../../../../../lib/blog';
+export async function getStaticPaths() {
+  const all = publishedPosts(await getCollection('blog'));
+  return categoriesFor(all).flatMap(({ slug, name }) => {
+    const count = all.filter((post) => post.data.categories.some((value) => slugify(value) === slug)).length;
+    const total = Math.ceil(count / BLOG_PAGE_SIZE);
+    return Array.from({ length: Math.max(0, total - 1) }, (_, index) => ({ params: { category: slug, page: String(index + 2) }, props: { name } }));
+  });
+}
+const { name } = Astro.props;
+const allPosts = publishedPosts(await getCollection('blog'));
+const posts = allPosts.filter((post) => post.data.categories.some((value) => slugify(value) === Astro.params.category));
+const page = Number(Astro.params.page);
+const totalPages = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+if (!Number.isInteger(page) || page < 2 || page > totalPages) Astro.response.status = 404;
+const pagePosts = posts.slice((page - 1) * BLOG_PAGE_SIZE, page * BLOG_PAGE_SIZE);
+const categories = categoriesFor(allPosts);
+const base = `/blog/category/${Astro.params.category}`;
+const canonical = new URL(`${base}/page/${page}/`, Astro.site).href;
+---
+<BlogFrame title={`${name} — Hive Blog, Page ${page}`} description={`Hive articles about ${name.toLowerCase()}, page ${page}.`} canonical={canonical}>
+  <BlogHero count={posts.length} eyebrow={`FIELD NOTES / ${name.toUpperCase()} / ${String(page).padStart(2, '0')}`} />
+  <main class="blog-main"><div class="blog-layout">
+    <aside class="category-sidebar" aria-label="Article categories"><p class="browse-heading">BROWSE / {allPosts.length}</p><nav class="category-list"><a href="/blog"><span>All articles</span><span>{allPosts.length}</span></a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}><span>{category.name}</span><span>{category.count}</span></a>)}</nav></aside>
+    <section aria-label={`${name} articles, page ${page}`}><nav class="mobile-categories" aria-label="Filter articles by category"><a href="/blog">All / {allPosts.length}</a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}>{category.name} / {category.count}</a>)}</nav><BlogSortControl posts={posts} base={base} /><div class="post-grid">{pagePosts.map((post) => <BlogPostCard post={post} />)}</div><BlogPagination current={page} total={totalPages} base={base} /></section>
+  </div></main>
+</BlogFrame>

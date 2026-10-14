@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import BlogFrame from '../../../../components/blog/BlogFrame.astro';
+import BlogHero from '../../../../components/blog/BlogHero.astro';
+import BlogPostCard from '../../../../components/blog/BlogPostCard.astro';
+import BlogPagination from '../../../../components/blog/BlogPagination.astro';
+import BlogSortControl from '../../../../components/blog/BlogSortControl.astro';
+import { BLOG_PAGE_SIZE, publishedPosts, categoriesFor, slugify, categoryUrl } from '../../../../lib/blog';
+export async function getStaticPaths() {
+  const posts = publishedPosts(await getCollection('blog'));
+  return categoriesFor(posts).map(({ slug, name }) => ({ params: { category: slug }, props: { name } }));
+}
+const { name } = Astro.props;
+const allPosts = publishedPosts(await getCollection('blog'));
+const posts = allPosts.filter((post) => post.data.categories.some((category) => slugify(category) === Astro.params.category));
+const pagePosts = posts.slice(0, BLOG_PAGE_SIZE);
+const categories = categoriesFor(allPosts);
+const totalPages = Math.ceil(posts.length / BLOG_PAGE_SIZE);
+const canonical = new URL(`/blog/category/${Astro.params.category}/`, Astro.site).href;
+const description = `Articles about ${name.toLowerCase()}, agent infrastructure, and building Hive.`;
+---
+<BlogFrame title={`${name} — Hive Blog`} description={description} canonical={canonical}>
+  <BlogHero count={posts.length} eyebrow={`FIELD NOTES / ${name.toUpperCase()}`} />
+  <main class="blog-main"><div class="blog-layout">
+    <aside class="category-sidebar" aria-label="Article categories"><p class="browse-heading">BROWSE / {allPosts.length}</p><nav class="category-list"><a href="/blog"><span>All articles</span><span>{allPosts.length}</span></a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}><span>{category.name}</span><span>{category.count}</span></a>)}</nav></aside>
+    <section aria-label={`${name} articles`}><nav class="mobile-categories" aria-label="Filter articles by category"><a href="/blog/">All / {allPosts.length}</a>{categories.map((category) => <a href={categoryUrl(category.slug)} aria-current={category.slug === Astro.params.category ? 'page' : undefined}>{category.name} / {category.count}</a>)}</nav><BlogSortControl posts={posts} base={`/blog/category/${Astro.params.category}`} />{pagePosts.length ? <div class="post-grid">{pagePosts.map((post) => <BlogPostCard post={post} />)}</div> : <p class="empty-state">There are no published articles in this category yet.</p>}<BlogPagination current={1} total={totalPages} base={canonical} /></section>
+  </div></main>
+</BlogFrame>

@@ -1,0 +1,17 @@
+---
+import { postUrl, readingTime } from '../../lib/blog';
+const { post, featured = false } = Astro.props;
+const { data } = post;
+const category = data.categories[0];
+---
+<article class:list={['post-card', data.featured && featured && 'featured']}>
+  <a class="post-card-link" href={postUrl(post)} aria-label={`Read ${data.title}`}>
+    {data.cover ? <div class="post-cover"><img src={data.cover} alt={data.coverAlt ?? ''} loading="lazy" /></div> : <div class="post-visual" aria-hidden="true"><span class="visual-index">{String(data.pubDate.getUTCFullYear()).slice(2)}</span><span class="visual-mark">H<span>·</span></span><i></i></div>}
+    <div class="post-content">
+      <div class="post-topline"><span class="category-chip">{category}</span><span class="post-arrow" aria-hidden="true">↗</span></div>
+      <h2>{data.title}</h2>
+      <p class="post-description">{data.description}</p>
+      <div class="post-meta"><span>{data.author.name}</span><span>{data.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span><span>{readingTime(post.body)} MIN READ</span></div>
+    </div>
+  </a>
+</article>

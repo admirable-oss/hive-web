@@ -49,13 +49,36 @@ export default function Preloader({ mode = "always" }: { mode?: PreloaderMode })
       return;
     }
     markSeen();
-    return runPreloader(canvasRef.current, {
-      onProgress: setProgress,
-      onHideText: () => setTextHidden(true),
-      onClearBackground: () => setTransparent(true),
-      onIntro: () => hiveActions.beginIntro(true),
-      onDone: () => setDone(true),
-    });
+    let stop = () => {};
+    // The preloader is an opaque, server-rendered layer. Always fail open so
+    // a stalled canvas/animation cannot leave the landing page covered.
+    const fallback = window.setTimeout(() => {
+      stop();
+      hiveActions.beginIntro(false);
+      setDone(true);
+    }, 8000);
+
+    try {
+      stop = runPreloader(canvasRef.current, {
+        onProgress: setProgress,
+        onHideText: () => setTextHidden(true),
+        onClearBackground: () => setTransparent(true),
+        onIntro: () => hiveActions.beginIntro(true),
+        onDone: () => {
+          window.clearTimeout(fallback);
+          setDone(true);
+        },
+      });
+    } catch {
+      window.clearTimeout(fallback);
+      hiveActions.beginIntro(false);
+      setDone(true);
+    }
+
+    return () => {
+      window.clearTimeout(fallback);
+      stop();
+    };
   }, [mode, reducedMotion]);
 
   if (done) return null;

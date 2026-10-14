@@ -40,18 +40,37 @@ export function HeroAgents() {
     <p
       data-reveal="d"
       data-mascot-ceiling
-      className="m-0 mt-3.5 flex w-full items-center justify-between gap-4 font-mono text-[11px] text-ash sm:mt-0 sm:w-auto sm:justify-center sm:text-xs"
+      className="m-0 mt-3.5 flex w-full flex-col items-start gap-3 font-mono text-[11px] text-ash sm:mt-0 sm:w-auto sm:flex-row sm:items-center sm:justify-center sm:gap-4 sm:text-xs"
     >
-      <span className="flex flex-wrap items-center gap-x-3.5 gap-y-1 sm:gap-x-5">
+      <span className="flex flex-wrap items-center gap-2.5 sm:gap-3.5">
         <a
           href="https://startupfa.me/s/hive?utm_source=hive.admir-saheta.com"
           target="_blank"
+          rel="noreferrer"
+          aria-label="Hive featured on Startup Fame"
+          className="h-9 w-[min(42vw,220px)] shrink-0 overflow-hidden opacity-80 mix-blend-screen transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-honey sm:w-[232px]"
         >
           <img
             src="https://startupfa.me/badge?t=small&theme=dark&r=square"
             alt="Hive - Featured on Startup Fame"
             width="240"
             height="36"
+            className="size-full object-fill"
+          />
+        </a>
+        <a
+          href="https://www.producthunt.com/products/hive-15?utm_source=badge-follow&utm_medium=badge&utm_source=badge-hive&#0045;15"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Follow Hive on Product Hunt"
+          className="h-9 w-[min(42vw,220px)] shrink-0 overflow-hidden opacity-80 mix-blend-screen transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-honey sm:w-[232px]"
+        >
+          <img
+            src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1343570&theme=dark"
+            alt="Hive - Coding&#0032;agents&#0032;that&#0032;don&#0039;t&#0032;clock&#0032;out | Product Hunt"
+            width="250"
+            height="44"
+            className="size-full object-fill"
           />
         </a>
       </span>

@@ -1,0 +1,22 @@
+---
+import { Logo } from '../brand/Logo';
+import { REPO } from '../../lib/site';
+const links = [
+  { label: 'Docs', href: '/docs' },
+  { label: 'Changelog', href: `${REPO}/releases` },
+  { label: 'Roadmap', href: '/roadmap' },
+  { label: 'Plugins', href: '/plugins' },
+  { label: 'Pricing', href: '/pricing' },
+];
+---
+<header class="blog-header">
+  <div class="blog-header-inner">
+    <a href="/" class="blog-logo" aria-label="Hive home"><Logo title="" className="h-7" /></a>
+    <nav aria-label="Primary navigation" class="blog-nav">
+      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+      <a href="/blog" aria-current="page" class="current">Blog</a>
+    </nav>
+    <a class="github-link" href={REPO}>GitHub <span aria-hidden="true">↗</span></a>
+    <a class="install-link clip-pixel-4" href={`${REPO}#install`}>Install</a>
+  </div>
+</header>

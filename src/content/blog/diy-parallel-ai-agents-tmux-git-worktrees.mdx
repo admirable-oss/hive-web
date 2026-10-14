@@ -1,0 +1,256 @@
+---
+title: "How to Run Parallel AI Coding Agents With tmux and Git Worktrees"
+description: "Build a practical terminal workflow for parallel coding agents with one Git worktree per task, tmux sessions, safe setup, and a deliberate review loop."
+pubDate: 2026-10-14
+author:
+  name: "Admir Šaheta"
+  role: "Creator of Hive"
+  url: "https://admir-saheta.com"
+categories:
+  - Tutorials
+  - AI Coding Agents
+  - Developer Productivity
+  - Git
+tags:
+  - how to run parallel AI coding agents
+  - git worktree AI agents
+  - tmux Claude Code
+  - parallel agents without conflicts
+  - DIY agent orchestration
+draft: false
+featured: false
+seo:
+  title: "How to Run Parallel AI Coding Agents With tmux + Worktrees"
+  description: "A hands-on tutorial for running parallel coding agents with Git worktrees and tmux, including a safe launcher script, review workflow, and FAQs."
+  canonical: "https://hive.admir-saheta.com/blog/diy-parallel-ai-agents-tmux-git-worktrees/"
+  noindex: false
+howTo:
+  - name: "Create one worktree per task"
+    text: "Create a separate Git branch and working directory for each independent task, then confirm them with git worktree list."
+  - name: "Prepare each workspace"
+    text: "Install the project dependencies each task needs, configure separate local services and ports, and provide only the credentials the agent requires."
+  - name: "Launch agents in tmux"
+    text: "Create one tmux window per worktree and start the coding agent from the matching directory."
+  - name: "Review changes and integrate deliberately"
+    text: "Inspect each worktree's diff and checks, commit reviewed work, then merge one task branch at a time."
+  - name: "Clean up completed worktrees"
+    text: "After changes are integrated and the worktree is clean, remove the linked worktree and delete its branch if it is no longer needed."
+faq:
+  - question: "Can two AI coding agents work on the same repository at once?"
+    answer: "Yes. Give each agent its own Git worktree and branch, and keep task contracts clear. Worktrees separate working directories, but they do not prevent logical conflicts or restrict what a process can access on your machine."
+  - question: "How do I run multiple Claude Code sessions in parallel with tmux?"
+    answer: "Create a Git worktree for each task, open a tmux window in each worktree, and start Claude Code there with a task-specific prompt. The launcher in this guide automates that setup for a small batch."
+  - question: "Do Git worktrees duplicate the whole repository?"
+    answer: "Linked worktrees share the repository's Git object database, while each has its own checked-out files and worktree-specific state. Untracked dependencies, environment files, and build outputs are not automatically made available in a new worktree."
+  - question: "How many parallel coding agents can I run?"
+    answer: "There is no fixed sweet spot. Begin with two independent tasks and add sessions only while you have enough compute and time to inspect their work. Review capacity and task dependencies often become limiting factors."
+  - question: "Why is my worktree missing dependencies or environment variables?"
+    answer: "Git worktrees check out tracked files, not ignored local files such as node_modules or .env. Install the needed dependencies and configure local services separately; avoid copying secrets into worktrees unless your credential policy explicitly allows it."
+  - question: "Does tmux keep agents running if my computer shuts down?"
+    answer: "No. A detached tmux session can continue after its terminal or SSH client disconnects while the machine and tmux server remain running. A shutdown, reboot, or host failure stops local processes."
+  - question: "Can I use a different coding agent from Claude Code?"
+    answer: "Yes. The worktree and tmux setup is agent-neutral. The included launcher uses Claude Code's prompt argument; for another CLI, replace that command with the invocation documented by that tool or start it manually in each window."
+---
+
+# How to Run Parallel AI Coding Agents With tmux and Git Worktrees
+
+If you want to run parallel AI coding agents without adding an agent manager to your stack, Git and tmux are a useful foundation. Git gives each task its own working directory and branch. tmux gives each process a terminal window you can revisit after disconnecting from that terminal.
+
+The pattern is simple: one independent task, one worktree, one tmux window, one agent. The details matter, though. Dependencies, local services, credentials, shell quoting, and review still need deliberate handling. This walkthrough builds a small launcher for Claude Code and shows where the pattern needs human judgment.
+
+## What you need
+
+- A Git repository with a committed starting point.
+- tmux installed and available on your `PATH` (`brew install tmux` on macOS with Homebrew, or your Linux distribution’s package manager).
+- Claude Code installed and authenticated for the launcher below. Other terminal coding agents can be started manually in the same worktrees.
+- A Unix-like shell with Bash.
+
+Before you begin, commit or stash changes in your main checkout. New worktrees start from a commit; uncommitted edits in the original directory are not copied into them. Keep credentials out of prompts and task notes, and use your usual secure development setup for environment variables.
+
+## Why combine Git worktrees and tmux?
+
+A Git worktree is another checkout associated with the same repository. Each one has a separate directory, `HEAD`, and index, while sharing the repository’s objects and most history. That makes it practical to keep several branches checked out side by side. The [Git worktree manual](https://git-scm.com/docs/git-worktree) covers the commands and their behavior.
+
+tmux is a terminal multiplexer. Its server holds sessions and windows independently of the terminal client, so you can detach and reconnect while the host remains up. This helps when an SSH connection drops; it does not keep a process alive through a reboot or machine failure. See the [tmux manual](https://man7.org/linux/man-pages/man1/tmux.1.html) for session and client commands.
+
+Neither tool is an access-control boundary. A worktree separates files on disk, but an agent process still runs with the permissions of its user. Use operating-system or agent-level sandboxing for access restrictions.
+
+## 1. Create one worktree for each task
+
+From the repository root, create branches from the current commit:
+
+```sh
+git worktree add -b agent/auth ../myapp-auth
+git worktree add -b agent/search ../myapp-search
+git worktree list
+```
+
+Give each agent a task that can be reviewed independently. “Add the password reset endpoint and its tests” is a better work assignment than “work on authentication.” If two tasks need to change the same interface, agree on that contract first or do the work in sequence.
+
+Git will not normally check out the same local branch into multiple worktrees. Keep one branch per task and avoid forcing the same branch into two directories. Worktrees reduce accidental edits to the same checkout; they do not guarantee that separate branches will merge without conflicts.
+
+## 2. Prepare each worktree
+
+Tracked files appear in a new worktree. Ignored or untracked local state generally does not. Depending on the project, the agent may need dependencies installed, test databases started, generated files created, or a distinct development-server port.
+
+For a JavaScript project, change into each worktree and use the package manager and lockfile the repository expects. Keep installs consistent with its documented workflow. For local servers, assign explicit ports such as `3101` and `3102` if the application supports configuration that way.
+
+Do not blindly copy `.env` files into every agent workspace. They can contain production credentials or broad access tokens. Prefer a development-only credential source with the minimum access needed, and give an agent secrets only when its task requires them. Likewise, do not assume that a worktree provides isolation from files elsewhere on the machine.
+
+## 3. Start sessions manually once
+
+Before automating, try the workflow by hand. Start a tmux session, then create a window for each task:
+
+```sh
+tmux new-session -s agents
+```
+
+In the first window, run:
+
+```sh
+cd ../myapp-auth
+claude "Read the repository instructions. Implement only the auth task; inspect first, run relevant checks, and report the changed files and results. Do not commit or merge."
+```
+
+Create another window with `Ctrl-b c`, move between windows with `Ctrl-b n` and `Ctrl-b p`, and start the next agent from its worktree. Detach with `Ctrl-b d`; reattach later with:
+
+```sh
+tmux attach-session -t agents
+```
+
+This manual pass helps catch missing setup before a script creates a larger batch. It also makes the relationship between each tmux window and its Git branch easy to understand.
+
+## 4. Use a small launcher for repeated setup
+
+Once the manual loop works, save the following as `parallel-agents.sh` in the repository root. It validates task names, creates a branch and worktree for each task, and starts a Claude Code session in its own tmux window. It intentionally does not copy environment files, install arbitrary dependencies, auto-commit, or merge branches.
+
+```bash
+#!/usr/bin/env bash
+set -eu
+
+if [ "$#" -eq 0 ]; then
+  printf 'Usage: %s task-name [task-name ...]\n' "$0" >&2
+  exit 2
+fi
+
+command -v git >/dev/null 2>&1 || { echo "git is required" >&2; exit 1; }
+command -v tmux >/dev/null 2>&1 || { echo "tmux is required" >&2; exit 1; }
+command -v claude >/dev/null 2>&1 || { echo "Claude Code (claude) is required" >&2; exit 1; }
+
+repo=$(git rev-parse --show-toplevel)
+repo_parent=$(dirname "$repo")
+repo_name=$(basename "$repo")
+session="agents-$repo_name"
+seen=""
+
+for task in "$@"; do
+  case "$task" in
+    ''|*[!a-zA-Z0-9_-]*) echo "Task names may contain only letters, numbers, _ and -: $task" >&2; exit 2 ;;
+  esac
+  case " $seen " in
+    *" $task "*) echo "Duplicate task name: $task" >&2; exit 2 ;;
+  esac
+  seen="$seen $task"
+done
+
+if [ -n "$(git -C "$repo" status --porcelain)" ]; then
+  echo "Commit or stash changes in the main worktree before launching agents." >&2
+  exit 1
+fi
+
+if tmux has-session -t "$session" 2>/dev/null; then
+  echo "tmux session already exists: $session" >&2
+  exit 1
+fi
+
+for task in "$@"; do
+  branch="agent/$task"
+  worktree="$repo_parent/$repo_name-$task"
+  if [ -e "$worktree" ]; then
+    echo "Worktree path already exists: $worktree" >&2
+    exit 1
+  fi
+  if git -C "$repo" show-ref --verify --quiet "refs/heads/$branch"; then
+    echo "Branch already exists: $branch" >&2
+    exit 1
+  fi
+done
+
+for task in "$@"; do
+  branch="agent/$task"
+  worktree="$repo_parent/$repo_name-$task"
+  git -C "$repo" worktree add -b "$branch" "$worktree"
+done
+
+tmux new-session -d -s "$session" -n control -c "$repo"
+for task in "$@"; do
+  worktree="$repo_parent/$repo_name-$task"
+  prompt="Read repository instructions first. Implement only the $task task. Inspect before editing, run relevant checks, and report changed files and results. Do not commit or merge."
+  printf -v quoted_prompt '%q' "$prompt"
+  tmux new-window -d -t "$session" -n "$task" -c "$worktree" "claude $quoted_prompt"
+done
+
+if [ -n "${TMUX:-}" ]; then
+  tmux switch-client -t "$session"
+else
+  tmux attach-session -t "$session"
+fi
+```
+
+Make it executable and start two independent tasks:
+
+```sh
+chmod +x parallel-agents.sh
+./parallel-agents.sh auth search
+```
+
+Each window begins with a task-specific prompt. Claude Code’s CLI accepts an initial prompt as a positional argument; consult the [CLI reference](https://docs.anthropic.com/en/docs/claude-code/cli-usage) if its invocation changes. The script deliberately uses `printf %q` before passing the prompt through tmux’s shell command. It also limits task names to a safe character set rather than inserting arbitrary input into a shell command.
+
+This is a starter, not a general-purpose process supervisor. If creating a later worktree fails, remove any earlier worktrees it created before retrying. If a coding agent exits, inspect that window and decide whether to relaunch it. For other agent CLIs, adapt the one command in `tmux new-window` to that tool’s documented syntax rather than assuming every CLI accepts the same prompt format.
+
+## 5. Review and merge one task at a time
+
+The script leaves the agent changes uncommitted so you can inspect them first. From the main checkout, check each worktree’s state and diff:
+
+```sh
+git -C ../myapp-auth status --short
+git -C ../myapp-auth diff
+git -C ../myapp-search status --short
+git -C ../myapp-search diff
+```
+
+Run the relevant checks inside each worktree. Then stage and commit the changes you accept on their task branches. Merge one branch at a time from the target branch, resolving design conflicts before continuing. Review generated files and dependency-lock changes carefully; two otherwise separate tasks can still make incompatible updates there.
+
+Keep the human review gate. An agent can explain its changes, but its own summary is not a substitute for reading the diff and checking the result. If a task has expanded beyond its original scope, narrow or split it before asking another agent to build on top of it.
+
+## 6. Clean up after integration
+
+After a branch has been integrated and its worktree is clean, remove the linked checkout and delete the branch if you no longer need it:
+
+```sh
+git worktree remove ../myapp-auth
+git branch -d agent/auth
+git worktree list
+```
+
+If Git refuses to remove a worktree because it contains changes, stop and inspect them first. Do not use `--force` as routine cleanup; it can discard work you have not reviewed. `git worktree prune` is for stale administrative entries after a worktree directory has already gone missing, not a replacement for removing active worktrees.
+
+## When to keep the DIY workflow
+
+tmux and worktrees are a good fit when you want direct control, use a terminal comfortably, and have a small number of independent tasks. The setup makes each agent’s directory and branch visible, and it is easy to adapt to another terminal agent.
+
+An agent manager may help when you need a shared task board, a persistent view of many sessions, or a coordinated review queue. Compare those tools on their isolation model, permission handling, supported agents, and how easily you can recover work outside the tool. For the broader planning and integration method, read [our guide to managing multiple AI coding agents](/blog/manage-multiple-ai-coding-agents/).
+
+Hive solves a neighboring runtime problem: keeping coding-agent sessions available across local and remote machines. A persistent session is useful when a terminal disconnects, but it does not replace the task isolation and review process in this tutorial. See the [Hive core concepts](/docs/getting-started/core-concepts/) and [agent orchestration documentation](/docs/use/ai-orchestration/) for the current product scope.
+
+## A compact checklist
+
+- Start from a known commit; commit or stash changes in the main checkout.
+- Create one branch and worktree per independent task.
+- Prepare dependencies, local services, and ports deliberately.
+- Keep credentials out of copied worktree files and prompts.
+- Use one tmux window per worktree, and remember detach is not machine-level persistence.
+- Inspect diffs and run checks before committing or merging.
+- Integrate branches one at a time, then clean up only reviewed work.
+
+The useful outcome is not three agents running at once. It is three pieces of work that remain understandable, reviewable, and safe to integrate. Start with two small tasks, learn where your workflow slows down, and add more concurrency only when the review loop can keep up.

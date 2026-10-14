@@ -1,5 +1,5 @@
 import { GITHUB_TOKEN, HIVE_PLUGIN_REGISTRY_URL } from "astro:env/server";
-import type { HivePlugin, PluginRegistry, PluginRelease } from "./plugins";
+import { validatePluginRegistry, type HivePlugin, type PluginRegistry, type PluginRelease } from "./plugins";
 
 const DEFAULT_REGISTRY_URL = "https://hive.admir-saheta.com/plugins/registry.json";
 const GITHUB_API_URL = "https://api.github.com";
@@ -44,38 +44,6 @@ function getRepositorySlug(repository: string) {
   }
 
   return segments.join("/");
-}
-
-function validateRegistry(data: unknown): PluginRegistry {
-  if (!data || typeof data !== "object" || (data as PluginRegistry).schema !== 1 || !Array.isArray((data as PluginRegistry).plugins)) {
-    throw new Error("Registry does not match schema version 1");
-  }
-
-  const ids = new Set<string>();
-  for (const plugin of (data as PluginRegistry).plugins) {
-    if (!plugin || typeof plugin.id !== "string" || ids.has(plugin.id) || !Array.isArray(plugin.releases) || !plugin.releases.length) {
-      throw new Error("Registry contains an invalid or duplicate plugin entry");
-    }
-
-    ids.add(plugin.id);
-    getRepositorySlug(plugin.repository);
-
-    const versions = new Set<string>();
-    for (const release of plugin.releases) {
-      if (
-        !release.version ||
-        !release.ref ||
-        versions.has(release.version) ||
-        !/^[\da-f]{40}$/i.test(release.commit) ||
-        !/^sha256:[\da-f]{64}$/i.test(release.checksum)
-      ) {
-        throw new Error(`Plugin ${plugin.id} has an invalid release record`);
-      }
-      versions.add(release.version);
-    }
-  }
-
-  return data as PluginRegistry;
 }
 
 async function githubJson<T>(path: string): Promise<T> {
@@ -168,7 +136,7 @@ async function loadVerifiedRegistry(): Promise<VerifiedRegistry> {
     throw new Error(`Registry returned HTTP ${response.status}`);
   }
 
-  const registry = validateRegistry(JSON.parse(await response.text()));
+  const registry = validatePluginRegistry(JSON.parse(await response.text()));
   const verified: HivePlugin[] = [];
   const rejected: string[] = [];
 

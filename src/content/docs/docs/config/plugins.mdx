@@ -17,6 +17,31 @@ hive plugin install ./pr-status --ref v0.1.0
 
 Plugins run as your user and can access your files, Hive sessions, and network just like any program you run. Review the trust preview. For automation, `--yes` accepts the install prompt.
 
+Catalog plugins can be found and installed by ID. Updates verify the published
+release checksum and preserve the last installed release for rollback; plugin
+data remains in its managed data directory:
+
+```sh
+hive plugin search editor
+hive plugin install hive-explorer
+hive plugin update hive-explorer
+hive plugin rollback hive-explorer
+```
+
+For scripts, pass `--yes` to accept the install or update preview. Without a
+terminal or `--yes`, Hive declines the operation. Registry outages do not
+disable local linking or direct Git installation.
+
+Scaffold and check a plugin locally before submitting it:
+
+```sh
+hive plugin init my-plugin
+hive plugin validate ./my-plugin
+```
+
+The [registry contribution and governance guide](https://github.com/admirable-oss/hive/blob/main/docs/plugins/governance.md)
+covers submissions, ownership transfers, moderation reports, and appeals.
+
 Use `link` for local development without copying the plugin:
 
 ```sh

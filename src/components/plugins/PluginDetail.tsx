@@ -53,7 +53,7 @@ function MetadataGrid({ plugin }: { plugin: HivePlugin }) {
   const cells: [string, string][] = [
     ["LATEST RELEASE", `v${release.version}`],
     ["HIVE VERSION", `≥ ${plugin.min_hive_version}`],
-    ["PLUGIN API", plugin.plugin_api],
+    ["PLUGIN API", plugin.plugin_api ?? "—"],
     ["PLATFORMS", (plugin.platforms ?? []).map((p) => (p === "darwin" ? "macOS" : p)).join(", ") || "—"],
     ["LICENSE", plugin.license ?? "—"],
     ["MAINTAINERS", (plugin.maintainers ?? []).map((m) => m.name).join(", ") || "Not listed"],
@@ -194,7 +194,7 @@ function Sidebar({
         <div className="border border-bone/[.08] bg-[#111110] p-5">
           <div className="font-mono text-[9px] tracking-[.12em] text-[#89857B]">CATEGORIES</div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {plugin.categories.map((c) => (
+            {(plugin.categories ?? []).map((c) => (
               <a
                 key={c}
                 href={`/plugins?category=${encodeURIComponent(c)}`}

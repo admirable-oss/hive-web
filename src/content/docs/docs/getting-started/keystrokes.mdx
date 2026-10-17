@@ -34,6 +34,8 @@ When you are not entering a Hive shortcut, keystrokes go to the focused pane as 
 | Jump to tab 1–9 | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then the tab number |
 | Next / previous tab | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>n</kbd> / <kbd>p</kbd> |
 | Open the overview | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>O</kbd> |
+| Show or hide the sidebar | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>b</kbd> |
+| Open the plugin palette | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>:</kbd> or <kbd>P</kbd> |
 
 In resize mode, use <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, and <kbd>l</kbd> to adjust the focused pane. <kbd>Space</kbd> enters sticky navigation mode for moving between panes. Press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>?</kbd> for the bindings available in your running version.
 
@@ -42,6 +44,15 @@ In resize mode, use <kbd>h</kbd>, <kbd>j</kbd>, <kbd>k</kbd>, and <kbd>l</kbd> t
 Press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>[</kbd> to enter copy mode. Use the vim-style movement keys to navigate the pane history, <kbd>/</kbd> to search, <kbd>v</kbd> to start selecting, and <kbd>y</kbd> to copy. Mouse drag-selection is also available without entering copy mode.
 
 Copy-mode navigation and selection work on the focused pane's history without stopping the process. The `?` keymap inside Hive shows the exact bindings for your version.
+
+## Paste text and images
+
+| Action | Keystrokes |
+| --- | --- |
+| Paste the last copied text | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>]</kbd> |
+| Paste a clipboard image into the focused agent | <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>I</kbd> |
+
+Image paste reads PNG data from the clipboard of the machine running `hive ui` and works with remote agents too. See [Images and Terminal Graphics](/docs/use/images/) for which agents accept images and how.
 
 ## Change the bindings
 

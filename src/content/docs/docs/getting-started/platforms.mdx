@@ -1,0 +1,94 @@
+---
+title: Platforms and Windows
+description: What Hive supports on macOS, Linux, and Windows, where it keeps its files, and how Windows differs.
+source: https://github.com/admirable-oss/hive/blob/main/docs/platforms.md
+---
+
+Hive runs the same daemon, protocol, workspace model, agent detection, and plugin system on every platform. What differs is the operating-system layer underneath: how terminals are created, how process trees are tracked, and how the daemon starts at login.
+
+## Support matrix
+
+| | macOS | Linux | Windows |
+| --- | --- | --- | --- |
+| Versions | 13 and later | glibc or musl, kernel 4.x and later | Windows 10 1809 (build 17763) and later, Windows 11, Server 2019 and later |
+| Architectures | arm64, amd64 | amd64, arm64 | amd64 |
+| Terminals | PTY | PTY | ConPTY |
+| Process trees | Process groups | Process groups | Job objects |
+| Daemon socket | Unix socket, peer UID checked | Unix socket, peer UID checked | AF_UNIX socket, peer SID checked |
+| Login service | launchd agent | systemd user service | Task Scheduler task at logon |
+| Install | Homebrew cask, `install.sh` | `install.sh`, Nix flake | `install.ps1` |
+| Self-update and rollback | ✓ | ✓ | ✓ |
+| Agents survive daemon restarts | ✓ (shims) | ✓ (shims) | ✓ (shims) |
+| Strict plugin isolation | `sandbox-exec` | `bwrap` | Not available |
+| Remote machines (`--remote`) | Client and host | Client and host | Client only |
+
+A platform and architecture pair is supported when CI builds and tests it on every change and releases ship it. Windows arm64 is not built yet; it is added when CI can run it.
+
+## Install on Windows
+
+In PowerShell:
+
+```powershell
+irm https://hive.admir-saheta.com/install.ps1 | iex
+```
+
+The installer downloads the release `.zip` for windows/amd64, checks it against the release's `checksums.txt`, puts `hive.exe` in `%LOCALAPPDATA%\Programs\Hive`, and adds that directory to your user `PATH`. Set `$env:HIVE_INSTALL_DIR` to install elsewhere, or `$env:HIVE_VERSION = 'v1.0.4'` to install a given release.
+
+- **`hive update`** downloads the next release, checks its checksum and its signature, makes sure it runs, and swaps it in. A running `hive.exe` cannot be overwritten on Windows but can be renamed, so the old binary moves to `hive.exe.old` first. Running daemons then restart on the new binary, and agents keep running.
+- **`hive update --rollback`** puts the previous binary back and keeps the newer one as `hive.exe.old`, so the rollback can itself be undone. Rollback works the same way on macOS and Linux.
+- **Start the daemon at logon:** `hive daemon install` registers a hidden Task Scheduler task, **Hive Daemon**. It runs as you at logon, restarts the daemon if it fails, and never starts a second one. `hive daemon uninstall` removes it.
+- **Uninstall:** run the installer with `-Uninstall`. It stops the daemon and removes the login task, `hive.exe`, and the `PATH` entry. Your data stays unless you add `-RemoveData`.
+
+## Where Hive keeps its files
+
+| | Windows | macOS and Linux |
+| --- | --- | --- |
+| Data, sockets, logs (`HIVE_HOME`) | `%LOCALAPPDATA%\Hive` | `~/.hive` |
+| Configuration (`HIVE_CONFIG`) | `%APPDATA%\Hive\config.toml` | `~/.config/hive/config.toml` |
+| Agent manifests | `%APPDATA%\Hive\agent-detection` | `~/.config/hive/agent-detection` |
+| Binary | `%LOCALAPPDATA%\Programs\Hive\hive.exe` | `~/.local/bin/hive`, or your package manager's location |
+
+`HIVE_HOME`, `HIVE_CONFIG`, and `XDG_CONFIG_HOME` override these on every platform. Data is machine-local rather than roaming: sockets, logs, and agent state belong to the machine they run on.
+
+## How Windows differs
+
+- **Terminals are pseudo consoles (ConPTY).** Programs see `TERM=xterm-256color`, and Hive reads their output as VT sequences. Input, resizing, and Unicode work in both directions. ConPTY repaints the screen itself, so output logs can show cursor moves where a Unix PTY would have recorded the raw bytes.
+- **Process trees are job objects.** Each agent, pane process, and plugin command runs in its own job. Stopping it stops everything it started, and when its owner ends, the job ends too, so nothing is orphaned.
+- **Stopping agents.** Windows has no `SIGTERM`. Hive asks a terminal agent to stop by closing its pseudo console, which sends `CTRL_CLOSE_EVENT`. Anything still running after `process.stop_grace` is ended.
+- **Detached processes.** The daemon and shims start without a console and outside the job of the terminal that launched them, so closing that terminal does not stop them. If the terminal's job forbids breaking away, they start inside it; use `hive daemon install` to stay independent of terminals.
+- **Sockets.** The daemon and shims listen on AF_UNIX sockets in your profile, and every connection is checked: the peer process's user (SID) must be yours.
+- **The foreground program.** ConPTY has no foreground process group, so Hive treats a shell pane's newest live descendant as its running program.
+- **Working directories.** Hive does not read another process's working directory on Windows, so a new pane starts in its environment's directory rather than where you last `cd`-ed in a neighbouring pane.
+- **Default shell.** A new pane uses `$SHELL` when set (Git Bash, MSYS2), else PowerShell 7 (`pwsh`), else Windows PowerShell, else `%ComSpec%`. Set `terminal.shell` to choose one.
+- **Commands and quoting.** Programs are found on `PATH` with `PATHEXT`. `.cmd` and `.bat` files run through `cmd.exe`. Pass arguments separately rather than pre-quoting them.
+
+## Agents and shells on Windows
+
+| | What to expect |
+| --- | --- |
+| **Claude Code, Codex, Gemini CLI, opencode, Copilot CLI** | Run natively under Node.js when started with `hive agent start --kind …`. State detection and resume work as on other platforms. |
+| **An agent typed into a shell pane** | Recognised by its program name (`claude.exe`, `claude.cmd`, and `claude` are all `claude`). npm's `.cmd` shims run `node …\cli.js`, which does not name an agent, so prefer `hive agent start`, or add a manifest whose `detect.args_regex` matches. |
+| **Aider** | Runs where Python and Aider are installed. |
+| **PowerShell 7, Windows PowerShell, cmd.exe** | Supported pane shells. |
+| **Git Bash, MSYS2, Cygwin** | Work as pane shells via `terminal.shell`. |
+| **WSL** | A pane can run `wsl.exe`, but agents inside it are visible to Hive only as `wsl.exe`. For agents in WSL, install Hive inside WSL instead. |
+| **Terminals for `hive ui`** | Windows Terminal and other VT-capable consoles. |
+
+## Windows limitations
+
+- **Shell-script parts do not run:** the reference plugins (`pr-status`, `spawn-reviewer`) and other plugins whose commands are `sh` scripts, `install.sh`, and the snippets `hive --remote` runs on a remote host. Plugins that do not list `windows` in `platforms` are refused at install. Plugins written for Node.js (including the official ones) or shipped as `.exe` programs work.
+- **No strict plugin isolation.** Windows has no sandbox tool that Hive uses. With `[plugins] isolation = "auto"` (the default), plugins run with standard isolation; with `"strict"`, none run. See [Plugin API](/docs/config/plugin-api/#isolation-and-the-security-boundary).
+- **Not a remote host.** A Windows machine cannot be the target of `hive --remote` or `hive machine add`, because the remote side runs POSIX shell scripts over SSH. Windows works as the client: the built-in OpenSSH `ssh.exe` reaches macOS and Linux hosts.
+- **Clipboard and image paste.** Text copy works through the terminal (OSC 52). Copying to the system clipboard and image paste (<kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>I</kbd>) are not wired to the Windows clipboard yet.
+- **Notifications.** Terminal notifications (OSC 9) work in Windows Terminal; Windows toast notifications are not used.
+
+## Troubleshooting on Windows
+
+| Symptom | Cause and fix |
+| --- | --- |
+| `create pseudo console (Windows 10 1809 or later)` | ConPTY is missing because Windows is older than 1809. |
+| `AF_UNIX listen` errors | Windows older than 1803, or a socket path over 108 characters. Set a shorter `HIVE_HOME`; long paths fall back to `%TEMP%\hive`. |
+| The daemon stops when you close the terminal | That terminal's job forbids breaking away. Run `hive daemon install` so Task Scheduler starts the daemon. |
+| Plugin refused with `not windows` | Its author has not listed `windows`; it probably runs shell scripts. |
+| `hive update` cannot move `hive.exe` aside | Another program, such as an antivirus scan, has `hive.exe` open exclusively. Retry. |
+| Agent output looks garbled in an old console | Use Windows Terminal; the classic console before 1809 does not process VT output. |

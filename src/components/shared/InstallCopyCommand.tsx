@@ -10,7 +10,7 @@ interface InstallCopyCommandProps {
   ref?: Ref<HTMLDivElement>;
 }
 
-/** Install command with default / brew / nix tabs and a compact terminal row. */
+/** Install command with default / brew / nix / windows tabs and a compact terminal row. */
 export function InstallCopyCommand({ className, ref, ...rest }: InstallCopyCommandProps & Record<`data-${string}`, string>) {
   const [method, setMethod] = useState<InstallMethodId>("default");
   const { copied, copy } = useClipboard();
@@ -52,7 +52,7 @@ export function InstallCopyCommand({ className, ref, ...rest }: InstallCopyComma
           <TabPanel key={m.id} id={m.id} className="m-0 flex min-h-0 items-center justify-between gap-2 px-3 py-2.5 text-[12px] sm:text-[13px]">
             <code className="min-w-0 truncate leading-snug">
               <span className="text-honey" aria-hidden>
-                ${" "}
+                {m.prompt ?? "$"}{" "}
               </span>
               {m.display}
             </code>

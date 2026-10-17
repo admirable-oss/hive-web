@@ -36,9 +36,10 @@ const COMPARE: [string, string, string][] = [
   ["Agents & machines", "Unlimited", "Plan-based"],
   ["Persistent sessions", "✓", "✓"],
   ["Remote control", "✓ over SSH", "✓ in the browser"],
+  ["Browser & phone monitoring", "✓ read-only web observer", "✓"],
   ["Plugins & App Store", "✓", "✓"],
   ["Support", "Community, on GitHub", "Priority"],
-  ["Availability", "Now · macOS & Linux", "Coming soon"],
+  ["Availability", "Now · macOS, Linux & Windows", "Coming soon"],
 ];
 
 const FAQ = [

@@ -1,0 +1,84 @@
+---
+title: Images and Terminal Graphics
+description: Paste clipboard images into agents, and see images agents print through Kitty, iTerm2, Sixel, or coloured cells.
+source: https://github.com/admirable-oss/hive/blob/main/docs/plugins/image-graphics.md
+---
+
+Hive handles images in both directions. You can paste a screenshot from your clipboard into an agent, locally or on a remote machine, and Hive draws images that agents print using whatever graphics protocol your terminal supports.
+
+## Paste an image into an agent
+
+Copy a PNG to your clipboard, focus the agent's pane, and press <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>I</kbd>. Text paste (<kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>]</kbd>) is unchanged.
+
+Hive delivers the image the way the destination agent declares in its manifest (`[input] image`):
+
+- **`path`:** the image is saved as a private file (mode 0600) under the session's `images` directory, and its path is typed into the pane. Claude Code and Codex attach such paths as images, and their built-in manifests declare `path`.
+- **`kitty`:** the image is typed as Kitty graphics commands, one complete command per write, so other keystrokes never land inside one.
+- **Undeclared:** shells, unrecognised programs, and agents without `[input]` refuse pasted images with `unsupported`. Hive never types escape sequences into a program that did not ask for them.
+
+The clipboard is read on the machine running `hive ui`, only when you press the paste key, and only as PNG data:
+
+| System | Clipboard tool |
+| --- | --- |
+| macOS | `pngpaste`, or NSPasteboard via `osascript` (JXA) |
+| Linux, Wayland | `wl-paste` |
+| Linux, X11 | `xclip` |
+| Windows | Not wired up yet |
+
+### Remote machines
+
+Pasted images travel on their own `terminal.image` transfer inside the existing connection, so they work over `hive --remote` and saved machines without extra ports. The transfer is split into 32 KiB pieces that interleave with your keystrokes, and on remote links it is paced by `[remote] image_budget_kb` (1 MiB/s by default) so typing stays responsive. The remote daemon must run this version or newer (`hive machine update`).
+
+The daemon checks every transfer before delivering anything: size, SHA-256, PNG header, and dimensions. A dropped link discards the partial upload without touching the pane, and the client retries up to three times. A retry after a lost receipt is never delivered twice.
+
+Over plain SSH without a local `hive ui` (for example `ssh host hive ui`), there is no local clipboard to read. Use `hive --remote host ui` instead.
+
+## Images agents print
+
+When an agent prints an image with the Kitty graphics protocol, Hive validates it at the PTY boundary, keeps it out of terminal cells and scrollback, and draws it in the pane. `[images] render` chooses how:
+
+| Mode | Behaviour |
+| --- | --- |
+| `auto` (default) | The protocol your terminal confirmed at startup, in order: Kitty, iTerm2 inline images, Sixel, else coloured half-block cells. |
+| `cells` | Always coloured half-block cells (24-bit colour), even where a graphics protocol exists. |
+| `text` | A dim `[image]` placeholder. Nothing is decoded; useful for screen readers, slow links, or terminals without truecolor. |
+| `off` | Images are not drawn; the agent's text is unaffected. |
+
+Detection is by probe, never by `TERM`. At startup the UI sends a Kitty graphics query, DA1, and an iTerm2 capability query, and uses what the terminal confirms.
+
+| Outer terminal | Expected output | Notes |
+| --- | --- | --- |
+| Kitty, Ghostty | Kitty | Placements that would cross a pane edge are hidden rather than clipped. |
+| WezTerm, Konsole | Kitty, else Sixel | Partial Kitty implementations; set `render = "cells"` if images misplace. |
+| iTerm2 | Kitty if it answers the query, else iTerm2 inline images | Inline images are re-sent when placements move. |
+| foot, xterm with Sixel, Windows Terminal 1.22+, mlterm | Sixel | The UI clears and redraws when the visible set changes. |
+| VS Code terminal | Sixel or iTerm2 when image support is on, else cells | |
+| Alacritty, GNOME Terminal, Apple Terminal | Cells | Without 24-bit colour, use `render = "text"`. |
+| tmux, screen, or another multiplexer in between | Usually cells | The multiplexer hides the terminal's probes. Run `hive ui` outside it, or use `hive --machine` from your local terminal. |
+| Linux console, `TERM=dumb` | `text` recommended | |
+
+Images are anchored to the screen: they are removed when the pane scrolls and are not kept in scrollback. Anything that cannot be drawn as pixels is named as `[image]` rather than silently dropped.
+
+## Privacy
+
+Clipboard images and images agents print can contain secrets.
+
+- **Logs.** Kitty graphics commands are stripped from agents' output logs before writing, so image data never reaches disk. `[images] log_graphics = true` keeps them for debugging.
+- **Never stored.** Session snapshots and replay history store screen text only. Graphics state lives in memory.
+- **Saved pastes.** The only copy on disk is a `path` delivery's file, private to your user and removed after `[images] keep` (default 1 hour, at most 64 files). `keep = "0s"` turns saving off; agents that take a path then refuse pasted images.
+
+## Configuration
+
+```toml
+[images]
+max_kb = 5120          # largest pasted image, in KiB (hard cap 16 MiB)
+max_megapixels = 16    # most pixels a pasted image may have (hard cap 64)
+keep = "1h"            # how long saved pastes are kept ("0s": never save)
+log_graphics = false   # keep printed images in output logs
+render = "auto"        # auto | cells | text | off
+
+[remote]
+image_budget_kb = 1024 # pasted-image upload rate to remote daemons, KiB/s (0: no limit)
+```
+
+The client and daemon each apply their own `max_kb`, so the stricter side wins. Only PNG is accepted; an animated PNG is passed on unchanged.

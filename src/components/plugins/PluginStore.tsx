@@ -657,6 +657,7 @@ export default function PluginStore({
                 <option value="">All platforms</option>
                 <option value="darwin">macOS</option>
                 <option value="linux">Linux</option>
+                <option value="windows">Windows</option>
               </select>
             </label>
             <label>

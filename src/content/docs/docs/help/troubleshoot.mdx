@@ -104,6 +104,34 @@ hive config reset-keys
 
 See [Keystrokes](/docs/getting-started/keystrokes/) and [Configuration](/docs/config/configuration/).
 
+## A plugin is failed or degraded
+
+`hive plugin list` shows each plugin's state. Run the doctor for a specific diagnosis, then read its output:
+
+```sh
+hive plugin doctor <id>
+hive plugin info <id>
+hive plugin logs <id>
+```
+
+A `failed` plugin usually has a manifest, permission, settings, or sandbox problem, or its startup command crashed past `[plugins] restart_limit`. Fix the cause, then run `hive plugin reload <id>`. A `permission_denied` error names the capability the plugin needs: grant optional ones with `hive plugin grant`, and check that `[plugins] deny` does not withhold it. With `[plugins] isolation = "strict"`, plugins do not run where no sandbox tool is available (Windows, or Linux without `bwrap`). See [Plugin API v1](/docs/config/plugin-api/#lifecycle-and-health).
+
+## A pasted image is refused or an image looks wrong
+
+- **`unsupported` when pasting:** the focused program does not declare image input. Shells and unrecognised programs never receive pasted images; Claude Code and Codex do.
+- **Nothing is pasted:** the clipboard holds no PNG, or the clipboard tool is missing: `pngpaste` or `osascript` on macOS, `wl-paste` on Wayland, `xclip` on X11. Windows clipboard support is not wired up yet.
+- **Images misplace or flicker:** set `[images] render = "cells"`, or `"text"` on terminals without 24-bit colour. tmux or screen between Hive and the terminal usually hides graphics support.
+
+See [Images and Terminal Graphics](/docs/use/images/).
+
+## An observer or the web observer cannot connect
+
+Run `hive observer validate` to check whether a token is invalid, expired, or revoked. Observers never start the daemon, and none can connect when `[observers] enabled = false`. For the web observer, `hive web status` shows each runtime's connection and last error; a page stuck on *Reconnecting* behind a proxy usually means the proxy is buffering event streams. See [Observers](/docs/use/observers/#troubleshooting) and [Web Observer](/docs/use/web-observer/#troubleshooting).
+
+## Problems on Windows
+
+See [Platforms and Windows](/docs/getting-started/platforms/#troubleshooting-on-windows) for ConPTY, socket, Task Scheduler, update, and plugin platform errors.
+
 ## Find diagnostic logs
 
 Hive stores runtime data under `~/.hive` unless `HIVE_HOME` changes it. Useful files include:

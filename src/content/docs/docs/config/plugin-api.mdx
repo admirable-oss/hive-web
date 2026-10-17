@@ -1,0 +1,219 @@
+---
+title: Plugin API v1
+description: The versioned contract between Hive and its plugins, covering manifests, capabilities, events, actions, UI contributions, isolation, and health.
+source: https://github.com/admirable-oss/hive/blob/main/docs/plugins/api.md
+---
+
+Plugin API 1 is the contract between Hive and its plugins: what a manifest may declare, what a plugin command receives, what it may call, how Hive runs it, and what it may add to the UI. Run `hive plugin capabilities` to print the parts your installed Hive supports. For installing and managing plugins, see [Plugins and Key Commands](/docs/config/plugins/).
+
+## Versions and compatibility
+
+A manifest declares the plugin API it is written for:
+
+```toml
+api = 1
+```
+
+- **Within a version nothing is removed or changed.** Context fields, event types, RPC methods, manifest keys, capabilities, and contribution kinds are only ever added. Plugins must ignore fields they do not know.
+- **A manifest asking for an API Hive does not run** is refused at validate, install, or load time with "needs plugin API N; this hive runs …".
+- **Manifests without `api` are legacy.** They run as API 1, hold every capability, and may not contribute UI. `hive plugin doctor` and `hive plugin validate` warn about them.
+- **Contract tests** hold every supported version, and the TypeScript, Python, Rust, and Go SDKs, to shared fixtures in `sdk/protocol/fixtures/v1/`.
+
+## The manifest
+
+| Key | Meaning |
+| --- | --- |
+| `api` | Plugin API version (`1`). |
+| `id`, `name`, `version`, `description` | Identity. `id` uses lower-case letters, digits, and dashes. |
+| `min_hive_version`, `max_hive_version`, `platforms`, `[[runtime]]` | Where it runs. `platforms` accepts `darwin`, `linux`, and `windows`. |
+| `isolation = "strict"` | It can run sandboxed (see [Isolation](#isolation-and-the-security-boundary)). |
+| `event_concurrency` | Event commands running at once, 1–16 (default 4). `1` runs them in event order, one after another. |
+| `[permissions]` | `required` and `optional` capabilities, with `reasons` shown at install. |
+| `[[startup]]` | Commands that run while the daemon runs; `restart = true` restarts them. |
+| `[[actions]]` | On-demand commands: `id`, `title`, `command`, `timeout` (default 2m, at most 1h), `async`. |
+| `[[events]]` | Commands for an event type (`on = "worktree.created"`) or prefix (`on = "agent."`), with a `timeout`. |
+| `[configuration]`, `[[migrations]]` | Settings schema, and how settings move between schema versions. |
+| `[contributes]` | What it adds to the UI (see [Contributions](#contributions)). |
+
+The reference manifest is [`sdk/protocol/fixtures/v1/manifest.toml`](https://github.com/admirable-oss/hive/blob/main/sdk/protocol/fixtures/v1/manifest.toml).
+
+## What a command receives
+
+Every command runs in the plugin's directory. Its context arrives on stdin and in the file `$HIVE_PLUGIN_CONTEXT`:
+
+```json
+{
+  "api": 1,
+  "plugin": "contract",
+  "trigger": "action",
+  "action": "show",
+  "run": "contract-1",
+  "session": "work",
+  "environment": "api",
+  "tab": "t1",
+  "pane": "p1",
+  "capabilities": ["hive.read", "hive.write"]
+}
+```
+
+`trigger` is `startup`, `action`, `event`, or `migration`. An event context adds `"event": {"type", "data", "seq", "time", "missed"}`, and its `environment`, `tab`, and `pane` describe what the event is about.
+
+| Variable | Value |
+| --- | --- |
+| `HIVE_PLUGIN_ID`, `HIVE_PLUGIN_VERSION`, `HIVE_PLUGIN_DIR` | Identity and installed directory. |
+| `HIVE_PLUGIN_API` | The API version it runs under. |
+| `HIVE_PLUGIN_CAPABILITIES` | Comma-separated capabilities it currently holds. |
+| `HIVE_PLUGIN_DATA` | Persistent data, kept across updates and uninstalls. |
+| `HIVE_PLUGIN_CONFIG`, `HIVE_PLUGIN_CONFIG_DIR` | Its settings file and directory. |
+| `HIVE_PLUGIN_CACHE` | Disposable cache, removed on uninstall. |
+| `HIVE_SOCKET_PATH`, `HIVE_PLUGIN_SOCKET` | Its own daemon socket. SDKs use the first; the `hive` command uses the second. |
+| `HIVE_BIN` | The `hive` binary, for scripts. |
+
+## Capabilities
+
+A plugin reaches the daemon only on **its own socket**, and every call there is checked against its capabilities. The connection's welcome lists only the methods it may call; anything else is refused with `permission_denied`, naming the capability needed.
+
+| Capability | Lets it | Enforced by |
+| --- | --- | --- |
+| `hive.read` | Read environments, tabs, panes, agents, screens, and events. | The daemon |
+| `hive.write` | Change tabs, panes, layouts, names, metadata, and worktrees. | The daemon |
+| `hive.input` | Type into terminals and prompt agents. | The daemon |
+| `hive.process` | Start and stop processes and agents; remove environments and worktrees. | The daemon |
+| `hive.admin` | Run other plugins' actions, restore sessions, debug the daemon. | The daemon |
+| `filesystem.write` | Write outside its own data, config, and cache directories. | Strict isolation only |
+| `network` | Use the network. | Strict isolation only |
+| `process.exec` | Run other programs. | Declared, not enforced |
+
+These methods act on the calling plugin alone and need no capability: `plugin.capabilities` (discovery), `plugin.card`, `plugin.status`, `plugin.ready`, `plugin.request` (ask for an optional capability), `plugin.config` and `plugin.config.set`, `api.schema`, and `runtime.ping`. A plugin cannot act as another plugin on its socket, and every daemon method must be classified with a capability before any plugin may call it.
+
+Scripts call the same methods through the CLI with `hive plugin card`, `hive plugin status`, `hive plugin ready`, and `hive plugin request`, which act on `$HIVE_PLUGIN_ID`.
+
+### Granting permissions
+
+```toml
+[permissions]
+required = ["hive.read", "hive.write"]   # it cannot run without these
+optional = ["network"]                    # usable once the user grants them
+[permissions.reasons]
+network = "fetch build results"
+```
+
+- **Installing** shows every command the plugin runs, its required and optional capabilities with reasons, its contributions, and whether it can run isolated. Accepting grants the required capabilities.
+- **Updating** shows what changed: new required capabilities, optional ones that became required, new optional ones, and dropped ones.
+- **Optional capabilities** are granted only by you: `hive plugin grant <id> <capability>`, or `[plugins] allow` for every plugin that asks. A plugin can ask at run time with `plugin.request`; the UI shows the request with the command that grants it. Asking never grants.
+- **`hive plugin revoke`** takes a capability back. Revoking a required one stops the plugin until it is granted again.
+- **`[plugins] deny`** withholds capabilities from every plugin, whatever was granted. A plugin that requires a denied capability does not install or run.
+
+## Events
+
+API 1 event types are `agent.state`, `environment.created`, `environment.git`, `environment.removed`, `environment.updated`, `layout.updated`, `metadata.changed`, `pane.closed`, `pane.created`, `pane.focused`, `pane.moved`, `pane.updated`, `plugin.changed`, `plugin.contributions`, `plugin.permission`, `process.exited`, `process.output`, `process.recovered`, `process.started`, `session.restored`, `tab.closed`, `tab.created`, `tab.updated`, `worktree.created`, and `worktree.removed`. Their data matches what `hive events` prints.
+
+- **At most once.** Each plugin has a queue of 256 events. When it is full, events are dropped for that plugin and counted in its health. The next event it gets carries `"missed": true`; re-read the state you follow when you see it.
+- **In order.** Events reach a plugin in `seq` order. With `event_concurrency = 1`, each handler also finishes before the next starts.
+- **Bounded.** Each handler runs until its `timeout` (default 2m). A failed or timed-out handler is logged, counted, and marks the plugin *degraded*; the event is not retried.
+- `plugin.*` events go to the UI and other clients, never to plugin handlers. Handlers for event types Hive never publishes never fire, and `validate` and `doctor` warn about them.
+
+## Actions
+
+An action runs when you pick it from the CLI (`hive plugin run`), a key binding (`[[keys.command]] type = "plugin_action"`), the palette, or a contextual action.
+
+- **Synchronous actions** (the default) are waited for, and the caller gets their exit status and output. A run past its `timeout` is stopped. If the caller goes away, the run is stopped.
+- **Async actions** (`async = true`) return a run ID at once; their outcome goes to the plugin's health and log.
+- **Cancelling.** `hive plugin cancel <id> <run>` stops any run; `hive plugin info <id>` lists runs in progress. A stopped run gets `SIGTERM`, then `SIGKILL` after 3 seconds, along with everything it started.
+
+## Contributions
+
+What a plugin adds to the UI is **declared** in its manifest. Hive draws it from data and never runs plugin code to draw, so a plugin cannot break the layout, take keys, or draw outside its slot.
+
+```toml
+[[contributes.cards]]      # a sidebar card about the current environment or focused agent
+id = "ci"
+title = "CI"
+scope = "environment"      # or "agent"
+
+[[contributes.status]]     # a short text on the tab bar
+id = "builds"
+title = "Builds"
+
+[[contributes.actions]]    # its action, offered where the user is
+action = "rerun"
+contexts = ["environment", "pane", "agent", "session"]
+
+[[contributes.palette]]    # its action in the command palette
+action = "rerun"
+
+[[contributes.links]]      # a fixed http(s) link in the palette
+id = "dashboard"
+title = "CI dashboard"
+url = "https://ci.example.com"
+```
+
+- **Cards** show rows the plugin sets at run time with `plugin.card`: a label and text with a tone (`info`, `success`, `warning`, `error`), plus up to 3 http(s) links. Up to 6 rows, labels of 16 characters, texts of 48. Environment cards appear under the sidebar's **Plugins** section; agent cards follow the focused agent's pane.
+- **Status indicators** show up to 24 characters on the tab bar, coloured by tone.
+- **Content expires** after its TTL (default 30 minutes, at most 7 days) unless set again, and disappears when its plugin stops, so a crashed plugin leaves nothing stale.
+- **The palette** (<kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>:</kbd> or <kbd>P</kbd>) lists contextual actions for where you are, palette entries, links, and a **Configure** entry for each plugin with settings. Picking an action runs it with your environment, tab, and pane in its context.
+- **Settings forms** are generated from `[configuration]`, validated against the schema, saved through the daemon, and the plugin restarts on its new settings.
+- **Narrow screens** drop plugin indicators first: none below 100 columns, at most two below 160.
+- **Turning contributions off.** `hive plugin contributions` lists each one with its key; `[plugins] hidden = ["ci", "ci:status", "ci:card:ci"]` hides a plugin's contributions, a kind, or a single one.
+- **Limits** per plugin: 4 cards, 4 indicators, 16 contextual actions, 16 palette entries, 8 links.
+
+## Isolation and the security boundary
+
+Hive has no in-process plugins. Every plugin command is a separate process started by the daemon and running as you.
+
+- **Standard isolation** (the default for plugins that do not declare `isolation = "strict"`). The process has your user's access to files, network, and programs. Its Hive capabilities are enforced on its socket, and honest plugins stay within them. A *malicious* plugin is not contained: it could read your files, run programs, or find the daemon's own socket. `filesystem.write`, `network`, and `process.exec` are shown to you but not enforced.
+- **Strict isolation** runs the plugin under the system sandbox: `sandbox-exec` on macOS, bubblewrap (`bwrap`) on Linux. It applies to plugins that declare `isolation = "strict"` (with `[plugins] isolation = "auto"`, the default), or to every plugin with `isolation = "strict"` in your config. A strict plugin writes only its own data, config, and cache directories unless granted `filesystem.write`; has no network unless granted `network`; reaches only its own daemon socket; and sees a minimal environment without your tokens and other variables. Reads, CPU, and memory are not restricted.
+
+Where no sandbox tool is available (Windows, or Linux without `bwrap`), `auto` runs plugins with standard isolation, and `strict` runs none at all. Hive never silently runs a strict plugin unsandboxed.
+
+:::caution
+Install only plugins you trust. Under standard isolation a manifest is a statement, not a sandbox.
+:::
+
+## Lifecycle and health
+
+| State | Meaning |
+| --- | --- |
+| `starting` | Loaded; startup commands are not ready yet. |
+| `ready` | Running. |
+| `degraded` | Running, but a command, timeout, or dropped events failed in the last 5 minutes. |
+| `failed` | Cannot run: manifest, permissions, settings, or sandbox problems, or its startup command crashed past the restart limit. |
+| `disabled` | Turned off by you. |
+
+- **Readiness.** A plugin with startup commands becomes ready when it calls `plugin.ready`, or after its commands stay up for 2 seconds. A one-shot startup command that exits 0 also counts.
+- **Restart limits.** A `restart = true` command restarts after 2 seconds, doubling up to 1 minute. If it exits within a minute of starting more than `[plugins] restart_limit` times (default 5) within `restart_window` (default 10m), the plugin is marked failed until `hive plugin reload <id>`.
+- **Failures stay contained.** One plugin's crashes, queue, and timeouts never hold up the daemon or another plugin.
+- **Inspecting.** `hive plugin list` shows each plugin's state. `hive plugin info <id>` shows health counters, warnings, pending capability requests, runs in progress, and grants. `hive plugin logs <id>` shows command output, and the UI toasts when a plugin fails or asks for a capability.
+- **`hive plugin doctor [id]`** checks the manifest and API version, compatibility, permissions against grants and policy, sandbox availability, unreachable event handlers, settings, and live health. It exits non-zero when something is wrong.
+- **Reloading.** `hive plugin reload <id>` restarts one plugin from its manifest, grants, and settings; without an id, every plugin restarts. Changing settings, grants, or enabled state reloads the plugin automatically.
+
+## Settings and persistent state
+
+| Directory | Contents | Kept |
+| --- | --- | --- |
+| `HIVE_PLUGIN_CONFIG_DIR` | Settings (`settings.json`, schema-versioned). | Across updates; deleted only by `uninstall --delete-data`. |
+| `HIVE_PLUGIN_DATA` | The plugin's own data. | Across updates; deleted only by `uninstall --delete-data`. |
+| `HIVE_PLUGIN_CACHE` | Disposable files. | Removed on uninstall; safe to delete any time. |
+
+- **Schemas.** `[configuration]` declares settings with a type (`string`, `boolean`, `integer`, `number`), description, default, and `required`. Settings files are plain JSON, so keep secrets out of them.
+- **Missing settings** start from defaults. **Invalid settings** stop the plugin with a problem pointing to `hive plugin config <id>`. **Obsolete settings** are kept and reported as warnings, so rolling back loses nothing.
+- **Migrations** in `[[migrations]]` run before the plugin starts, on a staged copy that replaces the settings only when every step succeeds.
+- **Editing.** `hive plugin config <id> [--set name=value] [--unset name]`, or the UI's settings form.
+- **Backups.** `hive plugin export [id…] -o backup.tar.gz [--data]` saves sources, enabled state, grants, and settings, and optionally data. `hive plugin import backup.tar.gz [--data] [--force]` restores them for installed plugins, re-granting only capabilities the manifest still asks for, and lists missing plugins with install commands.
+
+## SDKs
+
+| Language | Package | API 1 helpers |
+| --- | --- | --- |
+| TypeScript | `@hive-oss/plugin-sdk` 0.4 | `has`, `setCard`, `setStatus`, `ready`, `requestCapability`, `capabilities` |
+| Python | `hive_plugin_sdk` | `has`, `set_card`, `set_status`, `ready`, `request_capability`, `capabilities` |
+| Rust | `hive-plugin-sdk` | `PluginContext::has`, `Hive::set_card`, `set_status`, `ready`, `request_capability`, `capabilities` |
+| Go | `pkg/pluginsdk` | `Context.Has`, `Plugin.SetCard`, `SetStatus`, `Ready`, `RequestCapability`, `Capabilities` |
+
+The SDKs' old `extend(...)` runtime contribution call now fails with a pointer to `[contributes]`. TTL values are nanoseconds on the wire; the SDK helpers take seconds. See the [TypeScript SDK guide](https://github.com/admirable-oss/hive/blob/main/docs/plugins/typescript-sdk.md) for a walkthrough.
+
+## Reference plugins
+
+- [`examples/plugins/pr-status`](https://github.com/admirable-oss/hive/tree/main/examples/plugins/pr-status) puts each environment's pull request on a sidebar token and a **Pull request** card, counts open PRs on the tab bar, offers **Open this environment's PR** on environments, panes, and agents, and adds **Refresh** to the palette.
+- [`examples/plugins/spawn-reviewer`](https://github.com/admirable-oss/hive/tree/main/examples/plugins/spawn-reviewer) starts a reviewer agent in every new worktree, or on demand from an environment's actions.
+- The official [`auto-tab-title`](https://github.com/admirable-oss/hive/tree/main/plugins/official/auto-tab-title) (strict isolation) and [`hive-explorer`](https://github.com/admirable-oss/hive/tree/main/plugins/official/hive-explorer) plugins declare their permissions; the explorer appears in the palette.

@@ -1,0 +1,159 @@
+---
+title: Observers
+description: Give dashboards, bots, and other tools scoped, expiring, read-only access to Hive.
+source: https://github.com/admirable-oss/hive/blob/main/docs/observers.md
+---
+
+An observer is a program that watches Hive without driving it: a dashboard on a second screen, a bot that posts to chat when an agent is blocked, or the [web observer](/docs/use/web-observer/) in your browser. It holds an **observer credential** that says what it may see and until when, and it connects to the daemon's **observer socket**, where every method only reads.
+
+```sh
+hive observer create dashboard --all     # prints a token, once
+export HIVE_OBSERVER_TOKEN=hvo_…
+hive observer status                     # act as the observer
+hive observer events                     # JSON lines until interrupted
+```
+
+## What an observer can see
+
+Within its scope, an observer can read the daemon's health; environments, tabs, panes, agents and their states; sidebar metadata; and events as they happen. With screen access, it can also read and watch pane screens and recent output.
+
+An observer **cannot** send terminal input, prompt agents, resize or close anything, start or stop processes, create environments, or manage credentials. Those methods do not exist on the observer socket: calling one answers `unknown_method`. A pane outside its scope answers `not_found`, exactly like a pane that does not exist.
+
+Observer views also leave out anything that commonly carries secrets: environment variables, command lines and arguments, working directories, PIDs, and agents' own session IDs. A process shows only its program name (`claude`, not `/home/me/bin/claude --api-key …`).
+
+:::caution[API access is not OS isolation]
+Observer credentials are enforced by the daemon's API. A program running as your user can still open the control socket (`hive.sock`) and do anything you can. A token limits what an honest program does and what a leaked token is worth.
+
+To hold an observer strictly to its token, run it on another machine, container, or account and let it in only over SSH with a key that can reach nothing but the observer socket:
+
+```text
+# ~/.ssh/authorized_keys on the machine running Hive
+command="hive proxy --observer",restrict ssh-ed25519 AAAA… dashboard@monitor
+```
+
+Screen access exposes whatever is on screen, including secrets an agent prints. Grant `--screens` only to observers that need it.
+:::
+
+### Being observed is visible
+
+While any observer is connected, the multiplexer's tab bar shows `◉ observed by <name>`, and a pane whose screen is being watched shows `[watched]`. Programs can ask the control socket's `observer.activity` method, or follow the `observer.activity` event on `hive events`. A daemon that stops ends its observers' connections; observers never hold it up.
+
+## Manage credentials
+
+```sh
+hive observer create <name> (--all | --env <id>… | --pane <id>…) [--screens] [--expires 720h]
+hive observer list                 # state, scope, last use, open connections
+hive observer show <id>
+hive observer revoke <id>          # open connections end at once
+hive observer validate             # check $HIVE_OBSERVER_TOKEN (exit 1 if unusable)
+hive observer audit [--credential <id>]
+```
+
+Managing credentials requires control of the daemon, through `hive.sock` or `--remote`. No plugin can manage them, whatever capabilities it holds.
+
+- **Scope.** A credential sees the whole session (`--all`) or the listed environments and panes. An environment brings its tabs, panes, agents, and processes; a pane alone brings its process and agent. Scopes are fixed at creation and cannot be widened. Each session is a separate daemon, so a token belongs to exactly one session.
+- **Screens.** Without `--screens`, an observer sees metadata and events only. With it, it can also read screens, scrollback, and recent output in its scope.
+- **Expiry.** Every credential expires: 30 days by default, anywhere from 1 minute to 365 days. Connections end at expiry.
+- **Revocation.** `hive observer revoke` ends open connections immediately and refuses new ones. Revoked and expired credentials stay listed for 30 days.
+- **Tokens.** Tokens look like `hvo_<id>_<secret>` and are printed once. The daemon stores only a SHA-256 hash, in `observers/credentials.json` (mode 0600). Commands acting as an observer read the token from `$HIVE_OBSERVER_TOKEN` or `--token-file` (`-` reads stdin), never from a flag visible in the process list.
+- **Audit.** `observers/audit.log` records credentials made and revoked, authenticated connections, refused tokens, out-of-scope requests, and why connections ended. It never contains a token.
+
+## Act as an observer from the CLI
+
+| Command | Purpose |
+| --- | --- |
+| `hive observer status` | Version, session, credential, and counts in scope. |
+| `hive observer snapshot` | Everything in scope as JSON. |
+| `hive observer screen <pane> [--ansi] [--scrollback N]` | A pane's screen (needs `--screens`). |
+| `hive observer watch <pane> [--interval 250ms]` | Follow a pane's screen. |
+| `hive observer events [--epoch E --since N]` | Stream events as JSON lines, resuming from a position. |
+
+## Connect from code
+
+The observer socket is `observer.sock`, next to `hive.sock` in the session directory (`hive observer list` prints the path). It speaks Hive's protocol 2: send `hello`, then `observe.auth` with the token. Until then every method except `observe.auth` and `observe.schema` answers `permission_denied`. A connection that has not authenticated within 10 seconds, or presents three bad tokens, is closed.
+
+From Go, use `pkg/hiveapi`:
+
+```go
+o, err := hiveapi.Observe(ctx, hiveapi.ObserverOptions{}) // $HIVE_OBSERVER_TOKEN, this machine
+snap, err := o.Snapshot(ctx)
+
+// Keep a view current across reconnects and missed events:
+err = hiveapi.Follow(ctx, hiveapi.ObserverOptions{Host: "buildbox"}, func(u hiveapi.ObserverUpdate) error {
+	if u.Snapshot != nil { /* replace your model */ }
+	if u.Event != nil { /* apply one event */ }
+	return nil
+})
+```
+
+`Follow` reconnects with growing backoff (half a second up to 30 seconds) and stops only when its context ends, the token stops working, or your function returns an error.
+
+### Remote observers
+
+`hive proxy --observer` bridges stdin and stdout to the observer socket, which is how observers reach another machine over SSH:
+
+```sh
+hive --remote buildbox observer create dash --all     # created on buildbox
+HIVE_OBSERVER_TOKEN=hvo_… hive --remote buildbox observer status
+```
+
+`hiveapi.ObserverOptions{Host: "buildbox"}` does the same from Go. The remote daemon checks the token; a token from one machine means nothing to another.
+
+## Methods
+
+The observer API is frozen in [`api/v1/observer.txt`](https://github.com/admirable-oss/hive/blob/main/api/v1/observer.txt), with a JSON Schema that `observe.schema` also returns.
+
+| Method | Params | Result |
+| --- | --- | --- |
+| `observe.auth` | `token` | The credential, plus the event stream's `epoch` and `seq`. |
+| `observe.schema` | – | The observer API's schema. |
+| `observe.status` | – | Version, session, start time, API level, `epoch`/`seq`, credential, counts in scope. |
+| `observe.snapshot` | – | `epoch`, `seq`, and the environments, tabs, panes, agents, and metadata in scope. |
+| `observe.pane` | `pane` | One pane with its agent and metadata. |
+| `observe.screen` | `pane`, `ansi`, `scrollback` (≤ 1000) | Screen lines, cursor, size, title, `alt_screen` (needs screens). |
+| `observe.output` | `pane`, `lines` (default 100, ≤ 1000), `ansi` | The newest output lines (needs screens). |
+| `observe.history` | `epoch`, `since`, `limit` (default 100, ≤ 1000) | A page of events after `since`. |
+| `observe.events` | `epoch`, `since` (optional) | A pipe with one event per line. |
+| `observe.watch` | `pane`, `ansi`, `interval_ms` (100–10000, default 250) | A pipe of screen updates (needs screens). |
+
+Errors use the protocol's codes: `permission_denied` (not authenticated, bad token, or no screens permission), `not_found` (out of scope or nonexistent), `unknown_method` (anything that would change state), and `unavailable` (a limit was reached).
+
+`observe.watch` sends a **keyframe** first, then updates listing only the rows that changed. A size change arrives as a new keyframe. Updates come at most once per `interval_ms`, with intermediate changes merged, so a slow observer gets fewer updates but never a wrong screen.
+
+## Events and resynchronising
+
+Observer events carry `seq`, `type`, `time`, and `data` shaped as observer views. Types include `environment.*`, `tab.*`, `layout.updated`, `pane.*`, `process.started`/`exited`/`recovered`, `process.output` (a screen changed, at most once a second per agent), `agent.state`, `metadata.changed`, `worktree.created`/`removed`, and `observer.resync`. Plugin state, permission requests, and session restores are not sent to observers.
+
+- **Epochs.** `seq` values are comparable only within an epoch, which is one daemon run.
+- **Gaps are not losses.** Out-of-scope events leave gaps in `seq`. A real loss is always announced by an `observer.resync` event.
+- **Starting.** Open `observe.events` without `since`, then take `observe.snapshot`. Apply events by ID so applying one twice is harmless.
+- **Reconnecting.** Open `observe.events` with the last `epoch` and `seq` you applied. Retained events (the last `observers.history_events`, default 2048) are replayed first. If the position is too old or the epoch has changed, the stream starts with `observer.resync`: take a new snapshot.
+- **Falling behind.** Each stream queues up to 256 events. A reader that falls further behind gets `observer.resync` next.
+
+## Limits
+
+Observers cannot crowd out the people and agents using Hive. They have their own socket and connections; at most `observers.max_connections` (default 32) in total, 8 per credential, and 8 open streams per connection. Each connection can have 8 requests in flight at roughly 20 requests a second (bursts of 40); beyond that, requests answer `unavailable`. Events never wait for observers, and a connection that stops reading for 30 seconds is closed.
+
+## Configuration
+
+```toml
+[observers]
+enabled = true          # serve the observer socket
+history_events = 2048   # events kept for catching up (64 to 100000)
+max_connections = 32    # open observer connections, all credentials together
+```
+
+The observer API follows the [compatibility policy](/docs/ref/compatibility/): within 1.x it only grows. Ignore unknown fields and event types, and branch on error codes rather than messages.
+
+## Examples
+
+- [`examples/observer-dashboard`](https://github.com/admirable-oss/hive/tree/main/examples/observer-dashboard): a live board of every agent's state, local or over SSH (`-host`).
+- [`examples/observer-notifier`](https://github.com/admirable-oss/hive/tree/main/examples/observer-notifier): posts to a webhook when an agent is blocked or done, with the end of its screen, announcing each change once across reconnects.
+
+## Troubleshooting
+
+- **`no observer token`:** set `HIVE_OBSERVER_TOKEN`, or pass `--token-file`.
+- **`invalid, expired or revoked token`:** run `hive observer validate` with control of the daemon to see which. Tokens belong to one session on one machine.
+- **`connect to the observer socket: … no such file`:** the daemon is not running (observers never start it), or `observers.enabled = false`.
+- **`this credential does not allow screen contents`:** create a credential with `--screens`.
+- **`unavailable: too many …`:** you hit a limit. Reuse one connection for several streams, and follow events instead of polling.

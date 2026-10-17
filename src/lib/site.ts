@@ -3,14 +3,18 @@ export const REPO_SLUG = "admirable-oss/hive";
 
 export const INSTALL_URL = "https://hive.admir-saheta.com/install.sh";
 export const INSTALL_COMMAND = `curl -fsSL ${INSTALL_URL} | sh`;
+export const INSTALL_PS1_URL = "https://hive.admir-saheta.com/install.ps1";
+export const INSTALL_PS1_COMMAND = `irm ${INSTALL_PS1_URL} | iex`;
 
-export type InstallMethodId = "default" | "brew" | "nix";
+export type InstallMethodId = "default" | "brew" | "nix" | "windows";
 
 export const INSTALL_METHODS: readonly {
   id: InstallMethodId;
   label: string;
   command: string;
   display: string;
+  /** Shell prompt shown before the command; defaults to `$`. */
+  prompt?: string;
 }[] = [
   {
     id: "default",
@@ -29,6 +33,13 @@ export const INSTALL_METHODS: readonly {
     label: "nix",
     command: "nix run github:admirable-oss/hive",
     display: "nix run github:admirable-oss/hive",
+  },
+  {
+    id: "windows",
+    label: "windows",
+    command: INSTALL_PS1_COMMAND,
+    display: INSTALL_PS1_COMMAND,
+    prompt: "PS>",
   },
 ] as const;
 

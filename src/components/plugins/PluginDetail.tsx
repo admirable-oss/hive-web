@@ -54,7 +54,7 @@ function MetadataGrid({ plugin }: { plugin: HivePlugin }) {
     ["LATEST RELEASE", `v${release.version}`],
     ["HIVE VERSION", `≥ ${plugin.min_hive_version}`],
     ["PLUGIN API", plugin.plugin_api ?? "—"],
-    ["PLATFORMS", (plugin.platforms ?? []).map((p) => (p === "darwin" ? "macOS" : p)).join(", ") || "—"],
+    ["PLATFORMS", (plugin.platforms ?? []).map((p) => (p === "darwin" ? "macOS" : p === "linux" ? "Linux" : p === "windows" ? "Windows" : p)).join(", ") || "—"],
     ["LICENSE", plugin.license ?? "—"],
     ["MAINTAINERS", (plugin.maintainers ?? []).map((m) => m.name).join(", ") || "Not listed"],
   ];

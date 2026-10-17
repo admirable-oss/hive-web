@@ -1,18 +1,54 @@
 ---
 title: App Store
-description: How to add Hive extensions today and the status of a central plugin catalog.
+description: Find, install, update, and roll back reviewed Hive plugins from the registry, or install directly from Git.
 source: https://github.com/admirable-oss/hive/blob/main/cmd/hive/cmd_plugin.go
 ---
 
-Hive does not currently ship a hosted app store or searchable plugin marketplace. You can install extensions directly from a Git repository or a local directory using Hive's plugin system.
+The Hive App Store is a reviewed plugin registry. Browse it on the [plugins page](/plugins/) or search it from the terminal, then install by ID:
+
+```sh
+hive plugin search editor
+hive plugin install hive-explorer
+```
+
+Before installing, Hive shows every command the plugin runs, the capabilities it requires and may ask for (with reasons), what it adds to the UI, and whether it can run sandboxed. Registry releases are pinned to a commit and checksum, and Hive verifies the checksum before installing.
+
+## Updates and rollback
+
+```sh
+hive plugin update                 # every catalog plugin
+hive plugin update hive-explorer   # one plugin
+hive plugin rollback hive-explorer # back to the previously installed release
+```
+
+An update shows what changed in the plugin's permissions, such as new required capabilities or optional ones that became required, before you accept it. The last installed release is kept for rollback, and plugin settings and data are preserved across both.
+
+For scripts, pass `--yes` to accept the install or update preview. Without a terminal or `--yes`, Hive declines the operation.
+
+## Platforms
+
+Registry entries list the platforms they support: `darwin`, `linux`, and `windows`. Hive refuses to install a plugin that does not list your platform. Plugins whose commands are shell scripts usually do not run on Windows; see [Platforms and Windows](/docs/getting-started/platforms/#windows-limitations).
+
+## Install from Git or a local directory
+
+The registry is optional. Git URLs and local directories always work, including during registry outages:
 
 ```sh
 hive plugin install https://github.com/example/hive-plugin
-hive plugin install ./my-plugin
+hive plugin install ./my-plugin --ref v0.1.0
+hive plugin link ./my-plugin       # develop in place without copying
 ```
 
-Before installing, Hive displays the plugin's declared commands and when they will run. Plugins run with your user permissions, so review the source and trust prompt as you would any program. Pin a tag or revision with `--ref` when you want to control which version is installed.
+Pin a tag or revision with `--ref` when you want to control exactly which version is installed.
 
-To develop a plugin in place, use `hive plugin link ./my-plugin`. See [Plugins and Key Commands](/docs/config/plugins/) for manifests, lifecycle events, actions, key commands, and management commands. Example plugins are in the [Hive repository](https://github.com/admirable-oss/hive/tree/main/examples/plugins).
+## Publish a plugin
 
-A central marketplace index is on the project roadmap; availability may change in a future release. Until then, Git URLs and local plugin directories are the supported installation sources.
+Scaffold and check a plugin locally, then submit it to the registry:
+
+```sh
+hive plugin init my-plugin
+hive plugin validate ./my-plugin
+hive plugin doctor my-plugin
+```
+
+The [registry contribution and governance guide](https://github.com/admirable-oss/hive/blob/main/docs/plugins/governance.md) covers submissions, ownership transfers, moderation reports, and appeals. See [Plugin API v1](/docs/config/plugin-api/) for manifests, capabilities, and UI contributions, and [Plugins and Key Commands](/docs/config/plugins/) for day-to-day management. Example plugins are in the [Hive repository](https://github.com/admirable-oss/hive/tree/main/examples/plugins).

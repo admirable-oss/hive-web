@@ -47,4 +47,12 @@ Hive uses SSH to run `hive proxy` remotely and bridge the connection to that hos
 
 Screen updates are compressed and paced for remote links. Tune the per-client data limit with `remote.frame_budget_kb` in the [configuration](/docs/config/config-reference/). Lowering the budget reduces bandwidth and can make screen updates arrive less often.
 
+Pasted images (<kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>I</kbd>) travel inside the same connection, split into small pieces between your keystrokes and paced by `remote.image_budget_kb`. The clipboard is always read on your local machine. See [Images and Terminal Graphics](/docs/use/images/#remote-machines).
+
+Remote hosts must run macOS or Linux. Windows works as the client, using its built-in OpenSSH, but cannot be a remote host; see [Platforms and Windows](/docs/getting-started/platforms/#windows-limitations).
+
+## Watch without control
+
+To give a dashboard, bot, or browser read-only access to a remote machine, use an [observer credential](/docs/use/observers/#remote-observers) instead of full SSH control. `hive proxy --observer` behind a restricted SSH key reaches only the read-only observer socket. The [web observer](/docs/use/web-observer/) builds on this to show remote agents in a browser or on your phone.
+
 For connection errors, first verify that `ssh <host>` works in a regular terminal, then see [Troubleshooting](/docs/help/troubleshoot/).

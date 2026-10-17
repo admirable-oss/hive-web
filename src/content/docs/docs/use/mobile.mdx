@@ -1,0 +1,87 @@
+---
+title: Hive on Your Phone
+description: Install the web observer on iOS or Android, see what needs you first, and get notified when an agent is blocked or done.
+source: https://github.com/admirable-oss/hive/blob/main/docs/mobile.md
+---
+
+Your agents don't stop when you leave your desk. The [web observer](/docs/use/web-observer/) is built for phones too: it shows what needs you first, notifies you when an agent is blocked or done, and a tap on a notification opens that agent. It stays read-only; nothing on a phone can type into an agent, change a layout, or start anything.
+
+## Set up
+
+1. **Serve the web observer over HTTPS** where your phone can reach it, for example on a tailnet with `tailscale cert` or behind a reverse proxy. See [deployment](/docs/use/web-observer/#deploy-it). Phones need HTTPS for notifications and for installing the app; plain HTTP works only on `localhost`.
+2. **Share a link** to your phone, for example as a QR code from any QR tool:
+
+   ```sh
+   hive web share --runtime laptop --screens --uses 2 --expires 720h --label "my phone"
+   ```
+
+   `--uses 2` lets the same link sign in both the browser and the installed app. On iOS these sign in separately.
+3. **Install it.**
+   - **iPhone and iPad:** open the link in Safari, then Share → **Add to Home Screen**. Open Hive from the Home Screen and sign in there by pasting the code (the part after `#` in the link).
+   - **Android:** open the link in Chrome, then ⋮ → **Install app**, or accept the prompt.
+4. **Turn notifications on.** In the app, open Settings → **Turn on notifications** and allow them. **Send a test** checks the whole path.
+
+## What you see
+
+- **Attention** is the first page: agents that are blocked or done, newest first. The *Working* and *All* chips widen the list, and agents you **Follow** are pinned at the top.
+- **Cards** show each agent's state in colour and words, what it is, where it runs, since when, and why. The whole card is the link.
+- **An agent's page** shows its state, reason, and activity. With screen access it also shows the live screen, which scrolls sideways inside its own box. **A−/A+** change text size, **Fit** sizes it to your screen, **Wrap** wraps long lines, and **Auto-scroll** keeps the newest line in view. There is no keyboard and no input.
+- **Output history** appears only if the link allows it (`--history`), loads only when you press the button, and every read is audited.
+- **Machines** lists each runtime, its connection, and its environments.
+- **When something isn't current, it says so.** A banner names any unreachable runtime with the time of its last data, and its screens read "As of 12:01: not updating". With no network, the installed app shows an offline page; it never shows kept data, because it keeps none.
+
+Text follows your system size (Dynamic Type on iOS, font size on Android), every control is at least 44 points tall, states are words as well as colours, and screen readers hear connection changes.
+
+## Notifications
+
+You can be notified when an agent is **blocked** waiting for you (on by default), **done** with a task (on by default), or **stopped with an error** (off by default). Settings chooses which runtimes notify you and how much a notification says. To silence one agent, **Mute** it from its page for an hour, until tomorrow, or until unmuted.
+
+**What a notification contains.** By default, the agent's name, kind, environment, and machine, such as "dev-agent is waiting for you · claude in api on laptop", plus a link to it. With **"nothing but An agent needs you"**, it contains no names and links to Attention. It **never** contains screen contents, output, or anything an agent printed.
+
+**Privacy and security.**
+
+- **Encrypted end to end** for your device (Web Push, RFC 8291). The push service that carries it (Apple, Google, Mozilla, Microsoft) cannot read it.
+- **No relay.** Your web observer sends it directly, signed with its own VAPID key. No Hive service sits in between.
+- **Lock screen** visibility and detail follow your phone's settings.
+
+**Each change notifies once.** An agent that blocks notifies once, however often its screen redraws or the connection drops. A change missed while disconnected is announced once on catch-up. Bursts are limited to 6 notifications a minute per device, with the rest summed up as "N more updates", and repeats for the same agent replace each other.
+
+**Access ends notifications.** Revoking a link, its expiry, or signing out removes its devices. Each notification is checked against the link's access just before it is sent, so an agent outside the link's scope never notifies.
+
+**Delivery is best effort.**
+
+- The web observer must be running. It stays connected to runtimes with subscribed devices, so the multiplexer shows `◉ observed by hive-web:…` while notifications are on.
+- **iOS and iPadOS:** 16.4 or newer, and only from the Home Screen app, not Safari tabs. Focus modes and Scheduled Summary can hold notifications back.
+- **Android:** Chrome, Firefox, Samsung Internet, and Edge. Battery optimisation can delay notifications while the phone sleeps; blocked agents are sent as urgent to shorten the delay.
+- **Desktop browsers** work too, in a tab or installed.
+- Undelivered notifications are dropped after 4 hours (blocked) or 1 hour (done); by then Attention shows the current state anyway.
+
+`hive web push status` lists devices, their last delivery, and errors. `hive web push test <grant-or-session>` sends a test.
+
+## Configuration
+
+```toml
+[web]
+push = true                    # notifications (Web Push)
+push_contact = ""              # mailto: or https: contact for push services ("" uses the public URL)
+push_allow_any_endpoint = false
+```
+
+Devices may only use the browsers' own push services (Google, Mozilla, Apple, and Microsoft), so the web observer never posts to arbitrary addresses. `push_allow_any_endpoint` lifts this for self-hosted push services.
+
+## Why a web app and not native apps (yet)
+
+Hive's phone experience is an installable web app (PWA) built on the same web observer, rather than native Swift or Kotlin apps.
+
+- **Push decides it.** A native app can only receive notifications its publisher sends through Apple's or Google's services with the publisher's credentials. A self-hosted Hive would have to route every notification through a relay run by the Hive project, which would see your devices and traffic.
+- **Web Push needs neither.** Each web observer has its own key and sends straight to the browser's push service, encrypted for the device.
+- **One code base,** tested in CI with real browsers at phone sizes.
+- **What native would add:** Live Activities, widgets, background refresh without push, and managed devices that cannot install web apps. Those are the triggers to revisit, reusing the same observer API and a relay that you run.
+
+## Supported devices
+
+| | Supported | Tested |
+| --- | --- | --- |
+| iPhone, iPad | iOS/iPadOS 16.4+, Safari and the Home Screen app | Automated iPhone 13 emulation (layout, touch targets, deep links), plus a manual release checklist |
+| Android | Current Chrome, Firefox, Samsung Internet, Edge | Automated Pixel 5 emulation, plus a manual release checklist |
+| Screens | Phone widths and up, portrait and landscape | At 390 and 393 px: no sideways page scrolling; screens scroll inside their box |

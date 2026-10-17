@@ -95,7 +95,7 @@ export function validatePluginRegistry(data: unknown): PluginRegistry {
       const order = min.findIndex((part, index) => part !== max[index]);
       if (order >= 0 && min[order] > max[order]) throw new Error(`Plugin ${plugin.id} has a reversed Hive compatibility range`);
     }
-    if (plugin.platforms && (!Array.isArray(plugin.platforms) || plugin.platforms.some((platform) => !["darwin", "linux"].includes(platform)))) {
+    if (plugin.platforms && (!Array.isArray(plugin.platforms) || plugin.platforms.some((platform) => !["darwin", "linux", "windows"].includes(platform)))) {
       throw new Error(`Plugin ${plugin.id} has an unsupported platform`);
     }
     const versions = new Set<string>();

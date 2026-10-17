@@ -4,9 +4,9 @@ description: Hive's TOML configuration path, environment overrides, settings, an
 source: https://github.com/admirable-oss/hive/blob/main/internal/config/testdata/config-reference.md
 ---
 
-Hive reads `~/.config/hive/config.toml`, or `$XDG_CONFIG_HOME/hive/config.toml`, or the explicit file in `$HIVE_CONFIG`. All settings are optional. Run `hive config default` to print the defaults, `hive config init` to write a commented file, and `hive config validate` to check the current config.
+Hive reads `~/.config/hive/config.toml` (`%APPDATA%\Hive\config.toml` on Windows), or `$XDG_CONFIG_HOME/hive/config.toml`, or the explicit file in `$HIVE_CONFIG`. All settings are optional. Run `hive config default` to print the defaults, `hive config init` to write a commented file, and `hive config validate` to check the current config.
 
-Invalid values and unknown keys produce warnings and use defaults. Invalid TOML prevents the daemon from starting. Runtime data lives under `~/.hive` by default; set `HIVE_HOME` to use another root.
+Invalid values and unknown keys produce warnings and use defaults. Invalid TOML prevents the daemon from starting. Runtime data lives under `~/.hive` by default (`%LOCALAPPDATA%\Hive` on Windows); set `HIVE_HOME` to use another root.
 
 ## Daemon and logs
 
@@ -18,7 +18,7 @@ Invalid values and unknown keys produce warnings and use defaults. Invalid TOML 
 | `[log].format` | `"text"` | `text` or `json`. |
 | `[log].max_size_mb` | `10` | Daemon log rotation size. |
 | `[log].max_backups` | `3` | Number of old daemon logs to keep. |
-| `[process].stop_grace` | `"3s"` | Time an agent gets to exit after `SIGTERM` before Hive kills it. |
+| `[process].stop_grace` | `"3s"` | Time an agent gets to exit after `SIGTERM` (on Windows, after its pseudo console closes) before Hive kills it. |
 
 ## Terminals and Git
 
@@ -27,7 +27,7 @@ Invalid values and unknown keys produce warnings and use defaults. Invalid TOML 
 | `[terminal].default_width` | `220` | Width of a new agent terminal when unspecified. |
 | `[terminal].default_height` | `50` | Height of a new agent terminal when unspecified. |
 | `[terminal].scrollback_mb` | `10` | Scrollback retained per agent terminal, in MiB. |
-| `[terminal].shell` | `""` | Shell for a new pane; empty uses `$SHELL -l`. |
+| `[terminal].shell` | `""` | Shell for a new pane; empty uses `$SHELL -l`. On Windows, empty uses `$SHELL`, then `pwsh`, Windows PowerShell, or `%ComSpec%`. |
 | `[git].refresh_interval` | `"5s"` | How often Hive refreshes environment branch and dirty state. |
 | `[worktrees].directory` | `""` | Worktree base directory; empty uses `~/.hive/worktrees` (or `$HIVE_HOME/worktrees`). |
 
@@ -53,6 +53,49 @@ Invalid values and unknown keys produce warnings and use defaults. Invalid TOML 
 | `[update].channel` | `"stable"` | Update channel: `stable` or `preview` (release candidates). |
 | `[remote].ssh` | `"ssh"` | SSH command used for remote Hive; `HIVE_SSH` overrides it. OpenSSH config applies. |
 | `[remote].frame_budget_kb` | `48` | Approximate screen data limit per remote client, in KiB/s; `0` means unlimited. |
+| `[remote].image_budget_kb` | `1024` | Upload rate for pasted images sent to a remote daemon, in KiB/s; `0` means unlimited. Keystrokes typed meanwhile go between its pieces. |
+
+## Images
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[images].max_kb` | `5120` | Largest image pasted with <kbd>Ctrl</kbd>+<kbd>B</kbd>, then <kbd>I</kbd>, in KiB (hard cap 16 MiB). The UI and the daemon each apply their own value. |
+| `[images].max_megapixels` | `16` | Most pixels a pasted image may have, in megapixels (hard cap 64). |
+| `[images].keep` | `"1h0m0s"` | How long images saved for agents that take a file path (Claude Code, Codex) are kept. `"0s"` never saves, so such agents refuse images. |
+| `[images].log_graphics` | `false` | Keep images agents print (Kitty graphics) in their output logs. Off strips them so image data never reaches disk. |
+| `[images].render` | `"auto"` | How printed images are drawn: `auto` (Kitty, iTerm2, or Sixel as the terminal supports, else coloured cells), `cells`, `text`, or `off`. |
+
+See [Images and Terminal Graphics](/docs/use/images/).
+
+## Plugins
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[plugins].allow` | `[]` | Capabilities granted without asking to plugins that list them as optional: `hive.read`, `hive.write`, `hive.input`, `hive.process`, `hive.admin`, `filesystem.write`, `network`, `process.exec`. |
+| `[plugins].deny` | `[]` | Capabilities no plugin gets. A plugin that requires a denied capability does not run. |
+| `[plugins].isolation` | `"auto"` | `auto` sandboxes plugins that declare `isolation = "strict"`; `standard` never sandboxes; `strict` sandboxes every plugin (needs `sandbox-exec` on macOS or `bwrap` on Linux, otherwise none run). |
+| `[plugins].restart_limit` | `5` | A plugin command that fails more than this many times within `restart_window` is no longer restarted. `hive plugin reload <id>` resets it. |
+| `[plugins].restart_window` | `"10m0s"` | Window for `restart_limit`. |
+| `[plugins].hidden` | `[]` | Contributions to turn off: `"plugin"`, `"plugin:kind"`, or `"plugin:kind:id"`. `hive plugin contributions` lists them. |
+
+See [Plugin API v1](/docs/config/plugin-api/).
+
+## Observers and the web observer
+
+| Section and key | Default | Description |
+| --- | --- | --- |
+| `[observers].enabled` | `true` | Serve the read-only observer socket for credential holders (`hive observer create`). Off, nobody can observe. |
+| `[observers].history_events` | `2048` | Events kept for observers to catch up with after a reconnect (64 to 100000). |
+| `[observers].max_connections` | `32` | Open observer connections allowed, all credentials together. |
+| `[web].listen` | `"127.0.0.1:8484"` | HTTP address of the web observer (`hive web serve`). Beyond loopback it needs TLS or a proxy that terminates it. |
+| `[web].public_url` | `""` | Where browsers reach it, for share links; empty derives it from `listen`. |
+| `[web].tls_cert`, `[web].tls_key` | `""` | Certificate and key to serve HTTPS. |
+| `[web].behind_proxy` | `false` | A reverse proxy in front terminates TLS; cookies are then Secure. |
+| `[web].push` | `true` | Web Push notifications for phones and browsers that turn them on (HTTPS or localhost only). |
+| `[web].push_contact` | `""` | `mailto:` or `https:` contact for push services; empty uses the public URL. |
+| `[web].push_allow_any_endpoint` | `false` | Accept push services other than the browsers' own (Google, Mozilla, Apple, Microsoft). |
+
+See [Observers](/docs/use/observers/), [Web Observer](/docs/use/web-observer/), and [Hive on Your Phone](/docs/use/mobile/).
 
 ## Notifications
 

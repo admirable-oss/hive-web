@@ -63,12 +63,13 @@ hive --remote build-box agent list
 | `hive status`, `hive ping`, `hive version` | Check Hive and the daemon version/status. |
 | `hive daemon start\|stop\|status\|logs` | Manage the background daemon. |
 | `hive daemon restart` | Restart the daemon while agent shims keep running. |
-| `hive daemon install\|uninstall` | Install or remove the login service (launchd on macOS, systemd user service on Linux). |
+| `hive daemon install\|uninstall` | Install or remove the login service (launchd on macOS, systemd user service on Linux, Task Scheduler on Windows). |
 | `hive session save` | Save a workspace snapshot now. |
 | `hive session restore [--fresh]` | Restore panes that were lost. `--fresh` starts agents without resuming their prior conversation. |
 | `hive stop` | Stop the runtime and all agents it manages. |
 | `hive gc [--dry-run] [--older-than <duration>]` | Remove old records and leftover data; dry run previews cleanup. |
 | `hive update [--check] [--version <tag>] [--channel stable\|preview]` | Check for or install an update. |
+| `hive update --rollback` | Restore the previous binary; run it again to undo. |
 
 ## Integrations and automation
 
@@ -89,10 +90,30 @@ hive --remote build-box agent list
 | --- | --- |
 | `hive config path\|show\|default\|init\|validate` | Locate, inspect, create, or validate the config file. |
 | `hive config reset-keys` | Restore default built-in keybindings. |
-| `hive plugin install\|link\|list\|info\|enable\|disable\|uninstall\|run\|logs` | Manage plugins. |
+| `hive plugin search\|install\|update\|rollback\|init\|validate\|link` | Find, install, update, roll back, scaffold, and check plugins. |
+| `hive plugin list\|info\|enable\|disable\|uninstall\|run\|cancel\|logs` | Manage installed plugins and their runs. |
+| `hive plugin doctor\|reload\|grant\|revoke\|config\|contributions\|capabilities` | Check health, manage capabilities and settings, and inspect UI contributions. See [Plugin API v1](/docs/config/plugin-api/). |
+| `hive plugin export\|import` | Back up and restore plugin sources, grants, settings, and optionally data. |
+| `hive plugin card\|status\|ready\|request` | Called from plugin scripts to set cards and indicators, report readiness, or ask for a capability. |
 | `hive machine add\|list\|status\|reconnect\|remove` | Save and manage SSH destinations. |
 | `hive debug stats` | Print daemon runtime statistics. |
 | `hive debug pprof [--profile <name>] [--seconds N] [-o <file>]` | Capture a runtime profile for performance investigation. |
+
+## Observers and the web observer
+
+| Command | Purpose |
+| --- | --- |
+| `hive observer create <name> (--all\|--env <id>…\|--pane <id>…) [--screens] [--expires <d>]` | Create a scoped, expiring, read-only credential; prints the token once. |
+| `hive observer list\|show\|revoke\|validate\|audit` | Manage credentials and read the observer audit log. |
+| `hive observer status\|snapshot\|screen\|watch\|events` | Act as an observer with the token in `$HIVE_OBSERVER_TOKEN` or `--token-file`. |
+| `hive proxy --observer` | Bridge stdin/stdout to the observer socket, for SSH-restricted observers. |
+| `hive web runtime add\|list\|remove` | Allow the web observer to show a runtime (this session, `--remote`, or `--machine`). |
+| `hive web serve [--listen] [--public-url] [--tls-cert --tls-key] [--behind-proxy]` | Run the web observer. |
+| `hive web share [--runtime <name>] [--screens] [--history] [--expires 8h] [--uses 1]` | Create a one-time browser sign-in link. |
+| `hive web grants\|revoke\|audit\|status` | See who is signed in, end access, read the audit log, and check runtime connections. |
+| `hive web push status\|test` | List notification devices and send a test notification. |
+
+See [Observers](/docs/use/observers/), [Web Observer](/docs/use/web-observer/), and [Hive on Your Phone](/docs/use/mobile/).
 
 ## Exit statuses
 

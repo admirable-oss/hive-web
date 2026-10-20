@@ -7,7 +7,7 @@ description: The engineering decisions behind Hive's terminal, runtime, and pers
 
 Each ADR records one decision: the context, what was decided, and what it
 costs. ADRs are not rewritten after they are accepted: a later ADR supersedes
-an earlier one, and a factual correction is added as a dated amendment. New dependencies need an ADR (see CONTRIBUTING.md).
+an earlier one, and a factual correction is added as a dated amendment. New dependencies need an ADR (see [Contributing](/docs/community/contributing/)).
 
 | ADR | Decision | Status |
 |-----|----------|--------|

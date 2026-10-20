@@ -25,6 +25,18 @@ An update shows what changed in the plugin's permissions, such as new required c
 
 For scripts, pass `--yes` to accept the install or update preview. Without a terminal or `--yes`, Hive declines the operation.
 
+## Revoked, deprecated and archived plugins
+
+The registry can **revoke** a release, for example one that was compromised. Hive never installs or updates to a revoked release: `install` takes the newest release that is not revoked, and `update` moves an installed revoked release to a safe one. `hive plugin info` shows why each revoked release was withdrawn.
+
+`install` and `update` warn when a listing is **deprecated** (its maintainers recommend a replacement) or **archived** (no longer maintained, with no fixes to come). `hive plugin doctor` checks every registry-installed plugin against the registry: revoked, delisted, deprecated, archived, or an update available.
+
+```sh
+hive plugin doctor                 # includes a "registry" check per plugin
+```
+
+Revocations require Hive 1.0.10 or later. If the registry's list of revocations cannot be read, installs and updates stop rather than risk a revoked release. The policies behind these states are in [Plugin Ecosystem Health](/docs/config/plugin-ecosystem/).
+
 ## Platforms
 
 Registry entries list the platforms they support: `darwin`, `linux`, and `windows`. Hive refuses to install a plugin that does not list your platform. Plugins whose commands are shell scripts usually do not run on Windows; see [Platforms and Windows](/docs/getting-started/platforms/#windows-limitations).
@@ -51,4 +63,4 @@ hive plugin validate ./my-plugin
 hive plugin doctor my-plugin
 ```
 
-The [registry contribution and governance guide](https://github.com/admirable-oss/hive/blob/main/docs/plugins/governance.md) covers submissions, ownership transfers, moderation reports, and appeals. See [Plugin API v1](/docs/config/plugin-api/) for manifests, capabilities, and UI contributions, and [Plugins and Key Commands](/docs/config/plugins/) for day-to-day management. Example plugins are in the [Hive repository](https://github.com/admirable-oss/hive/tree/main/examples/plugins).
+The [registry governance guide](/docs/config/registry-governance/) covers submissions, ownership transfers, moderation reports, and appeals, and [Plugin Ecosystem Health](/docs/config/plugin-ecosystem/#for-plugin-maintainers) covers compatibility, versioning and security disclosures for maintainers. See [Plugin API v1](/docs/config/plugin-api/) for manifests, capabilities, and UI contributions, and [Plugins and Key Commands](/docs/config/plugins/) for day-to-day management. Example plugins are in the [Hive repository](https://github.com/admirable-oss/hive/tree/main/examples/plugins).

@@ -16,13 +16,15 @@ Hive runs the same daemon, protocol, workspace model, agent detection, and plugi
 | Process trees | Process groups | Process groups | Job objects |
 | Daemon socket | Unix socket, peer UID checked | Unix socket, peer UID checked | AF_UNIX socket, peer SID checked |
 | Login service | launchd agent | systemd user service | Task Scheduler task at logon |
-| Install | Homebrew cask, `install.sh` | `install.sh`, Nix flake | `install.ps1` |
+| Install | Homebrew (`hive-agents` formula or `hive` cask), `install.sh` | `install.sh`, Nix flake | `install.ps1` |
 | Self-update and rollback | ✓ | ✓ | ✓ |
 | Agents survive daemon restarts | ✓ (shims) | ✓ (shims) | ✓ (shims) |
 | Strict plugin isolation | `sandbox-exec` | `bwrap` | Not available |
 | Remote machines (`--remote`) | Client and host | Client and host | Client only |
+| Local discovery ([docs](/docs/use/discovery/)) | Announce, discover, pair | Announce, discover, pair | Discover and pair only |
+| Desktop app, preview ([docs](/docs/use/desktop/)) | WebKit; 13 and later | GTK 4, WebKitGTK 6.0 | WebView2 (amd64) |
 
-A platform and architecture pair is supported when CI builds and tests it on every change and releases ship it. Windows arm64 is not built yet; it is added when CI can run it.
+A platform and architecture pair is supported when CI builds and tests it on every change and releases ship it. Windows arm64 is not built yet; it is added when CI can run it. Which features are stable, preview or unsupported is listed in [Operating Hive](/docs/help/operations/#feature-maturity).
 
 ## Install on Windows
 

@@ -289,6 +289,8 @@ export default defineConfig({
             docLink('Observers', 'use/observers'),
             docLink('Web Observer', 'use/web-observer'),
             docLink('Hive on Your Phone', 'use/mobile'),
+            docLink('Local Discovery', 'use/discovery'),
+            docLink('Desktop App (Preview)', 'use/desktop'),
             docLink('Images and Graphics', 'use/images'),
             docLink('Neural Networks', 'use/neural-networks'),
           ],
@@ -301,7 +303,10 @@ export default defineConfig({
             docLink('Configuration Reference', 'config/config-reference'),
             docLink('Plugins', 'config/plugins'),
             docLink('Plugin API v1', 'config/plugin-api'),
+            docLink('TypeScript Plugin SDK', 'config/typescript-sdk'),
             docLink('App Store', 'config/app-store'),
+            docLink('Registry Governance', 'config/registry-governance'),
+            docLink('Plugin Ecosystem Health', 'config/plugin-ecosystem'),
           ],
         },
 
@@ -312,8 +317,12 @@ export default defineConfig({
             docLink('Socket API', 'ref/socket-api'),
             docLink('API Reference', 'ref/api-reference'),
             docLink('Compatibility', 'ref/compatibility'),
+            docLink('Compatibility Matrix', 'ref/compatibility-matrix'),
             docLink('Integrations', 'ref/integrations'),
             docLink('Agent Skill', 'ref/agent-skill'),
+            docLink('Security Policy', 'ref/security'),
+            docLink('Threat Model', 'ref/threat-model'),
+            docLink('Security Review', 'ref/security-review'),
           ],
         },
 
@@ -333,6 +342,18 @@ export default defineConfig({
           label: 'Help',
           items: [
             docLink('Troubleshooting', 'help/troubleshoot'),
+            docLink('Upgrading and Recovery', 'help/upgrading'),
+            docLink('Operating Hive', 'help/operations'),
+          ],
+        },
+
+        {
+          label: 'Community',
+          items: [
+            docLink('Governance', 'community/governance'),
+            docLink('Contributing', 'community/contributing'),
+            docLink('RFCs', 'community/rfcs'),
+            docLink('RFC 0001: After 1.0.10', 'community/rfc-0001'),
           ],
         },
       ],

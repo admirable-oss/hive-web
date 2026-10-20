@@ -28,6 +28,8 @@ the Go SDK.
 | **Web observer URLs** | Stable, so bookmarks keep working. Its pages are not an API; use the observer API. |
 | **On disk** | A newer 1.x reads everything an older one wrote (environments, layouts, process records, snapshots, plugins, machines). |
 
+How the releases so far keep this promise (API levels, plugin and observer API versions, state schemas, deprecations, and how older clients work with newer daemons) is in the [compatibility matrix](/docs/ref/compatibility-matrix/). Upgrading, rolling back and recovering are in [Upgrading and Recovery](/docs/help/upgrading/).
+
 `api/v1/` holds the CLI, wire API, Go SDK, configuration, and observer API surfaces, and tests fail on
 any change that breaks them (see [api/v1/README.md](https://github.com/admirable-oss/hive/blob/main/api/v1/README.md)).
 
@@ -75,4 +77,5 @@ hole. The release notes say so plainly.
 ## Supported versions
 
 The latest 1.x minor release gets fixes; security fixes go to the latest
-two minor releases. See [SECURITY.md](https://github.com/admirable-oss/hive/blob/main/SECURITY.md).
+two minor releases. Within a minor version, only its latest patch release is
+supported; `hive update` moves you to it. See the [security policy](/docs/ref/security/#supported-versions).

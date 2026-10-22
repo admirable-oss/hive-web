@@ -1,33 +1,56 @@
 import type { Ref } from "react";
 import { cn } from "cn";
-import { useState } from "react";
-import { Button, Tab, TabList, TabPanel, Tabs } from "react-aria-components";
+import { useEffect, useState } from "react";
+import { Button, Link, Tab, TabList, TabPanel, Tabs } from "react-aria-components";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { INSTALL_METHODS, type InstallMethodId } from "@/lib/site";
+import { logInstallationAction } from "@/lib/posthog-logger";
+import { detectOS, INSTALL_METHODS, type InstallMethod } from "@/lib/site";
 
 interface InstallCopyCommandProps {
   className?: string;
   ref?: Ref<HTMLDivElement>;
+  /** Tabs to show; defaults to the CLI install methods. */
+  methods?: readonly InstallMethod[];
+  label?: string;
 }
 
-/** Install command with default / brew / nix / windows tabs and a compact terminal row. */
-export function InstallCopyCommand({ className, ref, ...rest }: InstallCopyCommandProps & Record<`data-${string}`, string>) {
-  const [method, setMethod] = useState<InstallMethodId>("default");
+const chip =
+  "clip-pixel-3 shrink-0 bg-graphite px-2.5 py-1.5 text-[10px] tracking-[.14em] text-bone uppercase outline-none transition-[background-color,color] duration-150 ease-[steps(2)] data-hovered:bg-graphite-hi data-focus-visible:outline-1 data-focus-visible:outline-offset-2 data-focus-visible:outline-honey";
+
+/**
+ * Install command with one tab per method and a compact terminal row. A row
+ * copies its command, or links to its download. After mount the tab for the
+ * visitor's OS is picked, when a method claims one.
+ */
+export function InstallCopyCommand({
+  className,
+  ref,
+  methods = INSTALL_METHODS,
+  label = "Install method",
+  ...rest
+}: InstallCopyCommandProps & Record<`data-${string}`, string>) {
+  const [method, setMethod] = useState(methods[0].id);
   const { copied, copy } = useClipboard();
+
+  useEffect(() => {
+    const os = detectOS();
+    const match = os && methods.find((m) => m.os === os);
+    if (match) setMethod(match.id);
+  }, [methods]);
 
   return (
     <div ref={ref} className={cn("clip-pixel-4 w-full max-w-md bg-bone/16 p-px font-mono", className)} {...rest}>
       <div className="clip-pixel-4 flex flex-col overflow-hidden border border-bone/8 bg-[rgb(15_15_14/.92)] backdrop-blur-sm">
       <Tabs
         selectedKey={method}
-        onSelectionChange={(key) => setMethod(key as InstallMethodId)}
+        onSelectionChange={(key) => setMethod(String(key))}
         className="flex flex-col"
       >
         <TabList
-          aria-label="Install method"
+          aria-label={label}
           className="flex border-b border-bone/10 bg-ink/30"
         >
-          {INSTALL_METHODS.map((m) => (
+          {methods.map((m) => (
             <Tab
               key={m.id}
               id={m.id}
@@ -48,7 +71,7 @@ export function InstallCopyCommand({ className, ref, ...rest }: InstallCopyComma
             </Tab>
           ))}
         </TabList>
-        {INSTALL_METHODS.map((m) => (
+        {methods.map((m) => (
           <TabPanel key={m.id} id={m.id} className="m-0 flex min-h-0 items-center justify-between gap-2 px-3 py-2.5 text-[12px] sm:text-[13px]">
             <code className="min-w-0 truncate leading-snug">
               <span className="text-honey" aria-hidden>
@@ -56,13 +79,29 @@ export function InstallCopyCommand({ className, ref, ...rest }: InstallCopyComma
               </span>
               {m.display}
             </code>
-            <Button
-              onPress={() => copy(m.command)}
-              aria-label={copied && method === m.id ? "Copied to clipboard" : `Copy “${m.command}”`}
-              className="clip-pixel-3 shrink-0 bg-graphite px-2.5 py-1.5 text-[10px] tracking-[.14em] text-bone uppercase outline-none transition-[background-color,color] duration-150 ease-[steps(2)] data-hovered:bg-graphite-hi data-focus-visible:outline-1 data-focus-visible:outline-offset-2 data-focus-visible:outline-honey"
-            >
-              {copied && method === m.id ? "Copied ✓" : "Copy"}
-            </Button>
+            {m.href ? (
+              <Link
+                href={m.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${m.display}: download for ${m.label}`}
+                onPress={() => {
+                  window.posthog?.capture("desktop_download_opened", { os: m.id });
+                  logInstallationAction("desktop_download_opened");
+                }}
+                className={cn(chip, "text-honey data-hovered:text-honey")}
+              >
+                Download
+              </Link>
+            ) : (
+              <Button
+                onPress={() => m.command && copy(m.command)}
+                aria-label={copied && method === m.id ? "Copied to clipboard" : `Copy “${m.command}”`}
+                className={chip}
+              >
+                {copied && method === m.id ? "Copied ✓" : "Copy"}
+              </Button>
+            )}
           </TabPanel>
         ))}
       </Tabs>

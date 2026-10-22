@@ -8,14 +8,23 @@ export const INSTALL_PS1_COMMAND = `irm ${INSTALL_PS1_URL} | iex`;
 
 export type InstallMethodId = "default" | "brew" | "nix" | "windows";
 
-export const INSTALL_METHODS: readonly {
-  id: InstallMethodId;
+export type InstallOS = "mac" | "windows" | "linux";
+
+export interface InstallMethod {
+  id: string;
   label: string;
-  command: string;
   display: string;
+  /** Copied to the clipboard. */
+  command?: string;
+  /** Download page instead of a command to copy. */
+  href?: string;
   /** Shell prompt shown before the command; defaults to `$`. */
   prompt?: string;
-}[] = [
+  /** Selected first for visitors on this OS. */
+  os?: InstallOS;
+}
+
+export const INSTALL_METHODS: readonly (InstallMethod & { id: InstallMethodId; command: string })[] = [
   {
     id: "default",
     label: "default",
@@ -43,8 +52,31 @@ export const INSTALL_METHODS: readonly {
   },
 ] as const;
 
+export const DESKTOP_RELEASE_URL = `${REPO}/releases/latest`;
+export const DESKTOP_CASK_COMMAND = "brew install --cask admirable-oss/tap/hive-desktop";
+
+/** Hive Desktop (preview): signed builds from the latest release, or the Homebrew cask. */
+export const DESKTOP_METHODS: readonly InstallMethod[] = [
+  { id: "macos", label: "macOS", display: "hive-desktop · universal .zip", href: DESKTOP_RELEASE_URL, prompt: "↓", os: "mac" },
+  { id: "cask", label: "brew", display: DESKTOP_CASK_COMMAND, command: DESKTOP_CASK_COMMAND },
+  { id: "windows", label: "windows", display: "hive-desktop · setup.exe", href: DESKTOP_RELEASE_URL, prompt: "↓", os: "windows" },
+  { id: "linux", label: "linux", display: "AppImage · .deb · .rpm", href: DESKTOP_RELEASE_URL, prompt: "↓", os: "linux" },
+] as const;
+
+/** Best-effort OS from the user agent; null on the server or when unsure. */
+export function detectOS(): InstallOS | null {
+  if (typeof navigator === "undefined") return null;
+  const ua = navigator.userAgent;
+  if (/Windows/i.test(ua)) return "windows";
+  if (/Android|iPhone|iPad/i.test(ua)) return null;
+  if (/Mac OS X|Macintosh/i.test(ua)) return "mac";
+  if (/Linux|X11/i.test(ua)) return "linux";
+  return null;
+}
+
 export const LINKS = {
   docs: `/docs`,
+  desktop: "/docs/use/desktop/",
   demo: "/demo",
   /** Install instructions on GitHub (legacy CTA targets). */
   install: `${REPO}#install`,

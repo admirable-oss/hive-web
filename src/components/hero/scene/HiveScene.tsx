@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject }
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Html, PerformanceMonitor } from "@react-three/drei";
 import { Raycaster, Vector2, Vector3, type Group, type Mesh, type PerspectiveCamera } from "three";
-import { RuntimeDemo } from "@/components/hero/runtime/RuntimeDemo";
+import { RuntimePreview, useEditionSwitch } from "@/components/hero/runtime/RuntimePreview";
 import { useGsapTicker } from "@/hooks/use-gsap-ticker";
 import { hiveAudio } from "@/lib/audio/hive-audio";
 import { gsap } from "@/lib/gsap";
@@ -137,6 +137,12 @@ function Ground({ signals, reducedMotion, introAt, htmlLayer, getCeiling, intens
     }
   });
 
+  // Switching CLI ↔ Desktop sends a ripple out from under the window.
+  useEditionSwitch(() => {
+    material.uniforms.uRipple.value.set(0, L.ht / 2, signals.t);
+    signals.pulse = Math.max(signals.pulse, 0.6);
+  });
+
   // Tap the floor: a ripple runs through the topology.
   const onFloorDown = (e: ThreeEvent<PointerEvent>) => {
     const g = ground.current;
@@ -160,7 +166,7 @@ function Ground({ signals, reducedMotion, introAt, htmlLayer, getCeiling, intens
               onPointerLeave={() => setLift(false)}
             >
               {/* Near edge crisp, far edge dissolving into the haze. */}
-              <RuntimeDemo
+              <RuntimePreview
                 className="size-full [mask-image:linear-gradient(to_top,black_45%,rgb(0_0_0/.25)_100%)]"
                 signals={signals}
                 reducedMotion={reducedMotion}

@@ -49,6 +49,9 @@ export function useRuntimeDemo(
         spinTime: q("spinner-time"),
         authDetail: q("cell-auth-detail"),
         authGlyph: q("cell-auth-glyph"),
+        // Desktop app only: the "done" notification and the Needs-you badge.
+        notify: q("notify"),
+        needs: q("needs-count"),
       };
       const auth = DEMO.cells.find((c) => c.id === "auth");
 
@@ -60,6 +63,8 @@ export function useRuntimeDemo(
         if (auth && "then" in auth) write(n.authDetail, done ? auth.then : auth.detail);
         n.authDetail?.classList.toggle("text-honey", done);
         n.authGlyph?.classList.toggle("text-honey", done);
+        n.notify?.toggleAttribute("data-on", done);
+        write(n.needs, done ? "2" : "1");
       };
       const reset = () => {
         [n.prompt, n.prompt2, n.reply, n.reply2].forEach((e) => write(e, ""));

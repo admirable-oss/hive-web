@@ -13,7 +13,11 @@ export interface HiveState {
   preloaded: boolean;
   /** Full-screen TUI demo is active. */
   demoOpen: boolean;
+  /** Which Hive the hero shows: the CLI runtime or the desktop app. */
+  edition: HiveEdition;
 }
+
+export type HiveEdition = "cli" | "desktop";
 
 export const useHiveStore = create<HiveState>()(() => ({
   sound: true,
@@ -21,6 +25,7 @@ export const useHiveStore = create<HiveState>()(() => ({
   introAt: null,
   preloaded: false,
   demoOpen: false,
+  edition: "cli",
 }));
 
 /** Imperative reads (animation loops, audio) without subscribing. */
@@ -40,6 +45,7 @@ export const hiveActions = {
   toggleSound: () => hiveStore.set((s) => ({ sound: !s.sound })),
   setMenuOpen: (menuOpen: boolean) => hiveStore.set({ menuOpen }),
   setDemoOpen: (demoOpen: boolean) => hiveStore.set({ demoOpen }),
+  setEdition: (edition: HiveEdition) => hiveStore.set({ edition }),
   /** Idempotent — the first caller wins. */
   beginIntro(preloaded: boolean) {
     if (hiveStore.get().introAt !== null) return;

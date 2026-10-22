@@ -106,6 +106,8 @@
     --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "Geist Mono Variable", ui-monospace, monospace;
     --font-display: "Martian Mono Variable", ui-monospace, monospace;
+    /* Native UI chrome (the desktop app preview): SF on Apple, Geist elsewhere. */
+    --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Geist Variable", system-ui, sans-serif;
 
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);

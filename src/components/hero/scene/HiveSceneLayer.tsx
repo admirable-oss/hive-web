@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { RuntimeDemo } from "@/components/hero/runtime/RuntimeDemo";
+import { RuntimePreview } from "@/components/hero/runtime/RuntimePreview";
 import { WebGLBoundary } from "@/components/shared/WebGLBoundary";
 import type { HiveSceneProps } from "./HiveScene";
 
@@ -10,7 +10,7 @@ const HiveScene = lazy(() => import("./HiveScene"));
 function FlatTerminal({ signals, reducedMotion, introAt }: Pick<HiveSceneProps, "signals" | "reducedMotion" | "introAt">) {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center px-4 [perspective:1400px] max-sm:[@media(max-height:760px)]:hidden [@media(max-height:640px)]:hidden">
-      <RuntimeDemo
+      <RuntimePreview
         className="h-[46vh] w-full max-w-[1120px] origin-bottom [transform:rotateX(40deg)] [mask-image:linear-gradient(to_top,black_45%,rgb(0_0_0/.25)_100%)]"
         signals={signals}
         reducedMotion={reducedMotion}

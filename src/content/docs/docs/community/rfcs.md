@@ -39,3 +39,4 @@ anything breaking, and each roadmap.
 |---|---|---|
 | [0001](/docs/community/rfc-0001/) | The roadmap after 1.0.10 | Proposed |
 | [0002](https://github.com/admirable-oss/hive/blob/main/rfcs/0002-task-orchestration.md) | Tasks and plans (M22) | Proposed |
+| [0003](https://github.com/admirable-oss/hive/blob/main/rfcs/0003-git-native-development.md) | Branches, from worktree to merge (M23) | Proposed |

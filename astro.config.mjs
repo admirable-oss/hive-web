@@ -283,6 +283,8 @@ export default defineConfig({
             docLink('How to Benefit From Hive', 'use/how-it-works'),
             docLink('Bees (Agents)', 'use/ai-agents'),
             docLink('Orchestration', 'use/ai-orchestration'),
+            docLink('Plans and Tasks', 'use/plans'),
+            docLink('Branches', 'use/branches'),
             docLink('Sessions', 'use/sessions-and-co'),
             docLink('Persistence', 'use/persistence'),
             docLink('Hive RC — Remote Control', 'use/rc-ra'),

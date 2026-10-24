@@ -47,6 +47,8 @@ const CURATED = {
   'docs/platforms.md': 'getting-started/platforms',
   'docs/plugins/api.md': 'config/plugin-api',
   'docs/plugins/image-graphics.md': 'use/images',
+  'docs/tasks.md': 'use/plans',
+  'docs/branches.md': 'use/branches',
   'api/v1/README.md': 'ref/compatibility',
 };
 

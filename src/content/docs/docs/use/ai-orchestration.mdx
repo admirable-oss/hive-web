@@ -26,6 +26,8 @@ hive agent read "$REVIEWER" --source recent-unwrapped -n 80
 
 `hive agent start` returns a pane ID. Use it to identify the agent for later prompts, reads, waits, and status checks. Review each worktree before merging its changes.
 
+To describe the whole job up front, with ordering, approvals and a result for every task, write a [plan](/docs/use/plans/). To review, gate and publish each worktree's changes, see [Branches](/docs/use/branches/).
+
 ## Prompt and wait in one command
 
 Use `--wait` to hold the prompt command until the agent reaches a result, and `--read` to print its latest output:

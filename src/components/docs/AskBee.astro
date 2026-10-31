@@ -1,46 +1,65 @@
 ---
 import bee from "@/content/assets/hive-bee-dark.svg";
 import { AGENT_PROMPT } from "@/lib/docs";
+import { LIMITS } from "@/lib/ask-bee/limits";
 import CopyButton from "./CopyButton.astro";
+
+const SUGGESTIONS = [
+  "How do I keep agents running after a reboot?",
+  "How do I run several agents in parallel?",
+  "How do I set a daily cost budget?",
+];
 ---
 
 <dialog id="hive-ask-bee" class="drawer" aria-labelledby="hive-ask-bee-title">
   <div class="panel">
     <div class="top">
-      <img src={bee.src} alt="" width="30" height="22" class="pixelated asleep" />
+      <img src={bee.src} alt="" width="30" height="22" class="pixelated" />
       <span id="hive-ask-bee-title" class="title">Ask Bee</span>
-      <span class="status"><span class="dot"></span>not connected</span>
+      <span class="status" data-status><span class="dot"></span><span data-status-text>answers from these docs</span></span>
       <span class="grow"></span>
       <button type="button" class="close" aria-label="Close" data-close>×</button>
     </div>
 
-    <div class="body">
-      <p class="lead">
-        Bee will answer questions from these docs once it has a backend that can answer honestly. It isn't
-        connected yet, so nothing you type here goes anywhere.
-      </p>
-      <div class="integration">
-        <div>integration point</div>
-        <div class="bone">ASK_BEE_ENDPOINT <span class="ash">= unset</span></div>
-      </div>
-      <div class="meanwhile">
-        <span class="label">MEANWHILE</span>
-        <button type="button" class="row" data-open-search>
-          Search the docs <kbd data-search-kbd>Ctrl K</kbd>
-        </button>
-        <div class="handoff">
-          <div class="handoff-head">
-            Hand the docs to your own agent
-            <CopyButton text={AGENT_PROMPT} />
+    <div class="body" data-log aria-live="polite">
+      <div class="intro" data-intro>
+        <p class="lead">
+          Ask anything about Hive. Bee reads the most relevant pages of these docs and answers from them, with
+          links to where it found the answer.
+        </p>
+        <div class="suggestions">
+          {SUGGESTIONS.map((s) => (
+            <button type="button" class="suggestion" data-suggestion>
+              {s}
+            </button>
+          ))}
+        </div>
+        <div class="meanwhile">
+          <span class="label">OR</span>
+          <button type="button" class="row" data-open-search>
+            Search the docs <kbd data-search-kbd>Ctrl K</kbd>
+          </button>
+          <div class="handoff">
+            <div class="handoff-head">
+              Hand the docs to your own agent
+              <CopyButton text={AGENT_PROMPT} />
+            </div>
+            <p>{AGENT_PROMPT}</p>
           </div>
-          <p>{AGENT_PROMPT}</p>
         </div>
       </div>
     </div>
 
-    <div class="foot">
-      <input disabled aria-disabled="true" placeholder="Bee is offline" aria-label="Ask Bee (offline)" />
-    </div>
+    <form class="foot" data-form>
+      <textarea
+        rows="1"
+        maxlength={LIMITS.question}
+        placeholder="Ask about Hive…"
+        aria-label="Ask Bee a question"
+        data-input></textarea>
+      <button type="submit" class="send" aria-label="Ask" data-send>↵</button>
+      <button type="button" class="send stop" aria-label="Stop answering" data-stop hidden>■</button>
+    </form>
   </div>
 </dialog>
 
@@ -48,7 +67,7 @@ import CopyButton from "./CopyButton.astro";
   .drawer {
     position: fixed;
     inset: 0 0 0 auto;
-    width: min(420px, 100%);
+    width: min(460px, 100%);
     max-width: none;
     height: 100%;
     max-height: none;
@@ -72,11 +91,9 @@ import CopyButton from "./CopyButton.astro";
     align-items: center;
     gap: 12px;
     height: 64px;
+    flex: none;
     padding: 0 12px 0 20px;
     border-bottom: 1px solid #1c1c1a;
-  }
-  .asleep {
-    filter: saturate(0.35) brightness(0.7);
   }
   .title {
     font-size: 16px;
@@ -93,7 +110,18 @@ import CopyButton from "./CopyButton.astro";
   .dot {
     width: 6px;
     height: 6px;
+    background: var(--sl-color-accent);
+  }
+  .status[data-state="offline"] .dot {
     background: #55534e;
+  }
+  .status[data-state="busy"] .dot {
+    animation: blink 0.8s steps(2) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.2;
+    }
   }
   .grow {
     flex: 1;
@@ -113,7 +141,13 @@ import CopyButton from "./CopyButton.astro";
     flex-direction: column;
     gap: 22px;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 24px 20px;
+  }
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
   }
   .lead {
     margin: 0;
@@ -121,20 +155,25 @@ import CopyButton from "./CopyButton.astro";
     line-height: 1.6;
     color: #b5b1a8;
   }
-  .integration {
-    padding: 12px 14px;
-    border: 1px solid #1c1c1a;
+  .suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .suggestion {
+    padding: 10px 14px;
+    border: 1px solid #2a2926;
     background: #121211;
-    font-family: var(--sl-font-mono);
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: #8f8b82;
-  }
-  .bone {
+    font: inherit;
+    font-size: 14px;
     color: #edeae3;
+    text-align: start;
+    cursor: pointer;
+    transition: border-color 0.15s;
   }
-  .ash {
-    color: #77736a;
+  .suggestion:hover,
+  .suggestion:focus-visible {
+    border-color: var(--sl-color-accent);
   }
   .meanwhile {
     display: flex;
@@ -184,48 +223,305 @@ import CopyButton from "./CopyButton.astro";
     overflow-wrap: anywhere;
   }
   .foot {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex: none;
+    margin: 0;
     padding: 14px 20px 20px;
     border-top: 1px solid #1c1c1a;
   }
-  input {
-    width: 100%;
-    height: 44px;
-    padding: 0 14px;
-    border: 1px solid #1c1c1a;
+  textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 160px;
+    padding: 11px 14px;
+    border: 1px solid #2a2926;
     border-radius: 6px;
     background: #121211;
     font: inherit;
     font-size: 14.5px;
-    color: #77736a;
-    cursor: not-allowed;
+    line-height: 1.45;
+    color: #edeae3;
+    resize: none;
+    field-sizing: content;
   }
-  input::placeholder {
+  textarea:focus-visible {
+    outline: 1px solid var(--sl-color-accent);
+    outline-offset: -1px;
+  }
+  textarea::placeholder {
     color: #77736a;
+  }
+  .send {
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border: 0;
+    border-radius: 6px;
+    background: var(--sl-color-accent);
+    font-size: 16px;
+    color: #0e0e0d;
+    cursor: pointer;
+  }
+  .send:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .stop {
+    background: #2a2926;
+    font-size: 12px;
+    color: #edeae3;
+  }
+</style>
+
+<style is:global>
+  /* Conversation, built at runtime (scoped styles do not reach it). */
+  #hive-ask-bee .msg-q {
+    align-self: flex-end;
+    max-width: 85%;
+    margin: 0;
+    padding: 10px 14px;
+    background: #1c1c1a;
+    font-size: 14.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  #hive-ask-bee .msg-a {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #hive-ask-bee .answer {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #d8d4cb;
+    overflow-wrap: anywhere;
+  }
+  #hive-ask-bee .answer > * + * {
+    margin-top: 0.75em;
+  }
+  #hive-ask-bee .answer p,
+  #hive-ask-bee .answer ul,
+  #hive-ask-bee .answer ol {
+    margin-bottom: 0;
+  }
+  #hive-ask-bee .answer ul,
+  #hive-ask-bee .answer ol {
+    padding-inline-start: 1.25em;
+  }
+  #hive-ask-bee .answer a {
+    color: var(--sl-color-accent);
+  }
+  #hive-ask-bee .answer code {
+    padding: 0.1em 0.35em;
+    background: #1c1c1a;
+    font-family: var(--sl-font-mono);
+    font-size: 0.88em;
+  }
+  #hive-ask-bee .answer pre {
+    padding: 12px 14px;
+    border: 1px solid #1c1c1a;
+    background: #121211;
+    overflow-x: auto;
+  }
+  #hive-ask-bee .answer pre code {
+    padding: 0;
+    background: none;
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+  #hive-ask-bee .thinking {
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    color: #8f8b82;
+  }
+  #hive-ask-bee .thinking::after {
+    content: "…";
+    animation: blink 0.8s steps(2) infinite;
+  }
+  #hive-ask-bee .failed {
+    color: #ff8f8f;
+  }
+  #hive-ask-bee .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  #hive-ask-bee .sources li {
+    min-width: 0;
+    max-width: 100%;
+  }
+  #hive-ask-bee .sources a {
+    display: block;
+    max-width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #2a2926;
+    font-family: var(--sl-font-mono);
+    font-size: 11.5px;
+    color: #b5b1a8;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #hive-ask-bee .sources a:hover {
+    border-color: var(--sl-color-accent);
+    color: #edeae3;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.2;
+    }
   }
 </style>
 
 <script>
+  import { ask } from "@/lib/ask-bee/client";
+  import { renderMarkdown } from "@/lib/ask-bee/markdown";
+  import { loadPagefind, retrieve } from "@/lib/ask-bee/retrieve";
+  import type { Source, Turn } from "@/lib/ask-bee/types";
+
   /*
    * Page-wide triggers, so any island or override can open these without shared refs:
    *   [data-ask-bee]     opens the Ask Bee drawer
    *   [data-open-search] opens Starlight's search dialog
    *   [data-search-kbd]  shows the platform's shortcut (⌘K on Apple devices)
    */
-  const drawer = document.querySelector<HTMLDialogElement>("#hive-ask-bee");
+  const drawer = document.querySelector<HTMLDialogElement>("#hive-ask-bee")!;
+  const $ = <T extends Element>(sel: string) => drawer.querySelector<T>(sel)!;
+  const log = $<HTMLElement>("[data-log]");
+  const form = $<HTMLFormElement>("[data-form]");
+  const input = $<HTMLTextAreaElement>("[data-input]");
+  const send = $<HTMLButtonElement>("[data-send]");
+  const stop = $<HTMLButtonElement>("[data-stop]");
+  const status = $<HTMLElement>("[data-status]");
+  const statusText = $<HTMLElement>("[data-status-text]");
+
   const openSearch = () => document.querySelector<HTMLButtonElement>("site-search button[data-open-modal]")?.click();
+  const history: Turn[] = [];
+  let running: AbortController | null = null;
+
+  function setState(state: "idle" | "busy" | "offline", text?: string) {
+    status.dataset.state = state;
+    if (text) statusText.textContent = text;
+    send.hidden = state === "busy";
+    stop.hidden = state !== "busy";
+  }
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string) => {
+    const node = document.createElement(tag);
+    node.className = className;
+    if (text) node.textContent = text;
+    return node;
+  };
+
+  const nearBottom = () => log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+  const follow = (stick: boolean) => stick && (log.scrollTop = log.scrollHeight);
+
+  function renderSources(sources: Source[]) {
+    const list = el("ul", "sources");
+    for (const s of sources) {
+      const a = el("a", "", s.title);
+      a.href = s.url;
+      a.title = s.title;
+      const li = document.createElement("li");
+      li.append(a);
+      list.append(li);
+    }
+    return list;
+  }
+
+  async function askBee(question: string) {
+    question = question.trim();
+    if (!question || running) return;
+    running = new AbortController();
+    const { signal } = running;
+
+    $("[data-intro]")?.remove();
+    log.append(el("p", "msg-q", question));
+    const box = el("div", "msg-a");
+    const answer = el("div", "answer");
+    const thinking = el("span", "thinking", "Reading the docs");
+    answer.append(thinking);
+    box.append(answer);
+    log.append(box);
+    follow(true);
+    setState("busy", "thinking");
+    window.posthog?.capture("ask_bee_asked", { follow_up: history.length > 0 });
+
+    let text = "";
+    let sources: Source[] = [];
+    try {
+      const previous = history.findLast((t) => t.role === "user")?.text;
+      sources = await retrieve(question, previous).catch(() => []);
+      thinking.textContent = sources.length ? `Reading ${sources.length} sections` : "Thinking";
+
+      for await (const event of ask({ question, sources, history: history.slice(-4) }, signal)) {
+        if (event.type === "delta") {
+          const stick = nearBottom();
+          text += event.text;
+          answer.innerHTML = renderMarkdown(text);
+          follow(stick);
+        } else if (event.type === "error") {
+          answer.replaceChildren(el("p", "failed", event.message));
+          if (/isn't connected|refused/.test(event.message)) setState("offline", "not connected");
+          return;
+        }
+      }
+      if (!text.trim()) answer.replaceChildren(el("p", "failed", "Bee had nothing to say. Try rephrasing."));
+      else {
+        history.push({ role: "user", text: question }, { role: "bee", text });
+        // Only pages the answer linked to, or every page read when it linked none.
+        const cited = sources.filter((s) => text.includes(s.url.split("#")[0]));
+        if (sources.length) box.append(renderSources(cited.length ? cited : sources));
+      }
+    } catch {
+      if (!signal.aborted) answer.replaceChildren(el("p", "failed", "Bee couldn't be reached. Check your connection."));
+      else if (!text) answer.replaceChildren(el("p", "failed", "Stopped."));
+    } finally {
+      running = null;
+      if (status.dataset.state !== "offline") setState("idle", "answers from these docs");
+      follow(nearBottom());
+      input.focus();
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = input.value;
+    input.value = "";
+    void askBee(q);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+  stop.addEventListener("click", () => running?.abort());
 
   document.addEventListener("click", (e) => {
-    const el = e.target instanceof Element ? e.target : null;
-    if (!el) return;
-    if (el.closest("[data-ask-bee]")) {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+    if (target.closest("[data-ask-bee]")) {
       document.querySelector<HTMLElement>("#starlight__sidebar:popover-open")?.hidePopover();
-      drawer?.showModal();
-    } else if (el.closest("[data-open-search]")) {
-      drawer?.close();
+      drawer.showModal();
+      input.focus();
+      // Warm the search index while the visitor types.
+      void loadPagefind().catch(() => {});
+    } else if (target.closest("#hive-ask-bee [data-suggestion]")) {
+      void askBee(target.closest("[data-suggestion]")!.textContent ?? "");
+    } else if (target.closest("[data-open-search]")) {
+      drawer.close();
       openSearch();
-    } else if (el.closest("#hive-ask-bee [data-close]") || el === drawer) {
+    } else if (target.closest("#hive-ask-bee [data-close]") || target === drawer) {
       // The dialog element itself is only hit through its backdrop.
-      drawer?.close();
+      drawer.close();
     }
   });
 

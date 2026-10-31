@@ -40,3 +40,6 @@ anything breaking, and each roadmap.
 | [0001](/docs/community/rfc-0001/) | The roadmap after 1.0.10 | Proposed |
 | [0002](https://github.com/admirable-oss/hive/blob/main/rfcs/0002-task-orchestration.md) | Tasks and plans (M22) | Proposed |
 | [0003](https://github.com/admirable-oss/hive/blob/main/rfcs/0003-git-native-development.md) | Branches, from worktree to merge (M23) | Proposed |
+| [0004](https://github.com/admirable-oss/hive/blob/main/rfcs/0004-workflow-automation.md) | Workflows, from a trigger to a report (M24) | Proposed |
+| [0005](https://github.com/admirable-oss/hive/blob/main/rfcs/0005-agent-insights.md) | Agent insights, on your machine (M25) | Proposed |
+| [0006](https://github.com/admirable-oss/hive/blob/main/rfcs/0006-plugin-ecosystem-2.md) | Plugin ecosystem 2, richer and safer (M26) | Draft |

@@ -218,7 +218,7 @@ export const MENU_LINKS = [
   { label: "Terms", detail: "Software & license terms", href: LINKS.terms, section: "Legal" },
 ] as const;
 
-export const VERSION_LABEL = "v1.0.0-rc.1";
+export const VERSION_LABEL = "v1.3.0-rc.3";
 export const LICENSE_LABEL = "Apache-2.0";
 export const LANGUAGE_LABEL = "Go";
 

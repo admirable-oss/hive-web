@@ -8,7 +8,7 @@ export const DOCS_NAV = [
   { label: "Roadmap", href: LINKS.roadmap },
 ] as const;
 
-export const DOCS_VERSION = "v1.0.0-rc.1";
+export const DOCS_VERSION = "v1.3.0-rc.3";
 
 export const DOCS_FOOTER_LINKS = [
   { label: "GitHub", href: REPO },

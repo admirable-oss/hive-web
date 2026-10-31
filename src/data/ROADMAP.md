@@ -1593,7 +1593,7 @@ How branches work: [docs/branches.md](docs/branches.md). The design:
 
 ---
 
-## M24 · Workflow Automation — `v1.5.0` — **PROPOSED**
+## M24 · Workflow Automation — `v1.5.0` — **IN PROGRESS**
 
 Reusable workflows from agents, scripts and events.
 
@@ -1631,6 +1631,51 @@ way every time.
 tests and a fix-up agent on failure. It survives a daemon restart in the
 middle, records every run with its inputs and outputs, and runs the same
 way headless in CI.
+
+### M24 progress
+
+How workflows work: [docs/workflows.md](docs/workflows.md). The design:
+[RFC 0004](rfcs/0004-workflow-automation.md).
+
+- [x] Workflow files (`internal/workflow`): versioned TOML (`version = 1`),
+  checked strictly; agent, command and plugin action steps with `needs`,
+  inputs, outputs (`$HIVE_OUTPUT`, `[outputs]`), conditions, `on_failure`,
+  `foreach` and `repeat`; a deterministic `${{ … }}` expression language.
+- [x] Shareable: the person's own files in `~/.hive/workflows`, and shared
+  ones (`[workflows] paths`, such as a repository's `.hive/workflows`) that
+  fire only once trusted at their current text.
+- [x] Triggers: Hive events (with aliases such as `agent.done` and field
+  matches), cron schedules and `every`, git pushes and new branches (saved
+  references, so pushes while no daemon ran are seen), and webhooks through
+  `workflow.fire` for plugins. Concurrency (`queue`, `parallel`, `skip`) and
+  `max_runs`; a run never triggers its own workflow.
+- [x] Deterministic runs: each records the workflow's text and digest, its
+  inputs, its trigger, and every attempt's resolved command or prompt;
+  `hive workflow rerun` repeats one.
+- [x] Reliability: retries with exponential backoff, step and run
+  timeouts, cancellation, failure handling per step; runs saved as they
+  change and resumed after a restart (agent steps are M22 tasks whose
+  agents outlive the daemon; interrupted commands run again without
+  spending a retry).
+- [x] History kept by `[retention] workflow_runs` and `workflow_run_age`,
+  with each step's output, outputs and summary; `hive workflow report`.
+- [x] Headless mode for CI: `hive workflow run --headless` with a daemon
+  of its own, a JSON report and an exit status.
+- [x] Any provider: steps name agent kinds in order of preference, or
+  `"any"`, and run with whichever is installed.
+- [x] Wire API `workflow.*` at API level 14, `pkg/hiveapi`, MCP tools,
+  plugin capabilities (trust closed to plugins), the action context's
+  `workflow`, and frozen surfaces. The TUI's Overview and the desktop app
+  show runs and notify on failures.
+- [x] The acceptance, end to end (`TestM24WorkflowOnPush`): a push to a
+  trusted repository workflow runs an agent review, the tests and a fix-up
+  agent on failure; the daemon restarts in the middle of the review without
+  the agent being prompted again; the run is recorded with its trigger,
+  inputs and outputs; and the same file runs headless as CI would, with a
+  JSON report and exit 1.
+- [ ] Workflows as registry packages, once Plugin API 2 and the registry
+  can carry them (M26).
+- [ ] RFC 0004 discussed and accepted; then tag `v1.5.0`.
 
 ---
 
@@ -1671,7 +1716,7 @@ data. Nothing leaves the machine unless it is exported.
 
 ---
 
-## M26 · Plugin Ecosystem 2 — `v1.7.0` — **PROPOSED**
+## M26 · Plugin Ecosystem 2 — `v1.7.0` — **IN PROGRESS**
 
 Richer plugins, safer by default.
 
@@ -1713,9 +1758,73 @@ installs sandboxed by default on macOS and Linux, contributes a pane view
 and a workflow step, and is tested against the next Hive release before it
 ships. Plugin API 1 plugins keep working.
 
+### M26 progress
+
+The design: [RFC 0006](rfcs/0006-plugin-ecosystem-2.md). The registry
+format: [internal/plugin/REGISTRY.md](internal/plugin/REGISTRY.md#schema-2-hive-17);
+the policy: [docs/plugins/ecosystem.md](docs/plugins/ecosystem.md#publishers-tiers-and-signatures).
+
+- [x] Trust data (delivery step 1): the installed record and `plugin.list`
+  carry tier, publisher, signer, provenance, revocation and sandbox;
+  `hive plugin list`/`info`/`install`/`update` show them, revoked releases
+  stand out, and `hive plugin doctor` refreshes them. The TUI's palette has
+  a Plugins view, the desktop app a Plugins window, and the web observer a
+  Plugins section through `observe.plugins` (credentials that see the whole
+  runtime). `pkg/hiveapi` `Plugins`. API level 16.
+- [x] Registry schema 2 (delivery step 2): `registry-2.json` beside schema
+  1, read first with a fallback only on 404; publishers with tiers and
+  ed25519 SSH keys; per-release signatures over the release statement
+  (verified in Go, interoperable with `ssh-keygen -Y sign`), provenance,
+  test results, plugin API and minimum Hive per release, per-plugin refs;
+  key revocations in `revocations.json`; `[plugins] require_signature`;
+  publisher continuity on update (`TestM26SignedPluginReleases`).
+- [x] Publishing (delivery step 3): `hive plugin publish` (tag, checksum,
+  sign, provenance, `--submit`), `hive plugin test` (against this Hive, a
+  binary or a downloaded release) and the manifest's `[test]`; the
+  `plugin-publish` action; the `plugin-compat` workflow and an official
+  plugin gate in the release workflow; `tools/plugin-registry` (verify,
+  sign, build, record-tests) wired into the submission, official publishing
+  and store sync workflows (`TestM26PublishSignedRelease`,
+  `TestM26PluginTest`).
+- [ ] The official signing key provisioned (`HIVE_PLUGIN_SIGNING_KEY` and
+  the `hive` publisher's key, docs/plugins/ecosystem.md). The pipeline
+  signs the official releases and publishes `registry-2.json` as soon as it
+  is; until then the public registry serves schema 1 alone.
+- [x] Plugin API 2 (delivery step 4): `api = 2` beside API 1, sandboxed by
+  default on macOS and Linux; `filesystem.read`, `:workspace` scopes and
+  `unconfined`; `[permissions.network] hosts` through a per-plugin proxy
+  and `[permissions.process] exec` (SBPL on macOS, bwrap plus Landlock on
+  Linux, set up by `hive __plugin-sandbox`); `isolation = "none"` and
+  sandbox-less systems need `unconfined`, per release; `[plugins]
+  isolation = "api2"`; v2 contract fixtures and SDK constants. A hostile
+  plugin is held to its grants on macOS and on Linux, as root and as a
+  user (`TestAPI2SandboxConfinesByDefault`).
+- [x] The WebAssembly runtime (delivery step 5): `[[runtime]] kind =
+  "wasm"` plugins run WASI modules in the daemon through wazero, on every
+  system; `/data` and `/config` only, no network or programs, 64 MiB of
+  memory, timeouts; `hive.call` and `hive.response` call Hive with the
+  socket's capability checks (`TestWasmPlugin`, `TestM26WasmPlugin`
+  through the real daemon, on macOS, Linux and Windows).
+- [x] Pane views, workflow steps and triggers (delivery step 6):
+  `[[contributes.views]]` with `plugin.view.set`, drawn as data in panes
+  with no process (`--view`, layouts, the TUI, `hive plugin views`), whose
+  buttons run the plugin's declared actions; `[[contributes.steps]]` with
+  typed inputs and outputs (`uses = "plugin/step"`); `[[contributes.triggers]]`
+  fired with `workflow.trigger` (`[[on]] plugin`) (`TestViewPane`,
+  `TestPluginSteps`, `TestPluginTriggers`, `TestM26PluginContributions`).
+- [x] Plugin forges and issue trackers (delivery step 6, continued):
+  `[[contributes.forges]]` behind configured hosts and before the built-in
+  ones, needing `network` for their hosts; `[[contributes.trackers]]`
+  and GitHub built in, `issue.get|search|comment` and `issue.close`
+  (closed to plugins), `hive issue`, `hive task run --from-issue`, a
+  task's `issue` in its pull request and `close_issue` on merge
+  (`TestForgesAndTrackers`, `TestForgesLookup`, `TestCloseMergedIssues`,
+  `TestM26PluginForgeAndTracker`).
+- [ ] RFC 0006 discussed and accepted; then tag `v1.7.0`.
+
 ---
 
-## M27 · Team Collaboration — `v1.8.0` — **PROPOSED**
+## M27 · Team Collaboration — `v1.8.0` — **IN PROGRESS**
 
 Share the work, keep control.
 
@@ -1748,6 +1857,41 @@ audited, and no hosted service required.
 **✅ Acceptance:** two people work in one runtime, one as operator. The
 operator can prompt and approve but not start processes. Input never
 interleaves. Every action is audited, and revoking access ends it at once.
+
+### M27 progress
+
+The design: [RFC 0007](rfcs/0007-team-collaboration.md).
+
+- [x] Members and the member socket (delivery step 1): `hive access
+  invite|list|show|grant|renew|revoke|audit|doctor|whoami`, `hive proxy
+  --member` (only `hive proxy` served over ssh), the managed
+  `authorized_keys` block (unrestricted duplicates refused), the member
+  socket re-checking members per request, connections and denials audited,
+  revocation that ends them at once. API level 17 ([docs/teams.md](docs/teams.md);
+  `TestM27Members`, `TestServer`, `TestKeysFile`).
+- [x] Roles per environment (delivery step 2): every control method
+  classified for members (`api/v1/roles.txt`), targets resolved to their
+  environment and checked on every request, lists, `api.snapshot` and
+  events filtered to the member's environments, observer-style redaction
+  below owner, operators' input to running agents only, read-only frames
+  views, `by` filled from the member, actions audited with their outcome
+  (`TestM27Roles`, `TestMemberViewsTypeOnlyWhenAllowed`,
+  `TestMemberRulesClassifyEveryMethod`, `TestRedactionCoversSecrets`).
+- [x] Shared workspaces (delivery step 3): presence (`presence.*`,
+  `hive presence`), each member's own focus, one typist per pane for
+  everyone (`pane.claim|release`, `[access] input_idle`, `pane.floor`), and
+  both in the multiplexer (`TestOneTypistPerTerminal`,
+  `TestMembersFocusIsTheirOwn`, `TestM27OneTypistAtATime`, `FuzzRegistry`).
+- [ ] Presence and the holder in the desktop app and the web observer.
+- [x] Handing over (delivery step 4): `owner` on agents, tasks and plans,
+  `agent.handover`, `task.assign` (`hive agent handover`, `hive task
+  assign`), and `actor` on events a member caused (`TestHandingOver`).
+- [x] Notifications routed by the daemon (delivery step 5): `notify`
+  events to the work's owner, else `[access] notify_fallback`, followed by
+  the multiplexer and the desktop app (`TestNotificationRecipients`).
+- [ ] The acceptance test, `docs/teams.md` and the threat model
+  (delivery step 6).
+- [ ] RFC 0007 discussed and accepted; then tag `v1.8.0`.
 
 ---
 

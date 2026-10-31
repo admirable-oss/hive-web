@@ -1,15 +1,15 @@
 ---
-title: API Reference
-description: Complete generated reference for Hive's stable wire API.
+title: "API Reference"
+description: "Complete generated reference for Hive's stable wire API: every method, event and type."
 source: https://github.com/admirable-oss/hive/blob/main/internal/runtime/tests/testdata/api-reference.md
 ---
 
-# API reference
+{/* Generated from internal/runtime/tests/testdata/api-reference.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. */}
 
 {/* Generated from the daemon's api.schema; do not edit by hand. Rewrite it
 with: HIVE_UPDATE_SURFACE=1 go test ./internal/runtime/tests -run Frozen */}
 
-API level 11. Clients speak newline-delimited JSON over the daemon's unix
+API level 17. Clients speak newline-delimited JSON over the daemon's unix
 socket (`hive api schema` prints this as JSON Schema; `pkg/hiveapi` is the Go SDK;
 the README's "Wire protocol" section has the framing). A protocol-2 client
 opens with `{"type":"hello","version":"2","params":{"client":"my-tool"}}`, then
@@ -17,7 +17,85 @@ sends requests such as
 `{"version":"2","type":"request","id":"1","method":"agent.list","params":{"all":true}}`,
 each answered by a `response` with the same `id` and a `result` or an `error`
 (`code`, `message`). Pipe methods answer, then carry a byte stream on the
-connection. Every name below is stable within 1.x (the [compatibility policy](/docs/ref/compatibility/)).
+connection. Every name below is stable within 1.x (the compatibility policy).
+
+## access
+
+### `access.audit`
+
+| Param | Type | |
+|---|---|---|
+| `limit` | `integer` |  |
+| `member` | `string` |  |
+
+Result: [\[\]access.AuditEntry](#accessauditentry)
+
+### `access.doctor`
+
+| Param | Type | |
+|---|---|---|
+| `fix` | `boolean` |  |
+
+Result: [runtime.AccessDoctor](#runtimeaccessdoctor)
+
+### `access.get`
+
+| Param | Type | |
+|---|---|---|
+| `member` | `string` |  |
+
+Result: [runtime.AccessMember](#runtimeaccessmember)
+
+### `access.grant`
+
+| Param | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `member` | `string` |  |
+| `role` | `string` | observer, operator, owner, or none to take the role away |
+
+Result: [access.Member](#accessmember)
+
+### `access.invite`
+
+| Param | Type | |
+|---|---|---|
+| `grants` | [\[\]access.Grant](#accessgrant) |  |
+| `key` | `string` |  |
+| `name` | `string` |  |
+| `print` | `boolean` |  |
+| `ttl_seconds` | `integer` |  |
+
+Result: [runtime.AccessInvited](#runtimeaccessinvited)
+
+### `access.list`
+
+No params.
+
+Result: [runtime.AccessList](#runtimeaccesslist)
+
+### `access.renew`
+
+| Param | Type | |
+|---|---|---|
+| `member` | `string` |  |
+| `ttl_seconds` | `integer` |  |
+
+Result: [access.Member](#accessmember)
+
+### `access.revoke`
+
+| Param | Type | |
+|---|---|---|
+| `member` | `string` |  |
+
+Result: [access.Member](#accessmember)
+
+### `access.whoami`
+
+No params.
+
+Result: [runtime.WhoAmI](#runtimewhoami)
 
 ## agent
 
@@ -44,6 +122,15 @@ Result: [agent.Agent](#agentagent)
 | `id` | `string` |  |
 
 Result: [agent.Agent](#agentagent)
+
+### `agent.handover`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the agent's ID, or its pane's |
+| `to` | `string` | who gets it: a member's name or ID, or owner for the runtime's own user |
+
+Result: [runtime.AgentHandedOver](#runtimeagenthandedover)
 
 ### `agent.list`
 
@@ -137,6 +224,7 @@ Result: `map[string]boolean`
 | `base` | `string` |  |
 | `env` | `map[string]string` |  |
 | `environment_id` | `string` |  |
+| `isolate` | `boolean` |  |
 | `kind` | `string` |  |
 | `name` | `string` |  |
 | `worktree` | `string` |  |
@@ -176,6 +264,129 @@ Result: [protocol.Schema](#protocolschema)
 No params.
 
 Result: [runtime.APISnapshot](#runtimeapisnapshot)
+
+## branch
+
+### `branch.check`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | read this branch's repository |
+| `repo` | `string` | read this repository (its main working tree); neither: every repository |
+
+Result: [\[\]branch.Branch](#branchbranch)
+
+### `branch.clean`
+
+| Param | Type | |
+|---|---|---|
+| `delete_branch` | `boolean` | also delete the local branch once git agrees it has merged |
+| `force` | `boolean` | remove it even with uncommitted changes (they are saved under refs/hive/saved/ first) |
+| `merged` | `boolean` | every merged branch, instead of one |
+| `ref` | `string` | the branch |
+
+Result: [\[\]branch.Branch](#branchbranch)
+
+### `branch.comment`
+
+| Param | Type | |
+|---|---|---|
+| `body` | `string` | the comment |
+| `by` | `string` | who wrote it |
+| `line` | `integer` | the line it is about, in the branch's version of the file |
+| `path` | `string` | the file it is about |
+| `ref` | `string` | the branch |
+| `send` | `boolean` | send it (and every comment not sent yet) to the branch's agent now |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.conflicts`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | the branch |
+| `with` | `string` | another branch to merge with (default: its base) |
+
+Result: [branch.Conflicts](#branchconflicts)
+
+### `branch.diff`
+
+| Param | Type | |
+|---|---|---|
+| `context` | `integer` | lines of context around each change (default 3) |
+| `limit` | `integer` | the most bytes of patch to return (default 512 KiB, at most 4 MiB) |
+| `paths` | `[]string` | only these files |
+| `ref` | `string` | the branch: its ID, environment, agent, plan/task or name |
+| `stat` | `boolean` | only the files and their line counts, no patch |
+
+Result: [branch.Diff](#branchdiff)
+
+### `branch.get`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | the branch: its ID, environment, agent, plan/task or name |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.list`
+
+| Param | Type | |
+|---|---|---|
+| `all` | `boolean` | include cleaned and removed branches |
+| `repo` | `string` | only this repository's branches (its main working tree) |
+
+Result: [\[\]branch.Branch](#branchbranch)
+
+### `branch.pr`
+
+| Param | Type | |
+|---|---|---|
+| `base` | `string` | the branch it would merge into (default: the branch's base) |
+| `body` | `string` | the description (default: its commits and gates) |
+| `draft` | `boolean` | open it as a draft |
+| `push` | `boolean` | push the branch first if the remote lacks its commits |
+| `ref` | `string` | the branch |
+| `remote` | `string` | the remote (default: its upstream's, else origin) |
+| `title` | `string` | the title (default: its first commit's subject) |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.push`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | the branch |
+| `remote` | `string` | the remote to push to (default: its upstream's, else origin) |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.ready`
+
+| Param | Type | |
+|---|---|---|
+| `gates` | [\[\]branch.Gate](#branchgate) | gates to run instead of the configured ones |
+| `ref` | `string` | the branch |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.send`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | the branch: its ID, environment, agent, plan/task or name |
+
+Result: [branch.Branch](#branchbranch)
+
+### `branch.update`
+
+| Param | Type | |
+|---|---|---|
+| `abort` | `boolean` | undo a merge or rebase stopped on a conflict |
+| `rebase` | `boolean` | rebase onto the base instead of merging it |
+| `ref` | `string` | the branch |
+
+Result: [branch.UpdateResult](#branchupdateresult)
 
 ## client
 
@@ -259,6 +470,116 @@ Result: [environment.Environment](#environmentenvironment)
 | `types` | `[]string` |  |
 
 Result: [event.subscribeResult](#eventsubscriberesult)
+
+## insights
+
+### `insights.asks`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `limit` | `integer` | at most this many (default and most 1000) |
+| `to` | `string` | until this time (default: now) |
+
+Result: [\[\]insights.Ask](#insightsask)
+
+### `insights.budgets`
+
+No params.
+
+Result: [\[\]insights.BudgetStatus](#insightsbudgetstatus)
+
+### `insights.export`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `to` | `string` | until this time (default: now) |
+| `what` | `string` | spans, usage or alerts |
+
+Result: [\[\]insights.Record](#insightsrecord)
+
+### `insights.resume`
+
+| Param | Type | |
+|---|---|---|
+| `budget` | `string` | the budget's name |
+| `key` | `string` | one key of it (a plan, environment or kind; default: every held one) |
+
+Result: [\[\]insights.BudgetStatus](#insightsbudgetstatus)
+
+### `insights.summary`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `to` | `string` | until this time (default: now) |
+
+Result: [insights.Summary](#insightssummary)
+
+### `insights.usage`
+
+| Param | Type | |
+|---|---|---|
+| `cache_read` | `integer` | input tokens read from a cache |
+| `cache_write` | `integer` | input tokens written to a cache |
+| `cost_usd` | `number` | cost in US dollars, as the agent or provider stated it |
+| `id` | `string` | the agent's pane or process ID |
+| `input` | `integer` | input tokens (not cached) |
+| `model` | `string` | the model the usage is for |
+| `output` | `integer` | output tokens |
+| `session` | `string` | the agent's session (default: the agent): totals are per session |
+| `source` | `string` | where the numbers come from: report (default), transcript, statusline, or a name of the reporter's |
+| `total` | `boolean` | the numbers are the session's totals so far (what grew is recorded), not an increment |
+
+Result: [insights.UsageResult](#insightsusageresult)
+
+## issue
+
+### `issue.close`
+
+| Param | Type | |
+|---|---|---|
+| `comment` | `string` | a comment to add as it closes |
+| `ref` | `string` | tracker:key |
+
+Result: [issue.Issue](#issueissue)
+
+### `issue.comment`
+
+| Param | Type | |
+|---|---|---|
+| `body` | `string` | the comment, as the tracker formats it (Markdown on GitHub) |
+| `ref` | `string` | tracker:key |
+
+Result: `object`
+
+### `issue.get`
+
+| Param | Type | |
+|---|---|---|
+| `ref` | `string` | tracker:key (linear:HIV-42, github:owner/repo#42) |
+
+Result: [issue.Issue](#issueissue)
+
+### `issue.search`
+
+| Param | Type | |
+|---|---|---|
+| `limit` | `integer` | at most this many (default 20, at most 100) |
+| `query` | `string` | what to search for, in the tracker's own syntax |
+| `tracker` | `string` | only this tracker (default: every one) |
+
+Result: [\[\]issue.Issue](#issueissue)
 
 ## layout
 
@@ -361,6 +682,15 @@ Result: [runtime.ObserverValidation](#runtimeobservervalidation)
 
 ## pane
 
+### `pane.claim`
+
+| Param | Type | |
+|---|---|---|
+| `force` | `boolean` |  |
+| `pane` | `string` |  |
+
+Result: [runtime.PaneClaimed](#runtimepaneclaimed)
+
 ### `pane.close`
 
 | Param | Type | |
@@ -437,6 +767,14 @@ Result: [pane.Pane](#panepane)
 | `source` | `string` |  |
 
 Result: `[]string`
+
+### `pane.release`
+
+| Param | Type | |
+|---|---|---|
+| `pane` | `string` |  |
+
+Result: `map[string]boolean`
 
 ### `pane.rename`
 
@@ -638,6 +976,63 @@ Result: [plugin.Result](#pluginresult)
 
 Result: [plugin.StatusContent](#pluginstatuscontent)
 
+### `plugin.view.clear`
+
+| Param | Type | |
+|---|---|---|
+| `doc` | [plugin.ViewDoc](#pluginviewdoc) |  |
+| `plugin` | `string` |  |
+| `view` | `string` |  |
+
+Result: [plugin.ViewContent](#pluginviewcontent)
+
+### `plugin.view.click`
+
+| Param | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `node` | `string` |  |
+| `pane` | `string` |  |
+| `plugin` | `string` |  |
+| `tab` | `string` |  |
+| `view` | `string` |  |
+
+Result: [plugin.Result](#pluginresult)
+
+### `plugin.view.set`
+
+| Param | Type | |
+|---|---|---|
+| `doc` | [plugin.ViewDoc](#pluginviewdoc) |  |
+| `plugin` | `string` |  |
+| `view` | `string` |  |
+
+Result: [plugin.ViewContent](#pluginviewcontent)
+
+### `plugin.views`
+
+No params.
+
+Result: [\[\]plugin.ViewContent](#pluginviewcontent)
+
+## presence
+
+### `presence.list`
+
+No params.
+
+Result: [runtime.PresenceList](#runtimepresencelist)
+
+### `presence.set`
+
+| Param | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `pane` | `string` |  |
+| `tab` | `string` |  |
+
+Result: [protocol.Empty](#protocolempty)
+
 ## process
 
 ### `process.get`
@@ -803,6 +1198,85 @@ Result: [pane.Tab](#panetab)
 
 Result: [pane.Tab](#panetab)
 
+## task
+
+### `task.approve`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | who decides, for the task's log |
+| `deny` | `boolean` | refuse: cancel the task instead of starting it |
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `note` | `string` | why, for the task's log |
+| `task` | `string` | the task (may be left out when one task waits) |
+
+Result: [task.Plan](#taskplan)
+
+### `task.assign`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | the task to assign; without it, the plan and its unfinished tasks |
+| `to` | `string` | who gets it: a member's name or ID, or owner for the runtime's own user |
+
+Result: [task.Plan](#taskplan)
+
+### `task.cancel`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | one of its tasks |
+
+Result: [task.Plan](#taskplan)
+
+### `task.get`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | one of its tasks |
+
+Result: [task.Plan](#taskplan)
+
+### `task.list`
+
+No params.
+
+Result: [\[\]task.Summary](#tasksummary)
+
+### `task.retry`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | one of its tasks |
+
+Result: [task.Plan](#taskplan)
+
+### `task.run`
+
+| Param | Type | |
+|---|---|---|
+| `plan` | [task.PlanSpec](#taskplanspec) | the plan, as data |
+| `source` | `string` | the plan file's name, for errors |
+| `toml` | `string` | the plan, as the text of a plan file (instead of plan) |
+
+Result: [task.Plan](#taskplan)
+
+### `task.wait`
+
+| Param | Type | |
+|---|---|---|
+| `after` | `integer` | with until=change: the plan revision already seen |
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | wait for this task rather than the whole plan |
+| `timeout_ms` | `integer` | give up after this many milliseconds (0: never) |
+| `until` | `string` | finished (default), attention (also a task waiting for a person) or change |
+
+Result: [task.WaitResult](#taskwaitresult)
+
 ## terminal
 
 ### `terminal.attach` (pipe)
@@ -879,6 +1353,123 @@ Result: [protocol.Empty](#protocolempty)
 
 Result: [terminal.SnapshotResult](#terminalsnapshotresult)
 
+## workflow
+
+### `workflow.cancel`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | who asks, for a rerun's record |
+| `id` | `string` | the run's ID, or a unique prefix of it |
+
+Result: [workflow.Run](#workflowrun)
+
+### `workflow.fire`
+
+| Param | Type | |
+|---|---|---|
+| `data` | `any` | the payload, which expressions read as trigger.data |
+| `webhook` | `string` | the webhook's name, as workflows' [[on]] webhook says |
+
+Result: [\[\]workflow.RunSummary](#workflowrunsummary)
+
+### `workflow.get`
+
+| Param | Type | |
+|---|---|---|
+| `name` | `string` | the workflow's name (hive workflow list) |
+
+Result: [workflow.Workflow](#workflowworkflow)
+
+### `workflow.list`
+
+No params.
+
+Result: [\[\]workflow.Workflow](#workflowworkflow)
+
+### `workflow.reload`
+
+No params.
+
+Result: [\[\]workflow.Workflow](#workflowworkflow)
+
+### `workflow.rerun`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | who asks, for a rerun's record |
+| `id` | `string` | the run's ID, or a unique prefix of it |
+
+Result: [workflow.Run](#workflowrun)
+
+### `workflow.run`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | who asked, for the run's record |
+| `dir` | `string` | the directory steps run in unless they name an environment (absolute) |
+| `inputs` | `map[string]string` | the workflow's inputs, by name |
+| `name` | `string` | a known workflow's name |
+| `source` | `string` | the file's name, for errors |
+| `toml` | `string` | the text of a workflow file (instead of name) |
+
+Result: [workflow.Run](#workflowrun)
+
+### `workflow.runs`
+
+| Param | Type | |
+|---|---|---|
+| `limit` | `integer` | at most this many (0: every one kept) |
+| `workflow` | `string` | only this workflow's runs |
+
+Result: [\[\]workflow.RunSummary](#workflowrunsummary)
+
+### `workflow.status`
+
+| Param | Type | |
+|---|---|---|
+| `by` | `string` | who asks, for a rerun's record |
+| `id` | `string` | the run's ID, or a unique prefix of it |
+
+Result: [workflow.Run](#workflowrun)
+
+### `workflow.trigger`
+
+| Param | Type | |
+|---|---|---|
+| `name` | `string` | the trigger's name, as the plugin's [[contributes.triggers]] says |
+| `payload` | `map[string]any` | what the workflows' match filters, and expressions read as trigger.data |
+| `plugin` | `string` | the plugin whose trigger fires (a plugin's own call says it) |
+
+Result: [runtime.workflowTriggerResult](#runtimeworkflowtriggerresult)
+
+### `workflow.trust`
+
+| Param | Type | |
+|---|---|---|
+| `name` | `string` | the workflow's name |
+| `revoke` | `boolean` | stop its triggers instead |
+
+Result: [workflow.Workflow](#workflowworkflow)
+
+### `workflow.validate`
+
+| Param | Type | |
+|---|---|---|
+| `source` | `string` | the file's name, for errors (and the workflow's name when it gives none) |
+| `toml` | `string` | the text of a workflow file |
+
+Result: [workflow.Spec](#workflowspec)
+
+### `workflow.wait`
+
+| Param | Type | |
+|---|---|---|
+| `id` | `string` | the run's ID, or a unique prefix of it |
+| `timeout_ms` | `integer` | give up after this many milliseconds (0: never) |
+
+Result: [workflow.WaitResult](#workflowwaitresult)
+
 ## worktree
 
 ### `worktree.create`
@@ -923,6 +1514,44 @@ Result: [protocol.Empty](#protocolempty)
 
 ## Types
 
+### access.AuditEntry
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `client` | `string` |  |
+| `detail` | `string` |  |
+| `environment` | `string` |  |
+| `from` | `string` |  |
+| `member` | `string` |  |
+| `method` | `string` |  |
+| `name` | `string` |  |
+| `outcome` | `string` |  |
+| `time` | `string` |  |
+
+### access.Grant
+
+| Field | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `role` | `string` |  |
+
+### access.Member
+
+| Field | Type | |
+|---|---|---|
+| `created_at` | `string` |  |
+| `expires_at` | `string` |  |
+| `fingerprint` | `string` |  |
+| `grants` | [\[\]access.Grant](#accessgrant) |  |
+| `id` | `string` |  |
+| `key` | `string` |  |
+| `last_seen_at` | `string` |  |
+| `managed` | `boolean` |  |
+| `name` | `string` |  |
+| `revoked_at` | `string` |  |
+| `state` | `string` |  |
+
 ### agent.Agent
 
 | Field | Type | |
@@ -933,6 +1562,7 @@ Result: [protocol.Empty](#protocolempty)
 | `kind` | `string` |  |
 | `last_output` | `string` |  |
 | `name` | `string` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
 | `pane_id` | `string` |  |
 | `pid` | `integer` |  |
 | `reason` | `string` |  |
@@ -1141,6 +1771,249 @@ Result: [protocol.Empty](#protocolempty)
 | `state` | `string` |  |
 | `ttl_ms` | `integer` |  |
 
+### branch.Branch
+
+| Field | Type | |
+|---|---|---|
+| `added` | `integer` | lines added |
+| `ahead` | `integer` | commits on the branch that its base lacks |
+| `base` | `string` | what the branch merges into: a branch, or a commit |
+| `base_commit` | `string` | the commit it started from |
+| `behind` | `integer` | commits on its base that the branch lacks |
+| `changed` | `[]string` | the changed files (at most 200) |
+| `checking` | `boolean` | its gates are running |
+| `cleanup` | `string` | why a merged branch's worktree was not removed |
+| `closed_at` | `string` | when its worktree was removed |
+| `comments` | [\[\]branch.Comment](#branchcomment) | review comments, sent or waiting to be sent to its agent |
+| `committed` | `boolean` | it has been seen with commits of its own |
+| `created_at` | `string` |  |
+| `deleted` | `integer` | lines deleted |
+| `dirty` | `boolean` | uncommitted changes in the worktree |
+| `environment_id` | `string` | its worktree's environment, while there is one |
+| `error` | `string` | why it could not be read last time |
+| `files` | `integer` | files changed against its base, uncommitted changes included |
+| `gates` | [\[\]branch.GateResult](#branchgateresult) | the last run of its gates |
+| `head` | `string` | the commit checked out |
+| `id` | `string` | the branch's ID in Hive: its environment's ID when it was made |
+| `in_progress` | `boolean` | a merge or rebase is stopped there, for a person to resolve |
+| `merged_at` | `string` |  |
+| `name` | `string` | the branch's name |
+| `overlaps` | [\[\]branch.Overlap](#branchoverlap) | other branches (or its base) changing the same files |
+| `owner` | [branch.Owner](#branchowner) | the agent or task it was made for |
+| `path` | `string` | its worktree, while there is one |
+| `pull_request` | [branch.PullRequest](#branchpullrequest) | the pull request opened for it, on request |
+| `pushed` | [branch.Push](#branchpush) | its last push, made on request |
+| `ready_at` | `string` | when its gates passed |
+| `ready_tree` | `string` | the files its gates passed on (a git tree) |
+| `repo` | `string` | the repository (its main working tree) |
+| `rev` | `integer` |  |
+| `saved` | `string` | the ref keeping uncommitted work discarded with its worktree |
+| `started` | `boolean` | an agent has worked there |
+| `state` | `string` | created, working, ready, merged, cleaned or removed |
+| `updated_at` | `string` |  |
+
+### branch.CheckParams
+
+| Field | Type | |
+|---|---|---|
+| `ref` | `string` | read this branch's repository |
+| `repo` | `string` | read this repository (its main working tree); neither: every repository |
+
+### branch.CleanRequest
+
+| Field | Type | |
+|---|---|---|
+| `delete_branch` | `boolean` | also delete the local branch once git agrees it has merged |
+| `force` | `boolean` | remove it even with uncommitted changes (they are saved under refs/hive/saved/ first) |
+| `merged` | `boolean` | every merged branch, instead of one |
+| `ref` | `string` | the branch |
+
+### branch.Comment
+
+| Field | Type | |
+|---|---|---|
+| `at` | `string` |  |
+| `body` | `string` |  |
+| `by` | `string` |  |
+| `id` | `integer` |  |
+| `line` | `integer` |  |
+| `path` | `string` |  |
+| `sent_at` | `string` |  |
+| `sent_to` | `string` |  |
+
+### branch.CommentRequest
+
+| Field | Type | |
+|---|---|---|
+| `body` | `string` | the comment |
+| `by` | `string` | who wrote it |
+| `line` | `integer` | the line it is about, in the branch's version of the file |
+| `path` | `string` | the file it is about |
+| `ref` | `string` | the branch |
+| `send` | `boolean` | send it (and every comment not sent yet) to the branch's agent now |
+
+### branch.ConflictFile
+
+| Field | Type | |
+|---|---|---|
+| `content` | `string` |  |
+| `path` | `string` |  |
+| `truncated` | `boolean` |  |
+
+### branch.Conflicts
+
+| Field | Type | |
+|---|---|---|
+| `branch` | `string` |  |
+| `clean` | `boolean` |  |
+| `files` | [\[\]branch.ConflictFile](#branchconflictfile) |  |
+| `with` | `string` |  |
+
+### branch.ConflictsRequest
+
+| Field | Type | |
+|---|---|---|
+| `ref` | `string` | the branch |
+| `with` | `string` | another branch to merge with (default: its base) |
+
+### branch.Diff
+
+| Field | Type | |
+|---|---|---|
+| `base` | `string` | what it merges into |
+| `branch` | `string` | the branch's name |
+| `dirty` | `boolean` |  |
+| `files` | [\[\]git.FileChange](#gitfilechange) |  |
+| `from` | `string` |  |
+| `head` | `string` |  |
+| `patch` | `string` |  |
+| `to` | `string` |  |
+| `truncated` | `boolean` |  |
+
+### branch.DiffRequest
+
+| Field | Type | |
+|---|---|---|
+| `context` | `integer` | lines of context around each change (default 3) |
+| `limit` | `integer` | the most bytes of patch to return (default 512 KiB, at most 4 MiB) |
+| `paths` | `[]string` | only these files |
+| `ref` | `string` | the branch: its ID, environment, agent, plan/task or name |
+| `stat` | `boolean` | only the files and their line counts, no patch |
+
+### branch.Gate
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` | the command, as an argument vector |
+| `name` | `string` | what it checks |
+| `repo` | `string` | only for repositories in this directory (empty: every one) |
+| `timeout_ms` | `integer` | how long it may take, in milliseconds (default 30 minutes) |
+
+### branch.GateResult
+
+| Field | Type | |
+|---|---|---|
+| `at` | `string` |  |
+| `command` | `[]string` |  |
+| `duration_ms` | `integer` |  |
+| `error` | `string` |  |
+| `exit_code` | `integer` |  |
+| `name` | `string` |  |
+| `output` | `[]string` |  |
+| `passed` | `boolean` |  |
+| `skipped` | `boolean` |  |
+
+### branch.ListRequest
+
+| Field | Type | |
+|---|---|---|
+| `all` | `boolean` | include cleaned and removed branches |
+| `repo` | `string` | only this repository's branches (its main working tree) |
+
+### branch.Overlap
+
+| Field | Type | |
+|---|---|---|
+| `branch` | `string` | the other branch's name, or the base's |
+| `conflicts` | `[]string` | files a merge of the two would conflict on |
+| `files` | `[]string` | files both change |
+| `unknown` | `boolean` | conflicts are unknown: git is too old to compute them |
+| `with` | `string` | the other branch's ID; empty when it is the base |
+
+### branch.Owner
+
+| Field | Type | |
+|---|---|---|
+| `agent` | `string` | the agent's ID |
+| `kind` | `string` | the agent's kind |
+| `plan` | `string` | the plan of the task it was made for |
+| `task` | `string` | the task it was made for |
+
+### branch.PullRequest
+
+| Field | Type | |
+|---|---|---|
+| `at` | `string` |  |
+| `draft` | `boolean` |  |
+| `forge` | `string` |  |
+| `number` | `integer` |  |
+| `url` | `string` |  |
+
+### branch.PullRequestRequest
+
+| Field | Type | |
+|---|---|---|
+| `base` | `string` | the branch it would merge into (default: the branch's base) |
+| `body` | `string` | the description (default: its commits and gates) |
+| `draft` | `boolean` | open it as a draft |
+| `push` | `boolean` | push the branch first if the remote lacks its commits |
+| `ref` | `string` | the branch |
+| `remote` | `string` | the remote (default: its upstream's, else origin) |
+| `title` | `string` | the title (default: its first commit's subject) |
+
+### branch.Push
+
+| Field | Type | |
+|---|---|---|
+| `at` | `string` |  |
+| `commit` | `string` |  |
+| `remote` | `string` |  |
+
+### branch.PushRequest
+
+| Field | Type | |
+|---|---|---|
+| `ref` | `string` | the branch |
+| `remote` | `string` | the remote to push to (default: its upstream's, else origin) |
+
+### branch.ReadyRequest
+
+| Field | Type | |
+|---|---|---|
+| `gates` | [\[\]branch.Gate](#branchgate) | gates to run instead of the configured ones |
+| `ref` | `string` | the branch |
+
+### branch.Ref
+
+| Field | Type | |
+|---|---|---|
+| `ref` | `string` | the branch: its ID, environment, agent, plan/task or name |
+
+### branch.UpdateRequest
+
+| Field | Type | |
+|---|---|---|
+| `abort` | `boolean` | undo a merge or rebase stopped on a conflict |
+| `rebase` | `boolean` | rebase onto the base instead of merging it |
+| `ref` | `string` | the branch |
+
+### branch.UpdateResult
+
+| Field | Type | |
+|---|---|---|
+| `branch` | [branch.Branch](#branchbranch) |  |
+| `conflicts` | `[]string` |  |
+
 ### environment.CreateRequest
 
 | Field | Type | |
@@ -1198,6 +2071,16 @@ Result: [protocol.Empty](#protocolempty)
 |---|---|---|
 | `seq` | `integer` |  |
 
+### git.FileChange
+
+| Field | Type | |
+|---|---|---|
+| `added` | `integer` |  |
+| `deleted` | `integer` |  |
+| `from` | `string` |  |
+| `path` | `string` |  |
+| `status` | `string` |  |
+
 ### git.Status
 
 | Field | Type | |
@@ -1213,6 +2096,279 @@ Result: [protocol.Empty](#protocolempty)
 | `staged` | `integer` |  |
 | `untracked` | `integer` |  |
 | `upstream` | `string` |  |
+
+### insights.Alert
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `budget` | `string` |  |
+| `environment` | `string` |  |
+| `held` | `boolean` |  |
+| `key` | `string` |  |
+| `level` | `string` |  |
+| `limit` | [insights.Limits](#insightslimits) |  |
+| `message` | `string` |  |
+| `per` | `string` |  |
+| `time` | `string` |  |
+| `used` | [insights.Amounts](#insightsamounts) |  |
+| `window` | `string` |  |
+
+### insights.Amounts
+
+| Field | Type | |
+|---|---|---|
+| `cost_known` | `boolean` |  |
+| `cost_usd` | `number` |  |
+| `tokens` | `integer` |  |
+| `tokens_known` | `boolean` |  |
+| `working_ms` | `integer` |  |
+
+### insights.Ask
+
+| Field | Type | |
+|---|---|---|
+| `agent` | `string` |  |
+| `end` | `string` |  |
+| `environment` | `string` |  |
+| `kind` | `string` |  |
+| `name` | `string` |  |
+| `open` | `boolean` |  |
+| `pane` | `string` |  |
+| `plan` | `string` |  |
+| `reason` | `string` |  |
+| `start` | `string` |  |
+| `state` | `string` |  |
+| `task` | `string` |  |
+| `waited_ms` | `integer` |  |
+
+### insights.AsksParams
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `limit` | `integer` | at most this many (default and most 1000) |
+| `to` | `string` | until this time (default: now) |
+
+### insights.Budget
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `cost_usd` | `number` |  |
+| `environment` | `string` |  |
+| `kind` | `string` |  |
+| `name` | `string` |  |
+| `per` | `string` |  |
+| `tokens` | `integer` |  |
+| `warn_at` | `number` |  |
+| `working_ms` | `integer` |  |
+
+### insights.BudgetStatus
+
+| Field | Type | |
+|---|---|---|
+| `budget` | [insights.Budget](#insightsbudget) |  |
+| `fraction` | `number` |  |
+| `held` | `boolean` |  |
+| `key` | `string` |  |
+| `level` | `string` |  |
+| `resumed` | `boolean` |  |
+| `used` | [insights.Amounts](#insightsamounts) |  |
+| `window` | `string` |  |
+
+### insights.ExportParams
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `to` | `string` | until this time (default: now) |
+| `what` | `string` | spans, usage or alerts |
+
+### insights.Limits
+
+| Field | Type | |
+|---|---|---|
+| `cost_usd` | `number` |  |
+| `tokens` | `integer` |  |
+| `working_ms` | `integer` |  |
+
+### insights.QueryParams
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | group rows by kind (default), agent, environment, task, day or model |
+| `environment` | `string` | only this environment |
+| `from` | `string` | from this time (default: the start of today, local time) |
+| `kind` | `string` | only this agent kind |
+| `to` | `string` | until this time (default: now) |
+
+### insights.Record
+
+| Field | Type | |
+|---|---|---|
+| `alert` | [insights.Alert](#insightsalert) |  |
+| `span` | [insights.Span](#insightsspan) |  |
+| `type` | `string` |  |
+| `usage` | [insights.Usage](#insightsusage) |  |
+| `v` | `integer` |  |
+
+### insights.ResumeParams
+
+| Field | Type | |
+|---|---|---|
+| `budget` | `string` | the budget's name |
+| `key` | `string` | one key of it (a plan, environment or kind; default: every held one) |
+
+### insights.Row
+
+| Field | Type | |
+|---|---|---|
+| `agents` | `integer` |  |
+| `asks` | `integer` |  |
+| `cost_usd` | `number` |  |
+| `key` | `string` |  |
+| `models` | `[]string` |  |
+| `sources` | `[]string` |  |
+| `states_ms` | `map[string]integer` |  |
+| `tokens` | [insights.Tokens](#insightstokens) |  |
+| `waiting_ms` | `integer` |  |
+
+### insights.Span
+
+| Field | Type | |
+|---|---|---|
+| `agent` | `string` |  |
+| `end` | `string` |  |
+| `environment` | `string` |  |
+| `kind` | `string` |  |
+| `name` | `string` |  |
+| `pane` | `string` |  |
+| `plan` | `string` |  |
+| `reason` | `string` |  |
+| `start` | `string` |  |
+| `state` | `string` |  |
+| `task` | `string` |  |
+
+### insights.Summary
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` |  |
+| `from` | `string` |  |
+| `rows` | [\[\]insights.Row](#insightsrow) |  |
+| `to` | `string` |  |
+| `total` | [insights.Row](#insightsrow) |  |
+
+### insights.Tokens
+
+| Field | Type | |
+|---|---|---|
+| `cache_read` | `integer` |  |
+| `cache_write` | `integer` |  |
+| `input` | `integer` |  |
+| `output` | `integer` |  |
+
+### insights.Usage
+
+| Field | Type | |
+|---|---|---|
+| `agent` | `string` |  |
+| `cost_usd` | `number` |  |
+| `environment` | `string` |  |
+| `kind` | `string` |  |
+| `model` | `string` |  |
+| `name` | `string` |  |
+| `pane` | `string` |  |
+| `plan` | `string` |  |
+| `session` | `string` |  |
+| `source` | `string` |  |
+| `task` | `string` |  |
+| `time` | `string` |  |
+| `tokens` | [insights.Tokens](#insightstokens) |  |
+
+### insights.UsageParams
+
+| Field | Type | |
+|---|---|---|
+| `cache_read` | `integer` | input tokens read from a cache |
+| `cache_write` | `integer` | input tokens written to a cache |
+| `cost_usd` | `number` | cost in US dollars, as the agent or provider stated it |
+| `id` | `string` | the agent's pane or process ID |
+| `input` | `integer` | input tokens (not cached) |
+| `model` | `string` | the model the usage is for |
+| `output` | `integer` | output tokens |
+| `session` | `string` | the agent's session (default: the agent): totals are per session |
+| `source` | `string` | where the numbers come from: report (default), transcript, statusline, or a name of the reporter's |
+| `total` | `boolean` | the numbers are the session's totals so far (what grew is recorded), not an increment |
+
+### insights.UsageResult
+
+| Field | Type | |
+|---|---|---|
+| `agent` | [insights.Who](#insightswho) |  |
+| `recorded` | [insights.Usage](#insightsusage) |  |
+
+### insights.Who
+
+| Field | Type | |
+|---|---|---|
+| `agent` | `string` |  |
+| `environment` | `string` |  |
+| `kind` | `string` |  |
+| `name` | `string` |  |
+| `pane` | `string` |  |
+| `plan` | `string` |  |
+| `task` | `string` |  |
+
+### issue.CloseParams
+
+| Field | Type | |
+|---|---|---|
+| `comment` | `string` | a comment to add as it closes |
+| `ref` | `string` | tracker:key |
+
+### issue.CommentParams
+
+| Field | Type | |
+|---|---|---|
+| `body` | `string` | the comment, as the tracker formats it (Markdown on GitHub) |
+| `ref` | `string` | tracker:key |
+
+### issue.Issue
+
+| Field | Type | |
+|---|---|---|
+| `assignees` | `[]string` |  |
+| `body` | `string` |  |
+| `key` | `string` | the tracker's own name for it: HIV-42, owner/repo#42 |
+| `labels` | `[]string` |  |
+| `ref` | `string` | tracker:key, as Hive names it |
+| `state` | `string` | open or closed, as the tracker says |
+| `title` | `string` |  |
+| `tracker` | `string` | the tracker: github, or a plugin's |
+| `updated_at` | `string` |  |
+| `url` | `string` |  |
+
+### issue.RefParams
+
+| Field | Type | |
+|---|---|---|
+| `ref` | `string` | tracker:key (linear:HIV-42, github:owner/repo#42) |
+
+### issue.SearchParams
+
+| Field | Type | |
+|---|---|---|
+| `limit` | `integer` | at most this many (default 20, at most 100) |
+| `query` | `string` | what to search for, in the tracker's own syntax |
+| `tracker` | `string` | only this tracker (default: every one) |
 
 ### layout.Node
 
@@ -1378,6 +2534,7 @@ Result: [protocol.Empty](#protocolempty)
 | `process_id` | `string` |  |
 | `rect` | [layout.Rect](#layoutrect) |  |
 | `tab_id` | `string` |  |
+| `view` | `string` |  |
 | `zoomed` | `boolean` |  |
 
 ### pane.Popup
@@ -1405,6 +2562,7 @@ Result: [protocol.Empty](#protocolempty)
 | `cwd` | `string` |  |
 | `env` | `map[string]string` |  |
 | `name` | `string` |  |
+| `view` | `string` |  |
 
 ### pane.SplitRequest
 
@@ -1702,9 +2860,14 @@ Result: [protocol.Empty](#protocolempty)
 |---|---|---|
 | `actions` | [\[\]plugin.ContextAction](#plugincontextaction) |  |
 | `cards` | [\[\]plugin.Card](#plugincard) |  |
+| `forges` | [\[\]plugin.ForgeDecl](#pluginforgedecl) |  |
 | `links` | [\[\]plugin.Link](#pluginlink) |  |
 | `palette` | [\[\]plugin.PaletteEntry](#pluginpaletteentry) |  |
 | `status` | [\[\]plugin.StatusIndicator](#pluginstatusindicator) |  |
+| `steps` | [\[\]plugin.StepDecl](#pluginstepdecl) |  |
+| `trackers` | [\[\]plugin.TrackerDecl](#plugintrackerdecl) |  |
+| `triggers` | [\[\]plugin.TriggerDecl](#plugintriggerdecl) |  |
+| `views` | [\[\]plugin.ViewDecl](#pluginviewdecl) |  |
 
 ### plugin.Contribution
 
@@ -1762,6 +2925,14 @@ Result: [protocol.Empty](#protocolempty)
 | `failed` | `integer` |  |
 | `queued` | `integer` |  |
 
+### plugin.ForgeDecl
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` |  |
+| `hosts` | `[]string` |  |
+| `name` | `string` |  |
+
 ### plugin.Grant
 
 | Field | Type | |
@@ -1810,6 +2981,7 @@ Result: [protocol.Empty](#protocolempty)
 | `events` | [\[\]plugin.Event](#pluginevent) |  |
 | `id` | `string` |  |
 | `isolation` | `string` |  |
+| `isolation_reason` | `string` |  |
 | `max_hive_version` | `string` |  |
 | `migrations` | [\[\]plugin.Migration](#pluginmigration) |  |
 | `min_hive_version` | `string` |  |
@@ -1818,6 +2990,7 @@ Result: [protocol.Empty](#protocolempty)
 | `platforms` | `[]string` |  |
 | `runtime` | [\[\]plugin.Runtime](#pluginruntime) |  |
 | `startup` | [\[\]plugin.Startup](#pluginstartup) |  |
+| `test` | [plugin.TestSpec](#plugintestspec) |  |
 | `version` | `string` |  |
 
 ### plugin.Migration
@@ -1828,12 +3001,27 @@ Result: [protocol.Empty](#protocolempty)
 | `from` | `integer` |  |
 | `to` | `integer` |  |
 
+### plugin.NetworkScope
+
+| Field | Type | |
+|---|---|---|
+| `hosts` | `[]string` |  |
+
 ### plugin.PaletteEntry
 
 | Field | Type | |
 |---|---|---|
 | `action` | `string` |  |
 | `title` | `string` |  |
+
+### plugin.ParamSpec
+
+| Field | Type | |
+|---|---|---|
+| `default` | `any` |  |
+| `description` | `string` |  |
+| `required` | `boolean` |  |
+| `type` | `string` |  |
 
 ### plugin.PermissionRequest
 
@@ -1848,9 +3036,27 @@ Result: [protocol.Empty](#protocolempty)
 
 | Field | Type | |
 |---|---|---|
+| `network` | [plugin.NetworkScope](#pluginnetworkscope) |  |
 | `optional` | `[]string` |  |
+| `process` | [plugin.ProcessScope](#pluginprocessscope) |  |
 | `reasons` | `map[string]string` |  |
 | `required` | `[]string` |  |
+
+### plugin.ProcessScope
+
+| Field | Type | |
+|---|---|---|
+| `exec` | `[]string` |  |
+
+### plugin.Provenance
+
+| Field | Type | |
+|---|---|---|
+| `attestation` | `string` |  |
+| `builder` | `string` |  |
+| `repository` | `string` |  |
+| `run` | `string` |  |
+| `workflow` | `string` |  |
 
 ### plugin.Result
 
@@ -1860,6 +3066,16 @@ Result: [protocol.Empty](#protocolempty)
 | `exit_code` | `integer` |  |
 | `output` | `string` |  |
 | `run` | `string` |  |
+
+### plugin.Revocation
+
+| Field | Type | |
+|---|---|---|
+| `advisory` | `string` |  |
+| `id` | `string` |  |
+| `reason` | `string` |  |
+| `revoked_at` | `string` |  |
+| `version` | `string` |  |
 
 ### plugin.RunInfo
 
@@ -1875,6 +3091,7 @@ Result: [protocol.Empty](#protocolempty)
 | Field | Type | |
 |---|---|---|
 | `command` | `string` |  |
+| `kind` | `string` |  |
 | `min_version` | `string` |  |
 
 ### plugin.Setting
@@ -1899,6 +3116,7 @@ Result: [protocol.Empty](#protocolempty)
 | Field | Type | |
 |---|---|---|
 | `api` | `integer` |  |
+| `checked_at` | `string` |  |
 | `checksum` | `string` |  |
 | `commit` | `string` |  |
 | `dir` | `string` |  |
@@ -1915,13 +3133,20 @@ Result: [protocol.Empty](#protocolempty)
 | `previous_checksum` | `string` |  |
 | `previous_commit` | `string` |  |
 | `previous_ref` | `string` |  |
+| `previous_trust` | [plugin.Trust](#plugintrust) |  |
 | `previous_version` | `string` |  |
 | `problem` | `string` |  |
+| `provenance` | [plugin.Provenance](#pluginprovenance) |  |
+| `publisher` | `string` |  |
 | `ref` | `string` |  |
 | `registry` | `boolean` |  |
+| `revoked` | [plugin.Revocation](#pluginrevocation) |  |
 | `running` | `integer` |  |
 | `runs` | [\[\]plugin.RunInfo](#pluginruninfo) |  |
+| `sandbox` | `string` |  |
+| `signed_by` | `string` |  |
 | `source` | `string` |  |
+| `tier` | `string` |  |
 | `version` | `string` |  |
 
 ### plugin.StatusContent
@@ -1951,6 +3176,138 @@ Result: [protocol.Empty](#protocolempty)
 | `tone` | `string` |  |
 | `ttl` | `integer` | nanoseconds |
 
+### plugin.StepDecl
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` |  |
+| `description` | `string` |  |
+| `inputs` | [map[string]plugin.ParamSpec](#pluginparamspec) |  |
+| `name` | `string` |  |
+| `outputs` | [map[string]plugin.ParamSpec](#pluginparamspec) |  |
+| `timeout` | `string` |  |
+
+### plugin.TestSpec
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` |  |
+| `timeout` | `string` |  |
+
+### plugin.TrackerDecl
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` |  |
+| `name` | `string` |  |
+
+### plugin.TriggerDecl
+
+| Field | Type | |
+|---|---|---|
+| `description` | `string` |  |
+| `name` | `string` |  |
+
+### plugin.Trust
+
+| Field | Type | |
+|---|---|---|
+| `checked_at` | `string` |  |
+| `provenance` | [plugin.Provenance](#pluginprovenance) |  |
+| `publisher` | `string` |  |
+| `revoked` | [plugin.Revocation](#pluginrevocation) |  |
+| `signed_by` | `string` |  |
+| `tier` | `string` |  |
+
+### plugin.ViewClick
+
+| Field | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `node` | `string` |  |
+| `pane` | `string` |  |
+| `plugin` | `string` |  |
+| `tab` | `string` |  |
+| `view` | `string` |  |
+
+### plugin.ViewContent
+
+| Field | Type | |
+|---|---|---|
+| `available` | `boolean` |  |
+| `doc` | [plugin.ViewDoc](#pluginviewdoc) |  |
+| `plugin` | `string` |  |
+| `title` | `string` |  |
+| `updated` | `string` |  |
+| `view` | `string` |  |
+
+### plugin.ViewDecl
+
+| Field | Type | |
+|---|---|---|
+| `command` | `[]string` |  |
+| `id` | `string` |  |
+| `title` | `string` |  |
+
+### plugin.ViewDoc
+
+| Field | Type | |
+|---|---|---|
+| `root` | [plugin.ViewNode](#pluginviewnode) |  |
+
+### plugin.ViewNode
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `children` | [\[\]plugin.ViewNode](#pluginviewnode) |  |
+| `columns` | `[]string` |  |
+| `id` | `string` |  |
+| `kind` | `string` |  |
+| `rows` | `[][]string` |  |
+| `style` | `string` |  |
+| `text` | `string` |  |
+| `url` | `string` |  |
+| `value` | `number` |  |
+
+### plugin.ViewUpdate
+
+| Field | Type | |
+|---|---|---|
+| `doc` | [plugin.ViewDoc](#pluginviewdoc) |  |
+| `plugin` | `string` |  |
+| `view` | `string` |  |
+
+### presence.Entry
+
+| Field | Type | |
+|---|---|---|
+| `client` | `string` |  |
+| `connection` | `string` |  |
+| `environment` | `string` |  |
+| `pane` | `string` |  |
+| `person` | [presence.Person](#presenceperson) |  |
+| `since` | `string` |  |
+| `tab` | `string` |  |
+
+### presence.Hold
+
+| Field | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `holder` | [presence.Person](#presenceperson) |  |
+| `pane` | `string` |  |
+| `process_id` | `string` |  |
+| `since` | `string` |  |
+| `until` | `string` |  |
+
+### presence.Person
+
+| Field | Type | |
+|---|---|---|
+| `id` | `string` |  |
+| `name` | `string` |  |
+
 ### process.LogsRequest
 
 | Field | Type | |
@@ -1973,6 +3330,7 @@ Result: [protocol.Empty](#protocolempty)
 | `id` | `string` |  |
 | `log_dir` | `string` |  |
 | `lost` | `boolean` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
 | `pid` | `integer` |  |
 | `started_at` | `string` |  |
 | `status` | `string` |  |
@@ -2051,6 +3409,66 @@ An object.
 | `rollups` | [agent.Rollups](#agentrollups) |  |
 | `tabs` | [\[\]pane.Tab](#panetab) |  |
 
+### runtime.AccessDoctor
+
+| Field | Type | |
+|---|---|---|
+| `authorized_keys` | `string` |  |
+| `fixed` | `boolean` |  |
+| `problems` | `[]string` |  |
+
+### runtime.AccessInviteParams
+
+| Field | Type | |
+|---|---|---|
+| `grants` | [\[\]access.Grant](#accessgrant) |  |
+| `key` | `string` |  |
+| `name` | `string` |  |
+| `print` | `boolean` |  |
+| `ttl_seconds` | `integer` |  |
+
+### runtime.AccessInvited
+
+| Field | Type | |
+|---|---|---|
+| `authorized_keys` | `string` |  |
+| `line` | `string` |  |
+| `member` | [access.Member](#accessmember) |  |
+| `socket` | `string` |  |
+
+### runtime.AccessList
+
+| Field | Type | |
+|---|---|---|
+| `authorized_keys` | `string` |  |
+| `enabled` | `boolean` |  |
+| `members` | [\[\]runtime.AccessMember](#runtimeaccessmember) |  |
+| `socket` | `string` |  |
+
+### runtime.AccessMember
+
+| Field | Type | |
+|---|---|---|
+| `connections` | `integer` |  |
+| `created_at` | `string` |  |
+| `expires_at` | `string` |  |
+| `fingerprint` | `string` |  |
+| `grants` | [\[\]access.Grant](#accessgrant) |  |
+| `id` | `string` |  |
+| `key` | `string` |  |
+| `last_seen_at` | `string` |  |
+| `managed` | `boolean` |  |
+| `name` | `string` |  |
+| `revoked_at` | `string` |  |
+| `state` | `string` |  |
+
+### runtime.AgentHandedOver
+
+| Field | Type | |
+|---|---|---|
+| `agent` | [agent.Agent](#agentagent) |  |
+| `from` | [presence.Person](#presenceperson) |  |
+
 ### runtime.AgentStartRequest
 
 | Field | Type | |
@@ -2059,6 +3477,7 @@ An object.
 | `base` | `string` |  |
 | `env` | `map[string]string` |  |
 | `environment_id` | `string` |  |
+| `isolate` | `boolean` |  |
 | `kind` | `string` |  |
 | `name` | `string` |  |
 | `worktree` | `string` |  |
@@ -2120,6 +3539,13 @@ An object.
 | `state` | `string` |  |
 | `valid` | `boolean` |  |
 
+### runtime.PaneClaimed
+
+| Field | Type | |
+|---|---|---|
+| `holder` | [presence.Person](#presenceperson) |  |
+| `previous` | [presence.Person](#presenceperson) |  |
+
 ### runtime.PluginRunRequest
 
 | Field | Type | |
@@ -2136,6 +3562,13 @@ An object.
 |---|---|---|
 | `profile` | `string` |  |
 | `seconds` | `integer` |  |
+
+### runtime.PresenceList
+
+| Field | Type | |
+|---|---|---|
+| `holds` | [\[\]presence.Hold](#presencehold) |  |
+| `presence` | [\[\]presence.Entry](#presenceentry) |  |
 
 ### runtime.Snapshot
 
@@ -2162,6 +3595,15 @@ An object.
 | `open_fds` | `integer` |  |
 | `started_at` | `string` |  |
 | `uptime_seconds` | `number` |  |
+
+### runtime.WhoAmI
+
+| Field | Type | |
+|---|---|---|
+| `from` | `string` |  |
+| `member` | [access.Member](#accessmember) |  |
+| `notify` | `boolean` |  |
+| `owner` | `boolean` |  |
 
 ### runtime.WorktreeCreateRequest
 
@@ -2202,6 +3644,40 @@ An object.
 | `id` | `string` |  |
 | `path` | `string` |  |
 
+### runtime.accessAuditParams
+
+| Field | Type | |
+|---|---|---|
+| `limit` | `integer` |  |
+| `member` | `string` |  |
+
+### runtime.accessDoctorParams
+
+| Field | Type | |
+|---|---|---|
+| `fix` | `boolean` |  |
+
+### runtime.accessGrantParams
+
+| Field | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `member` | `string` |  |
+| `role` | `string` | observer, operator, owner, or none to take the role away |
+
+### runtime.accessRef
+
+| Field | Type | |
+|---|---|---|
+| `member` | `string` |  |
+
+### runtime.accessRenewParams
+
+| Field | Type | |
+|---|---|---|
+| `member` | `string` |  |
+| `ttl_seconds` | `integer` |  |
+
 ### runtime.agentIDParams
 
 | Field | Type | |
@@ -2214,6 +3690,21 @@ An object.
 |---|---|---|
 | `id` | `string` |  |
 | `name` | `string` |  |
+
+### runtime.assignParams
+
+| Field | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | the task to assign; without it, the plan and its unfinished tasks |
+| `to` | `string` | who gets it: a member's name or ID, or owner for the runtime's own user |
+
+### runtime.handoverParams
+
+| Field | Type | |
+|---|---|---|
+| `id` | `string` | the agent's ID, or its pane's |
+| `to` | `string` | who gets it: a member's name or ID, or owner for the runtime's own user |
 
 ### runtime.observerAuditParams
 
@@ -2233,6 +3724,19 @@ An object.
 | Field | Type | |
 |---|---|---|
 | `token` | `string` |  |
+
+### runtime.paneClaimParams
+
+| Field | Type | |
+|---|---|---|
+| `force` | `boolean` |  |
+| `pane` | `string` |  |
+
+### runtime.paneReleaseParams
+
+| Field | Type | |
+|---|---|---|
+| `pane` | `string` |  |
 
 ### runtime.pluginConfigSet
 
@@ -2263,11 +3767,225 @@ An object.
 | `plugin` | `string` |  |
 | `run` | `string` |  |
 
+### runtime.presenceSetParams
+
+| Field | Type | |
+|---|---|---|
+| `environment` | `string` |  |
+| `pane` | `string` |  |
+| `tab` | `string` |  |
+
+### runtime.workflowTriggerParams
+
+| Field | Type | |
+|---|---|---|
+| `name` | `string` | the trigger's name, as the plugin's [[contributes.triggers]] says |
+| `payload` | `map[string]any` | what the workflows' match filters, and expressions read as trigger.data |
+| `plugin` | `string` | the plugin whose trigger fires (a plugin's own call says it) |
+
+### runtime.workflowTriggerResult
+
+| Field | Type | |
+|---|---|---|
+| `runs` | `[]string` |  |
+
 ### runtime.worktreeListParams
 
 | Field | Type | |
 |---|---|---|
 | `repo` | `string` |  |
+
+### task.Approval
+
+| Field | Type | |
+|---|---|---|
+| `approved` | `boolean` |  |
+| `by` | `string` |  |
+| `decided_at` | `string` |  |
+| `note` | `string` |  |
+| `requested_at` | `string` |  |
+
+### task.ApproveParams
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | who decides, for the task's log |
+| `deny` | `boolean` | refuse: cancel the task instead of starting it |
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `note` | `string` | why, for the task's log |
+| `task` | `string` | the task (may be left out when one task waits) |
+
+### task.LogEntry
+
+| Field | Type | |
+|---|---|---|
+| `message` | `string` |  |
+| `time` | `string` |  |
+
+### task.Plan
+
+| Field | Type | |
+|---|---|---|
+| `cancelled` | `boolean` |  |
+| `created_at` | `string` |  |
+| `ended_at` | `string` |  |
+| `id` | `string` |  |
+| `kinds` | `map[string]integer` |  |
+| `max_parallel` | `integer` |  |
+| `name` | `string` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
+| `reason` | `string` |  |
+| `rev` | `integer` |  |
+| `schema` | `integer` |  |
+| `state` | `string` |  |
+| `tasks` | [\[\]task.Task](#tasktask) |  |
+| `timeout_ms` | `integer` |  |
+
+### task.PlanSpec
+
+| Field | Type | |
+|---|---|---|
+| `defaults` | [task.Spec](#taskspec) | values for what a task leaves out (id, prompt and needs are never taken from here) |
+| `kinds` | `map[string]integer` | per agent kind, how many of its tasks may run at once |
+| `max_parallel` | `integer` | how many of its tasks may run at once (0: as many as the machines allow) |
+| `name` | `string` | what the plan is for |
+| `tasks` | [\[\]task.Spec](#taskspec) | the tasks, in any order; needs orders them |
+| `timeout_ms` | `integer` | the plan's time budget in milliseconds; unfinished tasks are cancelled when it runs out (0: none) |
+
+### task.Ref
+
+| Field | Type | |
+|---|---|---|
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | one of its tasks |
+
+### task.Result
+
+| Field | Type | |
+|---|---|---|
+| `changed` | `[]string` |  |
+| `changed_more` | `integer` |  |
+| `exit_code` | `integer` |  |
+| `outcome` | `string` |  |
+| `output` | `[]string` |  |
+| `screen` | `[]string` |  |
+| `summary` | `string` |  |
+
+### task.RunParams
+
+| Field | Type | |
+|---|---|---|
+| `plan` | [task.PlanSpec](#taskplanspec) | the plan, as data |
+| `source` | `string` | the plan file's name, for errors |
+| `toml` | `string` | the plan, as the text of a plan file (instead of plan) |
+
+### task.Spec
+
+| Field | Type | |
+|---|---|---|
+| `approve` | `boolean` | wait for a person's approval before starting |
+| `args` | `[]string` | extra command-line arguments for the agent |
+| `base` | `string` | where a new worktree branch starts (default HEAD) |
+| `close_issue` | `boolean` | close the issue when the task's branch merges |
+| `command` | `[]string` | with until=command: the command whose exit status decides |
+| `env` | `map[string]string` | extra environment variables for the agent |
+| `environment_id` | `string` | the environment to run in, or to make a worktree of |
+| `id` | `string` | the task's name within its plan (letters, digits, '.', '_', '-') |
+| `isolate` | `boolean` | run in a new worktree on hive/&lt;plan>/&lt;task> unless worktree names a branch |
+| `issue` | `string` | the issue it works on, as tracker:key (linear:HIV-42, github:owner/repo#42) |
+| `keep_agent` | `boolean` | leave the agent running when the task ends |
+| `kind` | `string` | the agent: claude, codex, … (see agent.manifests) |
+| `labels` | `[]string` | run on a machine that has all of these labels |
+| `machine` | `string` | the saved machine to run on (local: this one) |
+| `match` | `string` | with until=match: a regular expression the agent's screen must match |
+| `needs` | `[]string` | tasks that must succeed first |
+| `no_summary` | `boolean` | do not ask the agent to write a summary |
+| `prompt` | `string` | what the agent is asked to do |
+| `retries` | `integer` | how many times a failed attempt is retried automatically |
+| `timeout_ms` | `integer` | how long the agent may work on it, in milliseconds (0: no bound) |
+| `title` | `string` | a one-line description |
+| `until` | `string` | done (default), idle, match or command |
+| `worktree` | `string` | a branch: run in a new worktree on it |
+
+### task.Summary
+
+| Field | Type | |
+|---|---|---|
+| `attention` | [\[\]task.TaskView](#tasktaskview) |  |
+| `counts` | `map[string]integer` |  |
+| `created_at` | `string` |  |
+| `ended_at` | `string` |  |
+| `id` | `string` |  |
+| `name` | `string` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
+| `reason` | `string` |  |
+| `rev` | `integer` |  |
+| `state` | `string` |  |
+| `total` | `integer` |  |
+
+### task.Task
+
+| Field | Type | |
+|---|---|---|
+| `agent_id` | `string` |  |
+| `approval` | [task.Approval](#taskapproval) |  |
+| `attempt` | `integer` |  |
+| `base_commit` | `string` |  |
+| `ended_at` | `string` |  |
+| `environment_id` | `string` |  |
+| `log` | [\[\]task.LogEntry](#tasklogentry) |  |
+| `machine` | `string` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
+| `pane_id` | `string` |  |
+| `path` | `string` |  |
+| `phase` | `string` |  |
+| `ready_at` | `string` |  |
+| `reason` | `string` |  |
+| `remote` | `string` |  |
+| `result` | [task.Result](#taskresult) |  |
+| `retried` | `integer` |  |
+| `spec` | [task.Spec](#taskspec) |  |
+| `started_at` | `string` |  |
+| `state` | `string` |  |
+| `worked_ms` | `integer` |  |
+
+### task.TaskView
+
+| Field | Type | |
+|---|---|---|
+| `agent_id` | `string` |  |
+| `attempt` | `integer` |  |
+| `ended_at` | `string` |  |
+| `environment` | `string` |  |
+| `id` | `string` |  |
+| `kind` | `string` |  |
+| `machine` | `string` |  |
+| `needs` | `[]string` |  |
+| `owner` | [presence.Person](#presenceperson) |  |
+| `pane_id` | `string` |  |
+| `plan_id` | `string` |  |
+| `reason` | `string` |  |
+| `rev` | `integer` |  |
+| `started_at` | `string` |  |
+| `state` | `string` |  |
+| `title` | `string` |  |
+
+### task.WaitParams
+
+| Field | Type | |
+|---|---|---|
+| `after` | `integer` | with until=change: the plan revision already seen |
+| `id` | `string` | the plan's ID, or a unique prefix of it |
+| `task` | `string` | wait for this task rather than the whole plan |
+| `timeout_ms` | `integer` | give up after this many milliseconds (0: never) |
+| `until` | `string` | finished (default), attention (also a task waiting for a person) or change |
+
+### task.WaitResult
+
+| Field | Type | |
+|---|---|---|
+| `outcome` | `string` |  |
+| `plan` | [task.Plan](#taskplan) |  |
 
 ### terminal.ImageReceipt
 
@@ -2350,3 +4068,295 @@ An object.
 | `Shape` | `integer` |  |
 | `X` | `integer` |  |
 | `Y` | `integer` |  |
+
+### workflow.FireParams
+
+| Field | Type | |
+|---|---|---|
+| `data` | `any` | the payload, which expressions read as trigger.data |
+| `webhook` | `string` | the webhook's name, as workflows' [[on]] webhook says |
+
+### workflow.InputSpec
+
+| Field | Type | |
+|---|---|---|
+| `default` | `string` |  |
+| `description` | `string` |  |
+| `name` | `string` |  |
+| `required` | `boolean` |  |
+
+### workflow.LogEntry
+
+| Field | Type | |
+|---|---|---|
+| `message` | `string` |  |
+| `time` | `string` |  |
+
+### workflow.NameParams
+
+| Field | Type | |
+|---|---|---|
+| `name` | `string` | the workflow's name (hive workflow list) |
+
+### workflow.Repeat
+
+| Field | Type | |
+|---|---|---|
+| `max` | `integer` |  |
+| `until` | `string` |  |
+
+### workflow.Resolved
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `dir` | `string` |  |
+| `env` | `map[string]string` |  |
+| `environment_id` | `string` |  |
+| `kind` | `string` |  |
+| `prompt` | `string` |  |
+| `run` | `[]string` |  |
+| `shell` | `string` |  |
+| `uses` | `string` |  |
+| `with` | `map[string]string` |  |
+| `worktree` | `string` |  |
+
+### workflow.Result
+
+| Field | Type | |
+|---|---|---|
+| `attempt` | `integer` |  |
+| `changed` | `[]string` |  |
+| `changed_more` | `integer` |  |
+| `ended_at` | `string` |  |
+| `exit_code` | `integer` |  |
+| `index` | `integer` |  |
+| `item` | `string` |  |
+| `kind` | `string` |  |
+| `outcome` | `string` |  |
+| `output` | `[]string` |  |
+| `outputs` | `map[string]string` |  |
+| `plan` | `string` |  |
+| `reason` | `string` |  |
+| `resolved` | [workflow.Resolved](#workflowresolved) |  |
+| `screen` | `[]string` |  |
+| `started_at` | `string` |  |
+| `summary` | `string` |  |
+
+### workflow.Run
+
+| Field | Type | |
+|---|---|---|
+| `cancelled` | `boolean` |  |
+| `created_at` | `string` |  |
+| `digest` | `string` |  |
+| `dir` | `string` |  |
+| `ended_at` | `string` |  |
+| `id` | `string` |  |
+| `inputs` | `map[string]string` |  |
+| `outputs` | `map[string]string` |  |
+| `path` | `string` |  |
+| `reason` | `string` |  |
+| `rev` | `integer` |  |
+| `schema` | `integer` |  |
+| `source` | `string` |  |
+| `spec` | [workflow.Spec](#workflowspec) |  |
+| `started_at` | `string` |  |
+| `state` | `string` |  |
+| `steps` | [\[\]workflow.StepRun](#workflowsteprun) |  |
+| `trigger` | [workflow.Trigger](#workflowtrigger) |  |
+| `workflow` | `string` |  |
+
+### workflow.RunParams
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | who asked, for the run's record |
+| `dir` | `string` | the directory steps run in unless they name an environment (absolute) |
+| `inputs` | `map[string]string` | the workflow's inputs, by name |
+| `name` | `string` | a known workflow's name |
+| `source` | `string` | the file's name, for errors |
+| `toml` | `string` | the text of a workflow file (instead of name) |
+
+### workflow.RunRef
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` | who asks, for a rerun's record |
+| `id` | `string` | the run's ID, or a unique prefix of it |
+
+### workflow.RunSummary
+
+| Field | Type | |
+|---|---|---|
+| `counts` | `map[string]integer` |  |
+| `created_at` | `string` |  |
+| `current` | `[]string` |  |
+| `ended_at` | `string` |  |
+| `id` | `string` |  |
+| `reason` | `string` |  |
+| `rev` | `integer` |  |
+| `started_at` | `string` |  |
+| `state` | `string` |  |
+| `total` | `integer` |  |
+| `trigger` | `string` |  |
+| `workflow` | `string` |  |
+
+### workflow.RunsParams
+
+| Field | Type | |
+|---|---|---|
+| `limit` | `integer` | at most this many (0: every one kept) |
+| `workflow` | `string` | only this workflow's runs |
+
+### workflow.Spec
+
+| Field | Type | |
+|---|---|---|
+| `concurrency` | `string` |  |
+| `description` | `string` |  |
+| `environment` | `string` |  |
+| `inputs` | [\[\]workflow.InputSpec](#workflowinputspec) |  |
+| `name` | `string` |  |
+| `outputs` | `map[string]string` |  |
+| `steps` | [\[\]workflow.StepSpec](#workflowstepspec) |  |
+| `timeout_ms` | `integer` |  |
+| `triggers` | [\[\]workflow.TriggerSpec](#workflowtriggerspec) |  |
+| `version` | `integer` |  |
+
+### workflow.StepRun
+
+| Field | Type | |
+|---|---|---|
+| `attempt` | `integer` |  |
+| `attempts` | `integer` |  |
+| `current` | [workflow.Result](#workflowresult) |  |
+| `ended_at` | `string` |  |
+| `id` | `string` |  |
+| `items` | `[]string` |  |
+| `iteration` | `integer` |  |
+| `kind` | `string` |  |
+| `log` | [\[\]workflow.LogEntry](#workflowlogentry) |  |
+| `next_at` | `string` |  |
+| `reason` | `string` |  |
+| `results` | [\[\]workflow.Result](#workflowresult) |  |
+| `started_at` | `string` |  |
+| `state` | `string` |  |
+
+### workflow.StepSpec
+
+| Field | Type | |
+|---|---|---|
+| `action` | `string` |  |
+| `agent` | `[]string` |  |
+| `backoff_ms` | `integer` |  |
+| `base` | `string` |  |
+| `check` | `[]string` |  |
+| `dir` | `string` |  |
+| `env` | `map[string]string` |  |
+| `environment` | `string` |  |
+| `foreach` | `[]string` |  |
+| `foreach_expr` | `string` |  |
+| `id` | `string` |  |
+| `if` | `string` |  |
+| `isolate` | `boolean` |  |
+| `keep_agent` | `boolean` |  |
+| `labels` | `[]string` |  |
+| `machine` | `string` |  |
+| `match` | `string` |  |
+| `name` | `string` |  |
+| `needs` | `[]string` |  |
+| `no_summary` | `boolean` |  |
+| `on_failure` | `string` |  |
+| `prompt` | `string` |  |
+| `repeat` | [workflow.Repeat](#workflowrepeat) |  |
+| `retries` | `integer` |  |
+| `run` | `[]string` |  |
+| `shell` | `string` |  |
+| `timeout_ms` | `integer` |  |
+| `until` | `string` |  |
+| `uses` | `string` |  |
+| `with` | `map[string]string` |  |
+| `worktree` | `string` |  |
+
+### workflow.Trigger
+
+| Field | Type | |
+|---|---|---|
+| `by` | `string` |  |
+| `data` | `map[string]any` |  |
+| `from` | `string` |  |
+| `index` | `integer` |  |
+| `time` | `string` |  |
+| `type` | `string` |  |
+
+### workflow.TriggerInfo
+
+| Field | Type | |
+|---|---|---|
+| `description` | `string` |  |
+| `type` | `string` |  |
+
+### workflow.TriggerSpec
+
+| Field | Type | |
+|---|---|---|
+| `branches` | `[]string` |  |
+| `event` | `string` |  |
+| `every_ms` | `integer` |  |
+| `git` | `string` |  |
+| `inputs` | `map[string]string` |  |
+| `match` | `map[string]string` |  |
+| `plugin` | `string` |  |
+| `remote` | `string` |  |
+| `repo` | `string` |  |
+| `schedule` | `string` |  |
+| `webhook` | `string` |  |
+
+### workflow.TrustParams
+
+| Field | Type | |
+|---|---|---|
+| `name` | `string` | the workflow's name |
+| `revoke` | `boolean` | stop its triggers instead |
+
+### workflow.ValidateParams
+
+| Field | Type | |
+|---|---|---|
+| `source` | `string` | the file's name, for errors (and the workflow's name when it gives none) |
+| `toml` | `string` | the text of a workflow file |
+
+### workflow.WaitParams
+
+| Field | Type | |
+|---|---|---|
+| `id` | `string` | the run's ID, or a unique prefix of it |
+| `timeout_ms` | `integer` | give up after this many milliseconds (0: never) |
+
+### workflow.WaitResult
+
+| Field | Type | |
+|---|---|---|
+| `outcome` | `string` |  |
+| `run` | [workflow.Run](#workflowrun) |  |
+
+### workflow.Workflow
+
+| Field | Type | |
+|---|---|---|
+| `description` | `string` |  |
+| `digest` | `string` |  |
+| `error` | `string` |  |
+| `inputs` | [\[\]workflow.InputSpec](#workflowinputspec) |  |
+| `last` | [workflow.RunSummary](#workflowrunsummary) |  |
+| `name` | `string` |  |
+| `next` | `string` |  |
+| `own` | `boolean` |  |
+| `path` | `string` |  |
+| `problems` | `[]string` |  |
+| `spec` | [workflow.Spec](#workflowspec) |  |
+| `steps` | `integer` |  |
+| `text` | `string` |  |
+| `triggers` | [\[\]workflow.TriggerInfo](#workflowtriggerinfo) |  |
+| `trusted` | `boolean` |  |

@@ -5,7 +5,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { createHeroSignals } from "@/lib/hero-signals";
 import { useHive } from "@/lib/hive-store";
 import { SUBHEAD } from "./copy";
-import { HeroActions, HeroAgents } from "./HeroActions";
+import { HeroActions } from "./HeroActions";
 import { HeroEyebrow } from "./HeroEyebrow";
 import { HeroHeadline } from "./HeroHeadline";
 import { HiveSceneLayer } from "./scene/HiveSceneLayer";
@@ -67,13 +67,12 @@ export default function Hero({ intensity = 1 }: { intensity?: number }) {
           <HeroHeadline />
           <p
             data-reveal="b"
-            className="m-0 max-w-[36ch] text-[13px] leading-normal text-pretty text-stone/90 sm:max-w-[40ch] sm:text-sm"
+            className="m-0 max-w-[38ch] text-[13px] leading-normal text-balance text-stone/90 sm:max-w-[48ch] sm:text-sm"
           >
             {SUBHEAD}
           </p>
         </div>
         <HeroActions />
-        <HeroAgents />
       </div>
 
       <canvas ref={frontRef} aria-hidden className="pixelated pointer-events-none absolute inset-0 z-4 size-full" />

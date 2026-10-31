@@ -1,0 +1,133 @@
+---
+title: Insights and Budgets
+description: See where your agents' time went and what they used, set budgets on cost, tokens and working time, and keep it all on your machine.
+source: https://github.com/admirable-oss/hive/blob/main/rfcs/0005-agent-insights.md
+---
+
+Hive follows every agent's state, so it knows how long each one worked, sat **blocked** waiting for you (and what it asked), or idled. Where an agent reports usage, Hive adds its **tokens** and **cost**, with where each number came from. **Budgets** warn as they near their limits and can hold new tasks once they are over.
+
+```sh
+hive insights                      # today, grouped by agent kind
+hive insights --since 7d --by day  # the last week, day by day
+hive insights asks                 # every time an agent waited on you
+hive insights budgets              # each budget's use of its limits
+hive insights export --what spans --format csv -o spans.csv
+```
+
+Insights also appear in the TUI's Overview (prefix `O`, under the workflows), in the [desktop app](/docs/use/desktop/)'s sidebar, in the [web observer](/docs/use/web-observer/), in the MCP tools (`insights_summary`, `insights_budgets`) and in the Go SDK (`pkg/hiveapi`). The design is in [RFC 0005](/docs/community/rfc-0005/).
+
+:::note[Local and private]
+Everything stays in `~/.hive/insights` (or `$HIVE_HOME/insights`), kept for `[retention] insights_days` (90 by default). Nothing is sent anywhere: data leaves the machine only when you export it, or when an [observer](/docs/use/observers/) you gave a credential reads it.
+:::
+
+## Time in state
+
+Each state an agent is in becomes a **span**: its agent, kind, environment and pane, its plan and task when it works on one, its state, and when it started and ended. Spans are split at local midnight, so every span belongs to one day. A task waiting for [approval](/docs/use/plans/) is also a span.
+
+**Waiting on you** is the time agents spent blocked plus the time tasks waited for approval. `hive insights asks` lists each of those moments, newest first, with what was asked and how long it waited. Filter with `--kind`, `--env`, `--since`, `--until` and `-n`.
+
+Group the summary with `--by`:
+
+| `--by` | One row per |
+| --- | --- |
+| `kind` (default) | agent kind: `claude`, `codex`, … |
+| `agent` | agent |
+| `environment` | environment |
+| `task` | task of a plan |
+| `day` | local day |
+| `model` | model an agent reported |
+
+`--since` takes `today` (the default), a number of days (`7d` is today and the 6 before), hours (`12h`), a date or a time. `--until` takes a date (its end), a time, or a duration ago.
+
+## Usage: tokens and cost
+
+Usage is tokens (input, output, cache reads, cache writes) and cost in US dollars. Each number carries its **source**:
+
+| Source | How Hive gets it |
+| --- | --- |
+| `transcript` | The agent's hooks (`hive integration install`) pass the session's transcript, which Hive reads for tokens and the model. |
+| `statusline` | `hive insights statusline`, set as Claude Code's status line command, reports the session's cost. |
+| `report` | `hive insights report`, or the `insights.usage` method, from any script, hook or plugin. |
+
+:::caution[Unknown, never guessed]
+When an agent reports nothing, its usage shows as unknown. Hive estimates nothing, and exports leave unreported usage empty rather than zero.
+:::
+
+To report Claude Code's cost and get a short status line (model, session cost, and any budget near its limit), add this to `~/.claude/settings.json`:
+
+```json
+"statusLine": { "type": "command", "command": "hive insights statusline" }
+```
+
+It never starts the daemon, only prints outside a Hive pane, and always exits 0.
+
+From your own scripts, report what you know; what you leave out stays unknown:
+
+```sh
+hive insights report --input 1200 --output 340 --cost 0.02
+hive insights report --session "$SESSION" --total --cost 1.85 --model gpt-5
+```
+
+Run inside a pane, it reports for `$HIVE_PANE_ID`. With `--total` the numbers are the session's totals so far: Hive records only what grew, so reporting the same total twice, or from two sources, never counts it twice.
+
+## Budgets
+
+A budget limits cost, tokens or agents' working time, for each key of its window:
+
+| `per` | Window |
+| --- | --- |
+| `day` | today |
+| `plan` | each plan, over its life |
+| `environment` | each environment, today |
+| `kind` | each agent kind, today |
+
+```toml
+[[insights.budget]]
+name = "daily"
+per = "day"            # day | plan | environment | kind
+environment = "api"    # only what runs in this environment
+kind = "claude"        # only this agent kind
+cost = 25.0            # US dollars
+tokens = 20000000
+working = "10h"        # agents' working time
+warn_at = 0.8          # warn at this share of a limit
+action = "pause"       # warn | pause
+```
+
+A budget warns at `warn_at` of any of its limits. Once over, a budget with `action = "pause"` holds new tasks in its scope until its window ends, or until you lift the hold:
+
+```sh
+hive insights resume daily        # every key it holds
+hive insights resume per-env api  # one plan, environment or kind
+```
+
+:::tip[Running agents keep running]
+A budget never stops an agent that is already working. It only holds new tasks of plans. Cost and tokens count only what agents report.
+:::
+
+## Export
+
+`hive insights export` writes the records of a range as CSV or JSON:
+
+| `--what` | Records |
+| --- | --- |
+| `spans` (default) | time in each state |
+| `usage` | tokens and cost, with their sources |
+| `alerts` | budgets' warnings |
+| `summary` | the summary, as `hive insights` shows it (`--by` groups it) |
+
+```sh
+hive insights export --what summary --by day --since 30d --format json
+```
+
+Times are RFC 3339, durations are in milliseconds, and cost is in US dollars.
+
+## Configuration
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `[insights] enabled` | `true` | Record agents' time and reported usage. |
+| `[retention] insights_days` | `90` | Days of insights kept. |
+| `[[insights.budget]]` | none | Budgets, as above. |
+
+See the [Configuration Reference](/docs/config/config-reference/) for every other setting.

@@ -89,7 +89,11 @@ Hive’s config file is `~/.config/hive/config.toml` (`%APPDATA%\Hive\config.tom
 
 - **Read-only access for dashboards, bots, or a browser:** use an observer credential (`hive observer create`), never the control socket. See [Observers](https://hive.admir-saheta.com/docs/use/observers/).
 - **Check agents from a browser or phone:** `hive web runtime add`, `hive web serve`, then `hive web share` for a one-time link. It is read-only and needs HTTPS beyond localhost. See [Web Observer](https://hive.admir-saheta.com/docs/use/web-observer/) and [Hive on Your Phone](https://hive.admir-saheta.com/docs/use/mobile/).
-- **Plugins:** install reviewed ones with `hive plugin search` and `hive plugin install <id>`. Plugins declare capabilities that the human grants; `hive plugin doctor <id>` diagnoses problems. See [Plugin API v1](https://hive.admir-saheta.com/docs/config/plugin-api/).
+- **Plugins:** install reviewed ones with `hive plugin search` and `hive plugin install <id>`. Plugins declare capabilities that the human grants; `hive plugin doctor <id>` diagnoses problems. See [Plugin API](https://hive.admir-saheta.com/docs/config/plugin-api/).
+- **Many agents at once:** a plan file runs tasks in parallel with ordering and approvals (`hive task run plan.toml`), and each isolated task gets a branch Hive follows to merge. See [Plans and Tasks](https://hive.admir-saheta.com/docs/use/plans/) and [Branches](https://hive.admir-saheta.com/docs/use/branches/).
+- **Repeatable automation:** workflows are TOML files of steps fired by events, schedules, git pushes or webhooks (`hive workflow run <name>`, `--headless` in CI). See [Workflows](https://hive.admir-saheta.com/docs/use/workflows/).
+- **Time, cost, and budgets:** `hive insights` shows agents' time in each state and the usage they reported; budgets warn or hold new tasks. Everything stays local. See [Insights and Budgets](https://hive.admir-saheta.com/docs/use/insights/).
+- **Teammates:** `hive access invite` lets a teammate in over ssh with a role (observer, operator, owner). See [Teams](https://hive.admir-saheta.com/docs/use/teams/).
 
 ## Diagnosis recipes
 

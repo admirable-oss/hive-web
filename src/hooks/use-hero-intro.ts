@@ -10,7 +10,7 @@ const write = (el: HTMLElement, text: string) => {
  * Hero boot choreography on a single GSAP timeline.
  *
  * Markup contract (scoped to `scope`):
- *   [data-reveal="a|b|c|d"]          reveals (the 3D scene animates itself)
+ *   [data-reveal="a|b|c"]            reveals (the 3D scene animates itself)
  *   [data-headline]                  h1, split into masked lines
  *   [data-eyebrow] [data-eyebrow-caret]
  */
@@ -66,7 +66,6 @@ export function useHeroIntro(
       const rise = { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" };
       tl.fromTo('[data-reveal="b"]', { opacity: 0, y: 12 }, rise, 0.7);
       tl.fromTo('[data-reveal="c"]', { opacity: 0, y: 12 }, rise, 0.85);
-      tl.fromTo('[data-reveal="d"]', { opacity: 0, y: 8 }, rise, 1.0);
 
       // Islands may hydrate after the intro began — jump to "now".
       const elapsed = (performance.now() - introAt) / 1000;

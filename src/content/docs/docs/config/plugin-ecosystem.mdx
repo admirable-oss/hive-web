@@ -4,7 +4,7 @@ description: "Policies for abandoned, compromised, deprecated and removed plugin
 source: https://github.com/admirable-oss/hive/blob/main/docs/plugins/ecosystem.md
 ---
 
-<!-- Generated from docs/plugins/ecosystem.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. -->
+{/* Generated from docs/plugins/ecosystem.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. */}
 
 Policies for plugins that stop being maintained, are compromised,
 deprecated or removed. How a release is revoked. What official plugins
@@ -74,7 +74,7 @@ signature and build provenance.
   `revocations.json` and replaced the same way.
 - **Compatibility results.** Each Hive release candidate is tested with
   every listed plugin's newest release (the `plugin-compat` workflow,
-  [publishing.md](https://github.com/admirable-oss/hive/blob/main/docs/plugins/publishing.md#testing-against-hive-releases)); results
+  [publishing.md](/docs/config/plugin-publishing/#testing-against-hive-releases)); results
   are kept in `registry/compat-results.json` and listed as `tested`.
 - **Keeping it current.** The installed record keeps what the registry said
   of the release at install or update. `hive plugin doctor` checks it again

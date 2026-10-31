@@ -1,6 +1,6 @@
 ---
 title: CLI Reference
-description: Common Hive commands, global output options, and exit statuses.
+description: Common Hive commands, from agents and plans to workflows, insights and teams, with global output options and exit statuses.
 source: https://github.com/admirable-oss/hive/blob/main/README.md#cli
 ---
 
@@ -56,6 +56,65 @@ hive --remote build-box agent list
 | `hive terminal attach <id>` | Attach directly to an agent terminal; <kbd>Ctrl</kbd>+<kbd>]</kbd> detaches. |
 | `hive terminal snapshot <id> [--scrollback N]` | Print a terminal's current screen and optional history. |
 
+## Plans, branches, and issues
+
+| Command | Purpose |
+| --- | --- |
+| `hive task run [plan.toml \| -]` | Run a plan file, or one task given by flags. `--from-issue <tracker:key>` starts a task from an issue. |
+| `hive task list\|get\|report` | List plans, show a plan or one task, and print what a plan did. |
+| `hive task wait <plan> [task] [--until attention]` | Wait for a plan or task to finish, or to need you. |
+| `hive task approve\|cancel\|retry <plan> [task]` | Approve a waiting task (`--deny` cancels it), cancel work, or run failed and skipped tasks again. |
+| `hive branch list\|get\|check` | List the branches Hive follows, show one, or read them again now. |
+| `hive branch diff\|conflicts <branch>` | Show a branch's changes, or what merging it would conflict on. |
+| `hive branch comment\|send <branch>` | Add review comments and send them back to the branch's agent. |
+| `hive branch ready <branch>` | Run the branch's gates; it is ready when they pass. |
+| `hive branch update\|push\|pr\|clean` | Merge the base in, push, open a pull request, or remove merged worktrees. |
+| `hive issue get\|search\|comment\|close` | Read and update issues in GitHub and plugins' trackers (`github:owner/repo#42`). |
+
+See [Plans and Tasks](/docs/use/plans/) and [Branches](/docs/use/branches/).
+
+## Workflows
+
+| Command | Purpose |
+| --- | --- |
+| `hive workflow list\|show <name>` | List workflow files with their triggers and latest runs, or show one. |
+| `hive workflow validate <file \| ->` | Check a workflow file without running it (no daemon needed). |
+| `hive workflow run <name \| file.toml> [-i key=value] [--wait]` | Run a workflow. `--headless --json` runs it in CI with a daemon of its own. |
+| `hive workflow runs\|status\|wait\|report <run>` | List runs, follow one, and print its report. |
+| `hive workflow cancel\|rerun <run>` | Stop a run, or run it again with the same text, inputs, and trigger. |
+| `hive workflow fire <webhook>` | Fire the workflows whose webhook trigger has this name. |
+| `hive workflow trust <name>` | Let a shared workflow's triggers fire. |
+| `hive workflow reload` | Read the workflow files again. |
+
+See [Workflows](/docs/use/workflows/).
+
+## Insights and budgets
+
+| Command | Purpose |
+| --- | --- |
+| `hive insights [--since 7d] [--by kind\|agent\|environment\|task\|day\|model]` | Show agents' time in each state, and the tokens and cost they reported. |
+| `hive insights asks` | List the times agents waited on you, and what they asked. |
+| `hive insights budgets` | Show each budget's use of its limits, and what it holds. |
+| `hive insights resume <budget> [key]` | Let new tasks start again under a budget that holds them. |
+| `hive insights export --what spans\|usage\|alerts\|summary --format csv\|json` | Write insights out. |
+| `hive insights report\|statusline` | Report an agent's usage from a script, or as Claude Code's status line. |
+
+See [Insights and Budgets](/docs/use/insights/).
+
+## Teams
+
+| Command | Purpose |
+| --- | --- |
+| `hive access invite <name> --key <file> --role <role> (--env <id>… \| --all)` | Let a teammate in over ssh with a role. |
+| `hive access list\|show\|grant\|renew\|revoke` | Manage members, their roles, and their expiry. |
+| `hive access audit\|doctor\|whoami` | Read the audit log, check `authorized_keys`, and show who a connection is. |
+| `hive presence` | Show who is connected, where they are looking, and who is typing where. |
+| `hive pane claim\|release [pane]` | Take a pane's input (`--force` to take it from someone), or let it go. |
+| `hive agent handover [agent] <member>` | Give an agent, its task, and its pane's input to another member. |
+| `hive task assign <plan> [task] --to <member>` | Give a task, or a plan and its unfinished tasks, to another member. |
+
+See [Teams](/docs/use/teams/).
+
 ## Runtime and session
 
 | Command | Purpose |
@@ -92,10 +151,14 @@ hive --remote build-box agent list
 | `hive config reset-keys` | Restore default built-in keybindings. |
 | `hive plugin search\|install\|update\|rollback\|init\|validate\|link` | Find, install, update, roll back, scaffold, and check plugins. |
 | `hive plugin list\|info\|enable\|disable\|uninstall\|run\|cancel\|logs` | Manage installed plugins and their runs. |
-| `hive plugin doctor\|reload\|grant\|revoke\|config\|contributions\|capabilities` | Check health, manage capabilities and settings, and inspect UI contributions. See [Plugin API v1](/docs/config/plugin-api/). |
+| `hive plugin doctor\|reload\|grant\|revoke\|config\|contributions\|capabilities` | Check health, manage capabilities and settings, and inspect UI contributions. See [Plugin API](/docs/config/plugin-api/). |
+| `hive plugin publish [dir] [--push] [--submit]` | Tag, checksum, sign, and record a plugin release for the registry. See [Publishing Plugins](/docs/config/plugin-publishing/). |
+| `hive plugin test [dir-or-id] [--hive <version>]` | Check a plugin against a Hive release: validate, install, doctor, and its own `[test]` command. |
+| `hive plugin views\|click` | List plugins' pane views or draw one as text, and press a view's button. Open one with `hive pane split --view`. |
 | `hive plugin export\|import` | Back up and restore plugin sources, grants, settings, and optionally data. |
-| `hive plugin card\|status\|ready\|request` | Called from plugin scripts to set cards and indicators, report readiness, or ask for a capability. |
-| `hive machine add\|list\|status\|reconnect\|remove` | Save and manage SSH destinations. |
+| `hive plugin card\|status\|ready\|request\|view\|trigger` | Called from plugin scripts to set cards and indicators, report readiness, ask for a capability, set a pane view, or fire a workflow trigger. |
+| `hive machine add\|list\|status\|reconnect\|remove\|rename\|set` | Save and manage SSH destinations, and the labels tasks are placed by. |
+| `hive machine discover\|pair\|trust\|identity\|revoke` | Find runtimes on the local network and pair with them. See [Local Discovery](/docs/use/discovery/). |
 | `hive debug stats` | Print daemon runtime statistics. |
 | `hive debug pprof [--profile <name>] [--seconds N] [-o <file>]` | Capture a runtime profile for performance investigation. |
 

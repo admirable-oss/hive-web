@@ -34,6 +34,19 @@ command="hive proxy --observer",restrict ssh-ed25519 AAAA… dashboard@monitor
 Screen access exposes whatever is on screen, including secrets an agent prints. Grant `--screens` only to observers that need it.
 :::
 
+### API access is not OS isolation
+
+Observer credentials are enforced by the daemon's API. They do not isolate anything in the operating system:
+
+- **A program running as your user can still open the control socket** (`hive.sock`) and do anything you can. A token limits what an honest program does with it, and what a leaked token is worth.
+- **Only your own user's processes can connect**, to the observer socket as to every Hive socket.
+- **To hold an observer to its token**, run it somewhere else (another machine, container or account) and let it in only through SSH, with a key that can do nothing but reach the observer socket:
+
+  ```text
+  # ~/.ssh/authorized_keys on the machine running Hive
+  command="hive proxy --observer",restrict ssh-ed25519 AAAA… dashboard@monitor
+  ```
+
 ### Being observed is visible
 
 While any observer is connected, the multiplexer's tab bar shows `◉ observed by <name>`, and a pane whose screen is being watched shows `[watched]`. Programs can ask the control socket's `observer.activity` method, or follow the `observer.activity` event on `hive events`. A daemon that stops ends its observers' connections; observers never hold it up.

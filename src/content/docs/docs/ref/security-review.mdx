@@ -4,7 +4,7 @@ description: "The release-quality security review of the 1.0 train: what was che
 source: https://github.com/admirable-oss/hive/blob/main/docs/security-review.md
 ---
 
-<!-- Generated from docs/security-review.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. -->
+{/* Generated from docs/security-review.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. */}
 
 The release-quality review of the 1.0 train (M19), done on 2026-10-20 against
 [docs/threat-model.md](/docs/ref/threat-model/). It covers each area M19 names. For
@@ -54,7 +54,7 @@ review. This was not a third-party audit.
 |---|---|---|---|
 | A | **Official plugin release tags share hive's tag namespace.** The official plugins' release is the tag `v0.1.0` in `admirable-oss/hive`. Finding 9 keeps them from becoming hive versions, but a plugin release can never reuse a version hive has (or will have), and two plugins in the repository cannot release the same version separately. | Registry schema 1 requires a release's `ref` to be `v<version>`, so per-plugin tags (`auto-tab-title/v0.1.0`) cannot be expressed. Changing that needs a registry schema change, which older clients reject. | Move the official plugins to their own repository (`admirable-oss/hive-plugins`) before publishing further releases (M10's open item), and never move an existing tag. |
 | B | ~~**Installers do not check signatures.**~~ **Closed in M20 (`v1.1.0`).** | `install.sh` and `install.ps1` could not verify a raw ed25519 signature portably. | Releases now carry `checksums.txt.sshsig`, the release key's signature in OpenSSH's format, which the installers check with `ssh-keygen -Y verify` ([docs/upgrading.md](/docs/help/upgrading/#installers)). |
-| C | **Refusing another user's connection is not tested in CI.** | It needs a second account on the runner. | Manual check per minor release (`sudo -u nobody hive status` must be refused). The self-hosted runner ([docs/releasing.md](https://github.com/admirable-oss/hive/blob/main/docs/releasing.md#the-self-hosted-runner)) is specified with that account; automating the test on it is M20 work. |
+| C | **Refusing another user's connection is not tested in CI.** | It needs a second account on the runner. | Manual check per minor release (`sudo -u nobody hive status` must be refused). The self-hosted runner ([docs/releasing.md](/docs/community/releasing/#the-self-hosted-runner)) is specified with that account; automating the test on it is M20 work. |
 | D | **Desktop signing, notarization and in-app updates.** | Need Apple and Windows signing identities (M18 open items). | The app stays a preview, and is not covered by the compatibility policy, until they ship. |
-| E | **The 72-hour chaos soak** has not run for this release. | Hosted runners stop at 6 hours; it needs a self-hosted runner. | From M20 the release gate refuses a minor or major release without a successful 72-hour soak on the tagged commit ([docs/releasing.md](https://github.com/admirable-oss/hive/blob/main/docs/releasing.md#the-release-gate)). |
+| E | **The 72-hour chaos soak** has not run for this release. | Hosted runners stop at 6 hours; it needs a self-hosted runner. | From M20 the release gate refuses a minor or major release without a successful 72-hour soak on the tagged commit ([docs/releasing.md](/docs/community/releasing/#the-release-gate)). |
 | F | **Logging has no redaction filter.** | "Never log terminal content or tokens" is a coding rule (CONTRIBUTING.md), checked in review. | Consider a `slog` handler that drops known-secret keys. |

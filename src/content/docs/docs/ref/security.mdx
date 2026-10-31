@@ -4,7 +4,7 @@ description: "How to report a vulnerability, which versions get fixes, and how H
 source: https://github.com/admirable-oss/hive/blob/main/SECURITY.md
 ---
 
-<!-- Generated from SECURITY.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. -->
+{/* Generated from SECURITY.md in admirable-oss/hive by .github/scripts/sync-hive-docs.mjs. Edit it there. */}
 
 ## Reporting a vulnerability
 
@@ -111,4 +111,4 @@ go run ./tools/release-sign verify <public key> checksums.txt
 gh attestation verify <archive> -R admirable-oss/hive
 ```
 
-The public key is published with each release, built into every release binary (`buildinfo.releaseKey`) and embedded in the installers. [docs/releasing.md](https://github.com/admirable-oss/hive/blob/main/docs/releasing.md) describes the whole process.
+The public key is published with each release, built into every release binary (`buildinfo.releaseKey`) and embedded in the installers. [docs/releasing.md](/docs/community/releasing/) describes the whole process.

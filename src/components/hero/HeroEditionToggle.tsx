@@ -4,9 +4,9 @@ import { ToggleButton, ToggleButtonGroup } from "react-aria-components";
 import { hiveAudio } from "@/lib/audio/hive-audio";
 import { hiveActions, useHive, type HiveEdition } from "@/lib/hive-store";
 
-const EDITIONS: { id: HiveEdition; label: string; Icon: typeof IconTerminal2; badge?: string }[] = [
+const EDITIONS: { id: HiveEdition; label: string; Icon: typeof IconTerminal2 }[] = [
   { id: "cli", label: "CLI", Icon: IconTerminal2 },
-  { id: "desktop", label: "Desktop", Icon: IconAppWindow, badge: "New" },
+  { id: "desktop", label: "Desktop", Icon: IconAppWindow },
 ];
 
 /** CLI / Desktop switch. Swaps the install box and the preview on the floor. */
@@ -28,7 +28,7 @@ export function HeroEditionToggle({ className }: { className?: string }) {
       }}
       className={cn("clip-pixel-3 flex bg-bone/14 p-px font-mono", className)}
     >
-      {EDITIONS.map(({ id, label, Icon, badge }) => (
+      {EDITIONS.map(({ id, label, Icon }) => (
         <ToggleButton
           key={id}
           id={id}
@@ -42,9 +42,6 @@ export function HeroEditionToggle({ className }: { className?: string }) {
             <>
               <Icon aria-hidden stroke={1.75} className={cn("size-3.5", isSelected ? "text-honey" : "text-ash")} />
               {label}
-              {badge ? (
-                <span className="bg-honey px-1 py-px text-[8px] leading-none tracking-[.12em] text-ink">{badge}</span>
-              ) : null}
             </>
           )}
         </ToggleButton>

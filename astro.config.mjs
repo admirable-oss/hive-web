@@ -93,7 +93,7 @@ export default defineConfig({
   adapter: vercel({
     isr: {
       expiration: 60 * 60 * 8,
-      exclude: [/^\/_actions\//],
+      exclude: [/^\/_actions\//, /^\/api\//],
     },
   }),
 
@@ -107,6 +107,23 @@ export default defineConfig({
       HIVE_PLUGIN_REGISTRY_URL: envField.string({
         context: 'server',
         access: 'secret',
+        optional: true,
+      }),
+      // Ask Bee: the docs assistant. Without a key it says it isn't connected.
+      GEMINI_API_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      ASK_BEE_PROVIDER: envField.enum({
+        context: 'server',
+        access: 'public',
+        values: ['gemini'],
+        optional: true,
+      }),
+      ASK_BEE_MODEL: envField.string({
+        context: 'server',
+        access: 'public',
         optional: true,
       }),
     },
